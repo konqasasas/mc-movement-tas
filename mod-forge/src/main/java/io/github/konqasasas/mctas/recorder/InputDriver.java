@@ -13,8 +13,9 @@ import org.lwjgl.input.Mouse;
  * keys and turning the mouse would. Meant to be reused by the replay mod.
  *
  * <p>While installed: the player's {@code movementInput} is replaced by a scripted one, the mouse
- * no longer turns the view, auto-jump is off, and the sprint key binding follows the script. Call
- * {@link #apply} at the start of each client tick.
+ * no longer turns the view, auto-jump is off, the sprint key binding follows the script, and the
+ * game no longer opens the pause menu when its window loses focus, so a run can go on while the person
+ * uses other windows. Call {@link #apply} at the start of each client tick.
  */
 public final class InputDriver {
 
@@ -23,6 +24,7 @@ public final class InputDriver {
     private MovementInput originalInput;
     private MouseHelper originalMouse;
     private boolean originalAutoJump;
+    private boolean originalPauseOnLostFocus;
     private ScriptedMovementInput scripted;
 
     public boolean installed() {
@@ -41,6 +43,10 @@ public final class InputDriver {
         mc.mouseHelper = new FrozenMouse();
         originalAutoJump = mc.gameSettings.autoJump;
         mc.gameSettings.autoJump = false;
+        // EntityRenderer.updateCameraAndRender opens the pause menu half a second after the window
+        // loses focus, which would pause the integrated server and the player in the middle of a run.
+        originalPauseOnLostFocus = mc.gameSettings.pauseOnLostFocus;
+        mc.gameSettings.pauseOnLostFocus = false;
     }
 
     /** Sets the view angles and the keys for the tick that is about to run. */
@@ -65,6 +71,7 @@ public final class InputDriver {
         }
         mc.mouseHelper = originalMouse;
         mc.gameSettings.autoJump = originalAutoJump;
+        mc.gameSettings.pauseOnLostFocus = originalPauseOnLostFocus;
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
         player = null;
         scripted = null;

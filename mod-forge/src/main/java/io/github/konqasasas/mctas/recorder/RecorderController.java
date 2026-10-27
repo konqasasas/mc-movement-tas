@@ -16,6 +16,7 @@ import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -75,6 +76,9 @@ public final class RecorderController {
     /** Ticks on which a pushable entity was close enough to push the player. */
     private int runEntityTicks;
     private String runFirstMismatch;
+    /** A screen opened during a scripted run. Opening one releases every key binding, sprint included. */
+    private boolean runScreenOpened;
+    private int runPausedTicks;
 
     // fuzz
     private long seed;
@@ -140,7 +144,7 @@ public final class RecorderController {
         runsMatched = runsMismatched = runsInvalid = runsSkipped = 0;
         log.println("# fuzz " + (shapes ? "shapes " : "") + "seeds " + firstSeed + ".." + lastSeed + ", " + ticks + " ticks, origin " + originX + " " + originZ);
         driver.install(mc.player);
-        chat("Fuzz: " + runs + " seeds around " + originX + ", " + originZ + ". Do not touch the keyboard or mouse.");
+        chat("Fuzz: " + runs + " seeds around " + originX + ", " + originZ + ". You can switch to other windows; do not open menus in this one.");
         prepareNextScenario();
     }
 
@@ -174,6 +178,13 @@ public final class RecorderController {
         EntityPlayerSP p = mc.player;
         if (p == null || mc.world == null) {
             stop("left the world");
+            return;
+        }
+        if (mc.isGamePaused()) {
+            // The pause menu is open: neither the player nor the server ticks, so neither does the run.
+            if (phase == Phase.RUN && event.phase == TickEvent.Phase.START) {
+                runPausedTicks++;
+            }
             return;
         }
         if (event.phase == TickEvent.Phase.START) {
@@ -259,6 +270,13 @@ public final class RecorderController {
         }
     }
 
+    @SubscribeEvent
+    public void onGuiOpen(GuiOpenEvent event) {
+        if (phase == Phase.RUN && mode != Mode.RECORD && event.getGui() != null) {
+            runScreenOpened = true;
+        }
+    }
+
     private boolean entityNearby(EntityPlayerSP p) {
         for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, p.getEntityBoundingBox().grow(1.0D))) {
             if (e.canBePushed()) {
@@ -278,6 +296,8 @@ public final class RecorderController {
         runBetween = 0;
         runEntityTicks = 0;
         runFirstMismatch = null;
+        runScreenOpened = false;
+        runPausedTicks = 0;
         phase = Phase.RUN;
         log.println("# run " + label);
         log.println("# " + StateFormat.HEADER);
@@ -288,6 +308,10 @@ public final class RecorderController {
         String result;
         if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
+            runsInvalid++;
+        } else if (runScreenOpened) {
+            // The game releases all keys when a screen opens, mid-tick, so the sprint key was not the script's.
+            result = "INVALID: a screen (menu, chat, inventory) was opened during the run";
             runsInvalid++;
         } else if (runEntityTicks > 0) {
             // The engine has no other entities; mobs push the player (collideWithNearbyEntities).
@@ -300,7 +324,8 @@ public final class RecorderController {
             result = "MISMATCH " + runMismatches + " ticks, first at " + runFirstMismatch;
             runsMismatched++;
         }
-        log.println("# result " + result + ", " + runBetween + " between-tick changes");
+        log.println("# result " + result + ", " + runBetween + " between-tick changes"
+                + (runPausedTicks > 0 ? ", paused " + runPausedTicks + " ticks" : ""));
         log.flush();
         if (mode != Mode.FUZZ) {
             chat(result);
