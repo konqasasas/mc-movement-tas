@@ -187,4 +187,12 @@ final class OraclePlayer extends net.minecraft.entity.player.EntityPlayer {
         IBlockState b = this.world.getBlockState(pos.up());
         return !a.isNormalCube() && !b.isNormalCube();
     }
+
+    boolean inWebFlag() {
+        return isInWeb;
+    }
+
+    void setInWebFlag(boolean v) {
+        isInWeb = v;
+    }
 }

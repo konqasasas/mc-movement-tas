@@ -20,6 +20,7 @@ public final class PlayerSnapshot {
     // Private fields, by MCP name in a development run and by SRG name in a normal game.
     private static final Field JUMP_TICKS = field(EntityLivingBase.class, "jumpTicks", "field_70773_bE");
     private static final Field SPRINT_TOGGLE_TIMER = field(EntityPlayerSP.class, "sprintToggleTimer", "field_71156_d");
+    private static final Field IN_WEB = field(net.minecraft.entity.Entity.class, "isInWeb", "field_70134_J");
 
     private PlayerSnapshot() {
     }
@@ -45,6 +46,14 @@ public final class PlayerSnapshot {
         }
     }
 
+    private static boolean getBoolean(Field f, Object o) {
+        try {
+            return f.getBoolean(o);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public static PlayerState read(EntityPlayerSP p) {
         PlayerState s = new PlayerState();
         s.width = p.width;
@@ -63,6 +72,7 @@ public final class PlayerSnapshot {
         s.collidedHorizontally = p.collidedHorizontally;
         s.collidedVertically = p.collidedVertically;
         s.fallDistance = p.fallDistance;
+        s.inWeb = getBoolean(IN_WEB, p);
         s.sprinting = p.isSprinting();
         s.jumpTicks = getInt(JUMP_TICKS, p);
         s.jumpMovementFactor = p.jumpMovementFactor;

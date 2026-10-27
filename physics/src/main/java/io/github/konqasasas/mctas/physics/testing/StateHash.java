@@ -27,6 +27,10 @@ public final class StateHash {
         mix((s.onGround ? 1 : 0) | (s.collidedHorizontally ? 2 : 0) | (s.collidedVertically ? 4 : 0)
                 | (s.sprinting ? 8 : 0) | (s.prevJump ? 16 : 0) | (s.prevSneak ? 32 : 0));
         mix(Float.floatToIntBits(s.fallDistance));
+        if (s.inWeb) {
+            // Only mixed when set, so hashes of runs without webs stay as they were.
+            mix(0x5745_4221);
+        }
         mix(Float.floatToIntBits(s.width));
         mix(Float.floatToIntBits(s.height));
         mix(s.jumpTicks);

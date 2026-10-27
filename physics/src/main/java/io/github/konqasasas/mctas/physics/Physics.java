@@ -14,9 +14,8 @@ import java.util.UUID;
  * {@code EntityPlayer.onLivingUpdate} (air acceleration) and the size update at the end of
  * {@code EntityPlayer.onUpdate}. Each step names the method it reproduces.
  *
- * <p>Not modelled yet: liquids, ladders and vines, webs, soul sand, slime, beds, fences and walls,
- * elytra, flying, riding, using an item, other entities and the world border. Worlds that contain
- * only blocks from {@link BlockType} are fully covered.
+ * <p>Not modelled yet: liquids, elytra, flying, riding, using an item, other entities and the world
+ * border. Worlds that contain only blocks from {@link VanillaBlocks} are fully covered.
  */
 public final class Physics {
 
@@ -179,7 +178,21 @@ public final class Physics {
         if (s.onGround) {
             f6 = blockBelow(world, s).slipperiness() * 0.91F;
         }
+        if (isOnLadder(world, s)) {
+            s.motionX = McMath.clamp(s.motionX, -0.15000000596046448D, 0.15000000596046448D);
+            s.motionZ = McMath.clamp(s.motionZ, -0.15000000596046448D, 0.15000000596046448D);
+            s.fallDistance = 0.0F;
+            if (s.motionY < -0.15D) {
+                s.motionY = -0.15D;
+            }
+            if (s.isSneaking() && s.motionY < 0.0D) {
+                s.motionY = 0.0D;
+            }
+        }
         move(world, s, s.motionX, s.motionY, s.motionZ);
+        if (s.collidedHorizontally && isOnLadder(world, s)) {
+            s.motionY = 0.2D;
+        }
         s.motionY -= 0.08D;
         s.motionY *= 0.9800000190734863D;
         s.motionX *= (double) f6;
@@ -229,6 +242,15 @@ public final class Physics {
 
     /** {@code Entity.move} with {@code MoverType.SELF}. */
     static void move(BlockWorld world, PlayerState s, double x, double y, double z) {
+        if (s.inWeb) {
+            s.inWeb = false;
+            x *= 0.25D;
+            y *= 0.05000000074505806D;
+            z *= 0.25D;
+            s.motionX = 0.0D;
+            s.motionY = 0.0D;
+            s.motionZ = 0.0D;
+        }
         double d2 = x;
         double d3 = y;
         double d4 = z;
@@ -352,7 +374,20 @@ public final class Physics {
         s.collidedVertically = d3 != y;
         s.onGround = s.collidedVertically && d3 < 0.0D;
 
-        // updateFallState; fall damage is not modelled.
+        // The block the player stands on: under the feet, or a fence, wall or gate sticking up into them.
+        int bx = McMath.floor(s.posX);
+        int by = McMath.floor(s.posY - 0.20000000298023224D);
+        int bz = McMath.floor(s.posZ);
+        BlockType block = world.getBlock(bx, by, bz);
+        if (block.isAir()) {
+            BlockType below = world.getBlock(bx, by - 1, bz);
+            if (below instanceof VanillaBlocks.Fence || below instanceof VanillaBlocks.Wall
+                    || below instanceof VanillaBlocks.FenceGate) {
+                block = below;
+            }
+        }
+
+        // updateFallState; Block.onFallenUpon only deals damage, which is not modelled.
         if (s.onGround) {
             s.fallDistance = 0.0F;
         } else if (y < 0.0D) {
@@ -366,9 +401,38 @@ public final class Physics {
             s.motionZ = 0.0D;
         }
         if (d3 != y) {
-            // Block.onLanded for every block modelled so far.
-            s.motionY = 0.0D;
+            block.onLanded(s);
         }
+        if (s.onGround && !s.isSneaking()) {
+            block.onEntityWalk(s);
+        }
+        doBlockCollisions(world, s);
+    }
+
+    /** {@code Entity.doBlockCollisions}: every block the box overlaps, shrunk by 0.001. */
+    private static void doBlockCollisions(BlockWorld world, PlayerState s) {
+        Aabb bb = s.box;
+        int x0 = McMath.floor(bb.minX + 0.001D);
+        int y0 = McMath.floor(bb.minY + 0.001D);
+        int z0 = McMath.floor(bb.minZ + 0.001D);
+        int x1 = McMath.floor(bb.maxX - 0.001D);
+        int y1 = McMath.floor(bb.maxY - 0.001D);
+        int z1 = McMath.floor(bb.maxZ - 0.001D);
+        for (int i = x0; i <= x1; ++i) {
+            for (int j = y0; j <= y1; ++j) {
+                for (int k = z0; k <= z1; ++k) {
+                    world.getBlock(i, j, k).onEntityCollision(s);
+                }
+            }
+        }
+    }
+
+    /** {@code EntityLivingBase.isOnLadder}: the block at the feet is a ladder, vine or a trapdoor over a ladder. */
+    static boolean isOnLadder(BlockWorld world, PlayerState s) {
+        int x = McMath.floor(s.posX);
+        int y = McMath.floor(s.box.minY);
+        int z = McMath.floor(s.posZ);
+        return world.getBlock(x, y, z).isLadder(world, x, y, z);
     }
 
     private static double sneakStep(double v) {

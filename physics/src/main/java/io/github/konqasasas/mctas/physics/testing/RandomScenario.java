@@ -154,8 +154,16 @@ public final class RandomScenario {
         int kinds = 2 + r.nextInt(5);
         BlockType[] palette = new BlockType[kinds + 1];
         palette[0] = BlockType.STONE;
+        List<BlockType> special = new ArrayList<BlockType>();
+        for (BlockType t : all) {
+            if (VanillaBlocks.actsOnPlayer(t)) {
+                special.add(t);
+            }
+        }
         for (int i = 1; i <= kinds; i++) {
-            palette[i] = all.get(r.nextInt(all.size()));
+            // Blocks with their own effects are few in the catalog, so they get a share of their own.
+            List<BlockType> from = r.nextDouble() < 0.35 ? special : all;
+            palette[i] = from.get(r.nextInt(from.size()));
         }
         int size = 4 + r.nextInt(8);
         double holeChance = r.nextDouble() * 0.3;

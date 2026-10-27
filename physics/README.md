@@ -27,8 +27,8 @@ The tick follows the client's call chain: `EntityPlayerSP.onLivingUpdate` (keys,
 
 ## Not modelled yet
 
-- Blocks with their own behaviour: ladders and vines, liquids, webs, soul sand, slime, beds, farmland, cactus, doors, and the partial shapes not in `VanillaBlocks` yet (anvils, heads, beds, lily pads, end rods, pistons, ...).
-- Modelled so far: full cubes (stone, glass, glowstone, pumpkin, melon, double slabs), ice and packed ice, slabs, stairs, fences, fence gates, cobblestone walls, glass panes and iron bars, trapdoors, snow layers, carpets, chests and ender chests, enchanting tables, end portal frames, hoppers, cauldrons, brewing stands, daylight sensors, cakes, flower pots.
+- Blocks with their own behaviour still missing: liquids, farmland, cactus, magma, doors, and the partial shapes not in `VanillaBlocks` yet (anvils, heads, lily pads, end rods, pistons, ...).
+- Modelled so far: full cubes (stone, glass, glowstone, pumpkin, melon, double slabs), ice and packed ice, slabs, stairs, fences, fence gates, cobblestone walls, glass panes and iron bars, trapdoors, snow layers, carpets, chests and ender chests, enchanting tables, end portal frames, hoppers, cauldrons, brewing stands, daylight sensors, cakes, flower pots; and blocks that act on the player: slime (bounce, walking slowdown, slipperiness 0.8), beds (bounce), soul sand, webs, ladders, vines and open trapdoors over ladders.
 - Status effects are in the state, but the oracle does not apply them yet, so speed, slowness and jump boost are not verified.
 - Damage and death, flying, elytra, riding, using items, other entities, the world border.
 - The client layer assumptions: auto-jump off, food above 6, no blindness. The `EntityPlayerSP` part and any server-to-client sprint flag updates need a recording from the real client.

@@ -12,8 +12,8 @@ import java.util.List;
  * Shapes that depend on the neighbours (stairs, fences, walls, panes, chests) are subclasses that
  * read the world in {@link #addCollisionBoxes}, as the game computes the actual state on demand.
  *
- * <p>Blocks with their own collision callbacks (slime, soul sand, ladders, webs, liquids, beds) need
- * extra hooks in {@link Physics} and are added together with those hooks.
+ * <p>Blocks that act on the player override the {@code Block} callbacks of the same names
+ * ({@link #onLanded}, {@link #onEntityWalk}, {@link #onEntityCollision}, {@link #isLadder}).
  */
 public class BlockType {
 
@@ -105,6 +105,24 @@ public class BlockType {
     /** {@code IBlockState.getBlockFaceShape}. */
     public FaceShape faceShape(BlockWorld world, int x, int y, int z, Facing face) {
         return faces[face.ordinal()];
+    }
+
+    /** {@code Block.onLanded}: the move ended against something vertically while above this block. */
+    void onLanded(PlayerState s) {
+        s.motionY = 0.0D;
+    }
+
+    /** {@code Block.onEntityWalk}: the player walked on this block without sneaking. */
+    void onEntityWalk(PlayerState s) {
+    }
+
+    /** {@code Block.onEntityCollision}: the player's box overlaps this block after a move. */
+    void onEntityCollision(PlayerState s) {
+    }
+
+    /** {@code Block.isLadder} as Forge asks it; vanilla's {@code isOnLadder} gives the same answers. */
+    boolean isLadder(BlockWorld world, int x, int y, int z) {
+        return false;
     }
 
     /** The protected static {@code Block.addCollisionBoxToList}. */
