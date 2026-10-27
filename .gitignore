@@ -4,3 +4,5 @@ out/
 .idea/
 *.iml
 .vscode/
+oracle/lib/
+logs/
