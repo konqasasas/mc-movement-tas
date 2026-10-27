@@ -7,11 +7,12 @@ import com.google.gson.JsonPrimitive;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
-import io.github.konqasasas.mctas.problem.provisional.PlayerState;
 
 import java.util.List;
 
 public final class PkcExport {
+    private static final double STANDING_MOTION_Y = -0.0784000015258789D;
+
     private PkcExport() {
     }
 
@@ -26,7 +27,7 @@ public final class PkcExport {
         root.add("world", world);
         JsonObject start = new JsonObject();
         start.add("pos", arr(problem.spawn.pos.x, problem.spawn.pos.y, problem.spawn.pos.z));
-        start.add("vel", arr(0.0D, PlayerState.STANDING_MOTION_Y, 0.0D));
+        start.add("vel", arr(0.0D, STANDING_MOTION_Y, 0.0D));
         start.addProperty("yaw", problem.spawn.yaw);
         start.addProperty("pitch", problem.spawn.pitch);
         root.add("start", start);

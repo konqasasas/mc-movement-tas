@@ -128,7 +128,7 @@ yaw 0
   "problem": "v0/04-gap-3",
   "mcVersion": "1.12.2",
   "result": {"status": "finished", "ticks": 11, "startTick": 88, "goalTick": 99,
-             "model": "provisional-1.12.2-fullblock"},
+             "model": "physics-1.12.2"},
   "inputs": [
     {"keys": ["W", "SPRINT"], "yaw": 0.0, "pitch": 0.0}
   ]
@@ -148,16 +148,13 @@ yaw 0
 
 ## 6. 時間の計算に使う物理
 
-M0 では `problem` モジュールの中に、平地とフルブロックに限った 1.12.2 の移動処理(`provisional` パッケージ)を置いています。次の2つで照合済みです。
+タイムは `physics` モジュールの `Physics.tick`(公式 1.12.2 のコードと照合済み)で計算します。`problem` 側では `MovementModel` を通して呼ぶので、物理を差し替えても判定の部分は変わりません。
 
-- PKC に入っている 1.12.2 の記録 `trp-optimize-feasible-swap.json` の平地区間で、位置、速度、接地、スプリントがビット単位で一致(`PkcCaptureParityTest`)。PKC は途中で当たり判定の箱を座標から作り直すため、その1ティックだけ同じ操作を入れると37ティックすべて一致します。
-- `physics` モジュール(公式 1.12.2 のコードと照合済み)のランダムなコースと入力で、静止から始まる 1,102 本 × 200 ティックがすべて一致。
-
-`physics` モジュールが main に入ったら、計算は `physics` に切り替え、暫定版は削除します。
+PKC に入っている 1.12.2 の記録 `trp-optimize-feasible-swap.json` の平地区間で、位置、速度、接地、スプリントがビット単位で一致することを `PkcCaptureParityTest` で確かめています。PKC は途中で当たり判定の箱を座標から作り直すため、そのティックだけ同じ操作を入れると37ティックすべて一致します。
 
 ## 7. 問題集 v0
 
-10問と目標タイムは [../problems/README.md](../problems/README.md) にあります。目標はすべて上限値(この入力列で解ける)で、最適性は未証明です。目標の入力列は、`physics` モジュールの物理で再生しても同じティック数でゴールすることを確認しています。
+10問と目標タイムは [../problems/README.md](../problems/README.md) にあります。目標はすべて上限値(この入力列で解ける)で、最適性は未証明です。
 
 ## 8. 将来の拡張のための予約
 

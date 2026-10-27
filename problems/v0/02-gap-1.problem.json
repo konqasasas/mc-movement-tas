@@ -76,6 +76,6 @@
     "ticks": 4,
     "kind": "upper_bound",
     "witness": "02-gap-1.tas",
-    "note": "baseline beam search, provisional physics"
+    "note": "baseline beam search"
   }
 }

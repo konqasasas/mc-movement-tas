@@ -1,6 +1,6 @@
 package io.github.konqasasas.mctas.problem;
 
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 
 public final class Problem {
     public static final String FORMAT = "mctas-problem";
@@ -9,7 +9,7 @@ public final class Problem {
 
     public final String id;
     public final String title;
-    public final BlockWorld world;
+    public final SparseBlockWorld world;
     public final Spawn spawn;
     public final Region start;
     public final Region goal;
@@ -17,7 +17,7 @@ public final class Problem {
     public final double voidY;
     public final Target target;
 
-    public Problem(String id, String title, BlockWorld world, Spawn spawn, Region start, Region goal,
+    public Problem(String id, String title, SparseBlockWorld world, Spawn spawn, Region start, Region goal,
                    int maxTicks, double voidY, Target target) {
         this.id = id;
         this.title = title;
