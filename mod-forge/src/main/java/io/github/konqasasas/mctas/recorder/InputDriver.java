@@ -13,7 +13,8 @@ import org.lwjgl.input.Mouse;
  * keys and turning the mouse would. Meant to be reused by the replay mod.
  *
  * <p>While installed: the player's {@code movementInput} is replaced by a scripted one, the mouse
- * no longer turns the view, auto-jump is off, the sprint key binding follows the script, and the
+ * no longer turns the view, auto-jump is off, the sprint key binding is replaced by one that follows
+ * the script (so no real key event can press or release it), and the
  * game no longer opens the pause menu when its window loses focus, so a run can go on while the person
  * uses other windows. Call {@link #apply} at the start of each client tick.
  */
@@ -25,6 +26,7 @@ public final class InputDriver {
     private MouseHelper originalMouse;
     private boolean originalAutoJump;
     private boolean originalPauseOnLostFocus;
+    private KeyBinding originalSprint;
     private ScriptedMovementInput scripted;
 
     public boolean installed() {
@@ -47,6 +49,12 @@ public final class InputDriver {
         // loses focus, which would pause the integrated server and the player in the middle of a run.
         originalPauseOnLostFocus = mc.gameSettings.pauseOnLostFocus;
         mc.gameSettings.pauseOnLostFocus = false;
+        // EntityPlayerSP reads gameSettings.keyBindSprint.isKeyDown(). The real binding follows every
+        // keyboard event, which arrive after the start of the tick: with the window in the background
+        // something kept releasing it, and the player never sprinted from the script.
+        originalSprint = mc.gameSettings.keyBindSprint;
+        ScriptedKey.SPRINT.down = false;
+        mc.gameSettings.keyBindSprint = ScriptedKey.SPRINT;
     }
 
     /** Sets the view angles and the keys for the tick that is about to run. */
@@ -59,7 +67,7 @@ public final class InputDriver {
         player.rotationYaw = in.yaw;
         player.rotationPitch = in.pitch;
         scripted.next = in;
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), in.has(PlayerInput.SPRINT));
+        ScriptedKey.SPRINT.down = in.has(PlayerInput.SPRINT);
     }
 
     public void uninstall() {
@@ -72,7 +80,10 @@ public final class InputDriver {
         mc.mouseHelper = originalMouse;
         mc.gameSettings.autoJump = originalAutoJump;
         mc.gameSettings.pauseOnLostFocus = originalPauseOnLostFocus;
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+        if (mc.gameSettings.keyBindSprint == ScriptedKey.SPRINT) {
+            mc.gameSettings.keyBindSprint = originalSprint;
+        }
+        ScriptedKey.SPRINT.down = false;
         player = null;
         scripted = null;
     }
@@ -109,6 +120,25 @@ public final class InputDriver {
                 this.moveStrafe = (float) ((double) this.moveStrafe * 0.3D);
                 this.moveForward = (float) ((double) this.moveForward * 0.3D);
             }
+        }
+    }
+
+    /**
+     * A key binding held or released only by the script. It has no key code, so keyboard events never
+     * reach it, and it is not in the options list, so the controls screen and options file ignore it.
+     */
+    static final class ScriptedKey extends KeyBinding {
+        static final ScriptedKey SPRINT = new ScriptedKey("key.mctas.scriptedSprint");
+
+        boolean down;
+
+        private ScriptedKey(String description) {
+            super(description, 0, "key.categories.movement");
+        }
+
+        @Override
+        public boolean isKeyDown() {
+            return down;
         }
     }
 
