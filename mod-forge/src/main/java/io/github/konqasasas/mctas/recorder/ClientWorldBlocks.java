@@ -90,11 +90,9 @@ final class ClientWorldBlocks implements BlockWorld {
         Block block = state.getBlock();
         String id = String.valueOf(Block.REGISTRY.getNameForObject(block));
         AxisAlignedBB box = state.getCollisionBoundingBox(world, pos);
-        boolean special = block == Blocks.WEB || block == Blocks.LADDER || block == Blocks.VINE
-                || block == Blocks.WATER || block == Blocks.FLOWING_WATER
+        boolean special = block == Blocks.WATER || block == Blocks.FLOWING_WATER
                 || block == Blocks.LAVA || block == Blocks.FLOWING_LAVA
                 || block == Blocks.PORTAL || block == Blocks.END_PORTAL
-                || block == Blocks.SLIME_BLOCK || block == Blocks.SOUL_SAND || block == Blocks.BED
                 || block == Blocks.FARMLAND || block == Blocks.CACTUS || block == Blocks.MAGMA
                 || block.slipperiness != 0.6F || state.getMaterial() == Material.AIR;
         // Only blocks whose collision is the plain getCollisionBoundingBox can be described by it.

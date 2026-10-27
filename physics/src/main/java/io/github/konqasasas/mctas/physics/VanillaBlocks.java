@@ -133,6 +133,15 @@ public final class VanillaBlocks {
                 }
             }
         }
+        props("minecraft:ladder", "facing");
+        for (String facing : HORIZONTAL) {
+            put(new Ladder(Facing.valueOf(facing.toUpperCase(java.util.Locale.ROOT))), null);
+        }
+        put(new Vine(), "minecraft:vine");
+        put(new Slime(), "minecraft:slime");
+        put(new Bed(), "minecraft:bed");
+        put(new SoulSand(), "minecraft:soul_sand");
+        put(new Web(), "minecraft:web");
         props("minecraft:cobblestone_wall");
         put(new Wall("minecraft:cobblestone_wall"), null);
         for (String id : new String[] {"minecraft:glass_pane", "minecraft:stained_glass_pane", "minecraft:iron_bars"}) {
@@ -198,6 +207,12 @@ public final class VanillaBlocks {
         return out;
     }
 
+    /** True for blocks that change the player's motion beyond colliding: slime, beds, soul sand, webs, ladders, vines. */
+    public static boolean actsOnPlayer(BlockType t) {
+        return t instanceof Slime || t instanceof Bed || t instanceof SoulSand || t instanceof Web
+                || t instanceof Ladder || t instanceof Vine;
+    }
+
     public static Collection<BlockType> all() {
         return Collections.unmodifiableCollection(BY_NAME.values());
     }
@@ -255,8 +270,135 @@ public final class VanillaBlocks {
         FaceShape down = !open && !top ? S : U;
         FaceShape up = !open && top ? S : U;
         String name = id + "[facing=" + facing.id() + ",half=" + (top ? "top" : "bottom") + ",open=" + open + "]";
-        return new BlockType(name, Collections.singletonList(b), 0.6F, false, false, BlockType.faces(down, up, U),
-                BlockType.EXCEPT_FENCE_WALL);
+        return new Trapdoor(name, b, BlockType.faces(down, up, U), facing, open);
+    }
+
+    /** {@code BlockTrapDoor}: an open trapdoor over a ladder facing the same way is climbable. */
+    static final class Trapdoor extends BlockType {
+        private final Facing facing;
+        private final boolean open;
+
+        Trapdoor(String name, Aabb box, FaceShape[] faces, Facing facing, boolean open) {
+            super(name, Collections.singletonList(box), 0.6F, false, false, faces, EXCEPT_FENCE_WALL);
+            this.facing = facing;
+            this.open = open;
+        }
+
+        @Override
+        boolean isLadder(BlockWorld world, int x, int y, int z) {
+            BlockType below = world.getBlock(x, y - 1, z);
+            return open && below instanceof Ladder && ((Ladder) below).facing == facing;
+        }
+    }
+
+    /** {@code BlockLadder}. */
+    static final class Ladder extends BlockType {
+        final Facing facing;
+
+        Ladder(Facing facing) {
+            super("minecraft:ladder[facing=" + facing.id() + "]", Collections.singletonList(ladderBox(facing)),
+                    0.6F, false, false, ALL_UNDEFINED, 0);
+            this.facing = facing;
+        }
+
+        private static Aabb ladderBox(Facing facing) {
+            switch (facing) {
+                case NORTH:
+                    return new Aabb(0.0D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D);
+                case SOUTH:
+                    return new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.1875D);
+                case WEST:
+                    return new Aabb(0.8125D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+                default:
+                    return new Aabb(0.0D, 0.0D, 0.0D, 0.1875D, 1.0D, 1.0D);
+            }
+        }
+
+        @Override
+        boolean isLadder(BlockWorld world, int x, int y, int z) {
+            return true;
+        }
+    }
+
+    /** {@code BlockVine}: no collision, climbable. */
+    static final class Vine extends BlockType {
+        Vine() {
+            super("minecraft:vine", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+        }
+
+        @Override
+        boolean isLadder(BlockWorld world, int x, int y, int z) {
+            return true;
+        }
+    }
+
+    /** {@code BlockSlime}: bounces when landing and slows walking, unless sneaking. */
+    static final class Slime extends BlockType {
+        Slime() {
+            super("minecraft:slime", Collections.singletonList(FULL_BLOCK), 0.8F, true, false, ALL_SOLID, 0);
+        }
+
+        @Override
+        void onLanded(PlayerState s) {
+            if (s.isSneaking()) {
+                super.onLanded(s);
+            } else if (s.motionY < 0.0D) {
+                s.motionY = -s.motionY;
+            }
+        }
+
+        @Override
+        void onEntityWalk(PlayerState s) {
+            if (Math.abs(s.motionY) < 0.1D && !s.isSneaking()) {
+                double d0 = 0.4D + Math.abs(s.motionY) * 0.2D;
+                s.motionX *= d0;
+                s.motionZ *= d0;
+            }
+        }
+    }
+
+    /** {@code BlockBed}: a weaker bounce than slime. */
+    static final class Bed extends BlockType {
+        Bed() {
+            super("minecraft:bed", Collections.singletonList(new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 0.5625D, 1.0D)),
+                    0.6F, false, false, ALL_UNDEFINED, 0);
+        }
+
+        @Override
+        void onLanded(PlayerState s) {
+            if (s.isSneaking()) {
+                super.onLanded(s);
+            } else if (s.motionY < 0.0D) {
+                s.motionY = -s.motionY * 0.6600000262260437D;
+            }
+        }
+    }
+
+    /** {@code BlockSoulSand}: every overlapped block slows the horizontal motion. */
+    static final class SoulSand extends BlockType {
+        SoulSand() {
+            super("minecraft:soul_sand", Collections.singletonList(new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D)),
+                    0.6F, true, false, ALL_SOLID, 0);
+        }
+
+        @Override
+        void onEntityCollision(PlayerState s) {
+            s.motionX *= 0.4D;
+            s.motionZ *= 0.4D;
+        }
+    }
+
+    /** {@code BlockWeb}: {@code Entity.setInWeb}. */
+    static final class Web extends BlockType {
+        Web() {
+            super("minecraft:web", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+        }
+
+        @Override
+        void onEntityCollision(PlayerState s) {
+            s.inWeb = true;
+            s.fallDistance = 0.0F;
+        }
     }
 
     private static String stateName(String id, Facing facing, String key, String value) {

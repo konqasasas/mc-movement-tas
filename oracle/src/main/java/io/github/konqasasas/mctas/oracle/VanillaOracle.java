@@ -62,6 +62,7 @@ public final class VanillaOracle {
         p.collidedHorizontally = s.collidedHorizontally;
         p.collidedVertically = s.collidedVertically;
         p.fallDistance = s.fallDistance;
+        p.setInWebFlag(s.inWeb);
         p.setSprinting(s.sprinting);
         setJumpTicks(s.jumpTicks);
         p.jumpMovementFactor = s.jumpMovementFactor;
@@ -92,6 +93,7 @@ public final class VanillaOracle {
         s.collidedHorizontally = p.collidedHorizontally;
         s.collidedVertically = p.collidedVertically;
         s.fallDistance = p.fallDistance;
+        s.inWeb = p.inWebFlag();
         s.sprinting = p.isSprinting();
         s.jumpTicks = jumpTicks();
         s.jumpMovementFactor = p.jumpMovementFactor;
