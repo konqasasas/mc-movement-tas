@@ -1,0 +1,68 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v0/01-run-10",
+  "title": "平地を10ブロック走る",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          11
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -0.3,
+      65,
+      9.7
+    ],
+    "max": [
+      1.3,
+      65,
+      11.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 400,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 26,
+    "kind": "upper_bound",
+    "witness": "01-run-10.tas",
+    "note": "baseline beam search, provisional physics"
+  }
+}

@@ -1,0 +1,61 @@
+# v0/10-three-jumps-zigzag: 35 ticks
+# found by the baseline beam search (mctas-problem search); an upper bound, not proven optimal
+1 W D SPRINT yaw=15.0
+1 W A SPRINT yaw=30.0
+1 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=-15.0
+1 W A SPRINT yaw=45.0
+2 W D SPRINT yaw=-30.0
+4 W A SPRINT yaw=45.0
+2 W A SPRINT yaw=30.0
+2 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+2 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=15.0
+2 W A SPRINT yaw=45.0
+1 W D SPRINT yaw=15.0
+5 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+11 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+1 W D SPRINT yaw=-30.0
+10 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+11 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=30.0
+7 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+3 W A SPRINT yaw=30.0
+1 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=30.0
+2 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=30.0
+1 W JUMP SPRINT yaw=-15.0
+3 W A SPRINT yaw=30.0
+1 W A SPRINT yaw=15.0
+1 W D SPRINT
+1 W A SPRINT yaw=0.0
+1 W D SPRINT yaw=-15.0
+1 W D SPRINT yaw=30.0
+1 S yaw=-45.0
+1 W A SPRINT yaw=45.0
+1 W D SPRINT yaw=-30.0
+1 W JUMP SPRINT yaw=30.0
+3 W D SPRINT yaw=-15.0
+2 W D SPRINT yaw=-30.0
+1 W A SPRINT yaw=-45.0
+1 W A SPRINT yaw=-15.0
+2 S yaw=45.0
+1 W SPRINT yaw=-30.0
+1 W A SPRINT
+1 W JUMP SPRINT
+2 W A SPRINT yaw=30.0
+2 W A SPRINT yaw=15.0
+1 W A SPRINT yaw=30.0
+1 W D SPRINT yaw=-15.0
+1 W D SPRINT yaw=45.0
+3 S yaw=-15.0
+1 W SPRINT yaw=0.0
