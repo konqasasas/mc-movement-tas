@@ -76,7 +76,7 @@ public final class RecorderController {
     /** Ticks on which a pushable entity was close enough to push the player. */
     private int runEntityTicks;
     private String runFirstMismatch;
-    /** A screen opened during a scripted run. Opening one releases every key binding, sprint included. */
+    /** A screen opened during a scripted run: someone used the game window, so the run is not left to the script. */
     private boolean runScreenOpened;
     private int runPausedTicks;
 
@@ -310,7 +310,6 @@ public final class RecorderController {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
             runsInvalid++;
         } else if (runScreenOpened) {
-            // The game releases all keys when a screen opens, mid-tick, so the sprint key was not the script's.
             result = "INVALID: a screen (menu, chat, inventory) was opened during the run";
             runsInvalid++;
         } else if (runEntityTicks > 0) {
