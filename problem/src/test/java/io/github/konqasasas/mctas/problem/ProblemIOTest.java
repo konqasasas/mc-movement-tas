@@ -21,8 +21,8 @@ public class ProblemIOTest {
     @Test
     public void readsInlineWorldAndRegions() {
         Problem p = ProblemIO.parse(BASE + "\"goal\":{\"min\":[0,65,8],\"max\":[1,65,9]}}");
-        assertTrue(p.world.isSolid(0, 64, 9));
-        assertTrue(!p.world.isSolid(0, 64, 10));
+        assertTrue(!p.world.getBlock(0, 64, 9).isAir());
+        assertTrue(p.world.getBlock(0, 64, 10).isAir());
         assertEquals(1200, p.maxTicks);
         assertEquals(8.0, p.goal.minZ, 0.0);
     }

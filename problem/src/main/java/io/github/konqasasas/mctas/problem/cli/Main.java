@@ -10,7 +10,7 @@ import io.github.konqasasas.mctas.problem.io.PkcExport;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
 import io.github.konqasasas.mctas.problem.io.SolutionIO;
 import io.github.konqasasas.mctas.problem.judge.Evaluator;
-import io.github.konqasasas.mctas.problem.judge.ProvisionalModel;
+import io.github.konqasasas.mctas.problem.judge.PhysicsModel;
 import io.github.konqasasas.mctas.problem.judge.RunResult;
 
 import java.io.IOException;
@@ -61,7 +61,7 @@ public final class Main {
             else if (args[i].equals("--solution")) solutionOut = Paths.get(args[++i]);
             else if (args[i].equals("--pkc")) pkcOut = Paths.get(args[++i]);
         }
-        ProvisionalModel model = new ProvisionalModel(problem);
+        PhysicsModel model = new PhysicsModel(problem);
         RunResult r = Evaluator.run(problem, model, inputs);
         if (trace) {
             for (int t = 0; t < r.positions.size(); t++) {

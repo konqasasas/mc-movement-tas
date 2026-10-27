@@ -63,6 +63,6 @@
     "ticks": 26,
     "kind": "upper_bound",
     "witness": "01-run-10.tas",
-    "note": "baseline beam search, provisional physics"
+    "note": "baseline beam search"
   }
 }
