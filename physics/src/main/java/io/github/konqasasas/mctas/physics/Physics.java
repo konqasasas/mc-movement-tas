@@ -50,6 +50,12 @@ public final class Physics {
         s.rotationYaw = input.yaw;
         s.rotationPitch = input.pitch;
 
+        // Entity.onEntityUpdate
+        handleWaterMovement(world, s);
+        if (isInLava(world, s)) {
+            s.fallDistance *= 0.5F;
+        }
+
         // EntityPlayerSP.onLivingUpdate
         if (s.sprintToggleTimer > 0) {
             --s.sprintToggleTimer;
@@ -121,7 +127,10 @@ public final class Physics {
         }
         // updateEntityActionState copies the movement input.
         if (jump) {
-            if (s.onGround && s.jumpTicks == 0) {
+            if (s.inWater || isInLava(world, s)) {
+                // handleJumpWater, handleJumpLava
+                s.motionY += 0.03999999910593033D;
+            } else if (s.onGround && s.jumpTicks == 0) {
                 jump(s);
                 s.jumpTicks = 10;
             }
@@ -160,8 +169,38 @@ public final class Physics {
         }
     }
 
-    /** {@code EntityLivingBase.travel}, the walking branch. */
+    /** {@code EntityLivingBase.travel}. */
     private static void travel(BlockWorld world, PlayerState s, float strafe, float forward) {
+        if (s.inWater) {
+            // No depth strider.
+            double d0 = s.posY;
+            moveRelative(s, strafe, 0.0F, forward, 0.02F);
+            move(world, s, s.motionX, s.motionY, s.motionZ);
+            s.motionX *= (double) 0.8F;
+            s.motionY *= 0.800000011920929D;
+            s.motionZ *= (double) 0.8F;
+            s.motionY -= 0.02D;
+            if (s.collidedHorizontally && isOffsetPositionInLiquid(world, s, s.motionX, s.motionY + 0.6000000238418579D - s.posY + d0, s.motionZ)) {
+                s.motionY = 0.30000001192092896D;
+            }
+        } else if (isInLava(world, s)) {
+            double d4 = s.posY;
+            moveRelative(s, strafe, 0.0F, forward, 0.02F);
+            move(world, s, s.motionX, s.motionY, s.motionZ);
+            s.motionX *= 0.5D;
+            s.motionY *= 0.5D;
+            s.motionZ *= 0.5D;
+            s.motionY -= 0.02D;
+            if (s.collidedHorizontally && isOffsetPositionInLiquid(world, s, s.motionX, s.motionY + 0.6000000238418579D - s.posY + d4, s.motionZ)) {
+                s.motionY = 0.30000001192092896D;
+            }
+        } else {
+            walk(world, s, strafe, forward);
+        }
+    }
+
+    /** {@code EntityLivingBase.travel}, the walking branch. */
+    private static void walk(BlockWorld world, PlayerState s, float strafe, float forward) {
         float f6 = 0.91F;
         if (s.onGround) {
             f6 = blockBelow(world, s).slipperiness() * 0.91F;
@@ -387,7 +426,10 @@ public final class Physics {
             }
         }
 
-        // updateFallState; Block.onFallenUpon only deals damage, which is not modelled.
+        // EntityLivingBase.updateFallState; Block.onFallenUpon only deals damage, which is not modelled.
+        if (!s.inWater) {
+            handleWaterMovement(world, s);
+        }
         if (s.onGround) {
             s.fallDistance = 0.0F;
         } else if (y < 0.0D) {
@@ -425,6 +467,98 @@ public final class Physics {
                 }
             }
         }
+    }
+
+    /** {@code Entity.handleWaterMovement}: sets {@code inWater} and adds the current of the water around the player. */
+    private static void handleWaterMovement(BlockWorld world, PlayerState s) {
+        Aabb bb = s.box.grow(0.0D, -0.4000000059604645D, 0.0D).grow(-0.001D, -0.001D, -0.001D);
+        if (handleWaterAcceleration(world, bb, s)) {
+            s.fallDistance = 0.0F;
+            s.inWater = true;
+        } else {
+            s.inWater = false;
+        }
+    }
+
+    /** {@code World.handleMaterialAcceleration} for {@code Material.WATER}. */
+    private static boolean handleWaterAcceleration(BlockWorld world, Aabb bb, PlayerState s) {
+        int x0 = McMath.floor(bb.minX);
+        int x1 = McMath.ceil(bb.maxX);
+        int y0 = McMath.floor(bb.minY);
+        int y1 = McMath.ceil(bb.maxY);
+        int z0 = McMath.floor(bb.minZ);
+        int z1 = McMath.ceil(bb.maxZ);
+        boolean flag = false;
+        double vx = 0.0D;
+        double vy = 0.0D;
+        double vz = 0.0D;
+        for (int x = x0; x < x1; ++x) {
+            for (int y = y0; y < y1; ++y) {
+                for (int z = z0; z < z1; ++z) {
+                    BlockType t = world.getBlock(x, y, z);
+                    if (t instanceof VanillaBlocks.Liquid && !((VanillaBlocks.Liquid) t).lava) {
+                        VanillaBlocks.Liquid liquid = (VanillaBlocks.Liquid) t;
+                        double d0 = (double) ((float) (y + 1) - VanillaBlocks.Liquid.heightPercent(liquid.level));
+                        if ((double) y1 >= d0) {
+                            flag = true;
+                            double[] f = liquid.flow(world, x, y, z);
+                            vx += f[0];
+                            vy += f[1];
+                            vz += f[2];
+                        }
+                    }
+                }
+            }
+        }
+        if ((double) McMath.sqrt(vx * vx + vy * vy + vz * vz) > 0.0D) {
+            double[] v = VanillaBlocks.Liquid.normalize(new double[] {vx, vy, vz});
+            s.motionX += v[0] * 0.014D;
+            s.motionY += v[1] * 0.014D;
+            s.motionZ += v[2] * 0.014D;
+        }
+        return flag;
+    }
+
+    /** {@code Entity.isInLava}. */
+    static boolean isInLava(BlockWorld world, PlayerState s) {
+        Aabb bb = s.box.grow(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D);
+        int x1 = McMath.ceil(bb.maxX);
+        int y1 = McMath.ceil(bb.maxY);
+        int z1 = McMath.ceil(bb.maxZ);
+        for (int x = McMath.floor(bb.minX); x < x1; ++x) {
+            for (int y = McMath.floor(bb.minY); y < y1; ++y) {
+                for (int z = McMath.floor(bb.minZ); z < z1; ++z) {
+                    BlockType t = world.getBlock(x, y, z);
+                    if (t instanceof VanillaBlocks.Liquid && ((VanillaBlocks.Liquid) t).lava) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /** {@code Entity.isOffsetPositionInLiquid}: despite the name, true when the moved box is free of blocks and liquids. */
+    private static boolean isOffsetPositionInLiquid(BlockWorld world, PlayerState s, double x, double y, double z) {
+        Aabb bb = s.box.offset(x, y, z);
+        return collisionBoxes(world, bb).isEmpty() && !containsAnyLiquid(world, bb);
+    }
+
+    /** {@code World.containsAnyLiquid}. */
+    private static boolean containsAnyLiquid(BlockWorld world, Aabb bb) {
+        int x1 = McMath.ceil(bb.maxX);
+        int y1 = McMath.ceil(bb.maxY);
+        int z1 = McMath.ceil(bb.maxZ);
+        for (int x = McMath.floor(bb.minX); x < x1; ++x) {
+            for (int y = McMath.floor(bb.minY); y < y1; ++y) {
+                for (int z = McMath.floor(bb.minZ); z < z1; ++z) {
+                    if (world.getBlock(x, y, z) instanceof VanillaBlocks.Liquid) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /** {@code EntityLivingBase.isOnLadder}: the block at the feet is a ladder, vine or a trapdoor over a ladder. */

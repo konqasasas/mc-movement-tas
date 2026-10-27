@@ -84,7 +84,7 @@ public final class RecorderController {
     private long seed;
     private long lastSeed;
     private int fuzzTicks;
-    private boolean fuzzShapes;
+    private String fuzzCourse;
     private int originX;
     private int originZ;
     private RandomScenario scenario;
@@ -124,8 +124,8 @@ public final class RecorderController {
         chat("Recording your play. /mctas stop to finish.");
     }
 
-    /** @param shapes use the courses of every modelled block instead of full blocks and ice */
-    public void startFuzz(int runs, int ticks, long firstSeed, boolean shapes) throws IOException {
+    /** @param course {@code full}, {@code shapes} or {@code fluids}, as {@link RandomScenario#generate(String, long, int)} */
+    public void startFuzz(int runs, int ticks, long firstSeed, String course) throws IOException {
         if (!checkPlayer()) {
             return;
         }
@@ -138,11 +138,11 @@ public final class RecorderController {
         seed = firstSeed;
         lastSeed = firstSeed + runs - 1;
         fuzzTicks = ticks;
-        fuzzShapes = shapes;
+        fuzzCourse = course;
         originX = (int) Math.floor(mc.player.posX);
         originZ = (int) Math.floor(mc.player.posZ);
         runsMatched = runsMismatched = runsInvalid = runsSkipped = 0;
-        log.println("# fuzz " + (shapes ? "shapes " : "") + "seeds " + firstSeed + ".." + lastSeed + ", " + ticks + " ticks, origin " + originX + " " + originZ);
+        log.println("# fuzz " + course + " seeds " + firstSeed + ".." + lastSeed + ", " + ticks + " ticks, origin " + originX + " " + originZ);
         driver.install(mc.player);
         chat("Fuzz: " + runs + " seeds around " + originX + ", " + originZ + ". You can switch to other windows; do not open menus in this one.");
         prepareNextScenario();
@@ -346,8 +346,7 @@ public final class RecorderController {
 
     private void prepareNextScenario() {
         while (seed <= lastSeed) {
-            RandomScenario sc = fuzzShapes ? RandomScenario.generateShapes(seed, fuzzTicks)
-                    : RandomScenario.generate(seed, fuzzTicks);
+            RandomScenario sc = RandomScenario.generate(fuzzCourse, seed, fuzzTicks);
             if (sc.standingStart) {
                 scenario = sc;
                 break;

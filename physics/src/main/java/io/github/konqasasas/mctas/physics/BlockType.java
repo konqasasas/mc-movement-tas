@@ -25,11 +25,13 @@ public class BlockType {
     public static final int EXCEPT_FENCE_WALL = 1;
     /** {@code BlockPane.isExcepBlockForAttachWithPiston}. */
     public static final int EXCEPT_PANE = 2;
+    /** {@code Block.isExceptBlockForAttachWithPiston} itself, which liquids use for their downward current. */
+    public static final int EXCEPT_PISTON = 4;
 
     public static final BlockType AIR = new BlockType("minecraft:air", Collections.<Aabb>emptyList(), 0.6F, false, true, ALL_UNDEFINED, 0);
     public static final BlockType STONE = new BlockType("minecraft:stone", Collections.singletonList(FULL_BLOCK), 0.6F, true, false);
     public static final BlockType ICE = new BlockType("minecraft:ice", Collections.singletonList(FULL_BLOCK), 0.98F, false, false,
-            ALL_SOLID, EXCEPT_FENCE_WALL | EXCEPT_PANE);
+            ALL_SOLID, EXCEPT_FENCE_WALL | EXCEPT_PANE | EXCEPT_PISTON);
     public static final BlockType PACKED_ICE = new BlockType("minecraft:packed_ice", Collections.singletonList(FULL_BLOCK), 0.98F, true, false);
 
     private final String name;
@@ -39,6 +41,7 @@ public class BlockType {
     private final boolean air;
     private final FaceShape[] faces;
     private final int except;
+    private boolean blocksMovement;
 
     /** A block with solid faces that every fence, wall and pane connects to. */
     public BlockType(String name, List<Aabb> boxes, float slipperiness, boolean normalCube, boolean air) {
@@ -52,7 +55,7 @@ public class BlockType {
      * @param air          {@code Material.AIR}, used for the block-below lookup after a move
      * @param faces        {@code getBlockFaceShape} by {@link Facing#ordinal()}, for blocks whose faces do not
      *                     depend on the neighbours
-     * @param except       {@link #EXCEPT_FENCE_WALL} and {@link #EXCEPT_PANE} flags
+     * @param except       {@link #EXCEPT_FENCE_WALL}, {@link #EXCEPT_PANE} and {@link #EXCEPT_PISTON} flags
      */
     public BlockType(String name, List<Aabb> boxes, float slipperiness, boolean normalCube, boolean air,
                      FaceShape[] faces, int except) {
@@ -63,6 +66,13 @@ public class BlockType {
         this.air = air;
         this.faces = faces.clone();
         this.except = except;
+        this.blocksMovement = !air;
+    }
+
+    /** Marks a block whose material does not block movement ({@code MaterialLogic}, webs). Returns this block. */
+    public BlockType notBlockingMovement() {
+        blocksMovement = false;
+        return this;
     }
 
     /** Faces for down, up and the four sides, in {@link Facing} order. */
@@ -84,6 +94,11 @@ public class BlockType {
 
     public boolean isAir() {
         return air;
+    }
+
+    /** {@code Material.blocksMovement()}, which decides where liquids flow towards. */
+    public boolean blocksMovement() {
+        return blocksMovement;
     }
 
     public boolean isExcept(int flag) {

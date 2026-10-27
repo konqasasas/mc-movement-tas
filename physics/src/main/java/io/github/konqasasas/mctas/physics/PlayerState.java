@@ -28,6 +28,8 @@ public final class PlayerState implements Cloneable {
     public float fallDistance;
     /** {@code Entity.isInWeb}: set by touching a web, slows the next move and is cleared by it. */
     public boolean inWeb;
+    /** {@code Entity.inWater}: set by {@code handleWaterMovement}, picks the swimming branch of travel and the swim jump. */
+    public boolean inWater;
     public float width = 0.6F;
     public float height = 1.8F;
 
@@ -111,6 +113,7 @@ public final class PlayerState implements Cloneable {
         if (collidedVertically != o.collidedVertically) return "collidedVertically";
         if (!same(fallDistance, o.fallDistance)) return "fallDistance";
         if (inWeb != o.inWeb) return "inWeb";
+        if (inWater != o.inWater) return "inWater";
         if (!same(width, o.width)) return "width";
         if (!same(height, o.height)) return "height";
         if (sprinting != o.sprinting) return "sprinting";

@@ -12,6 +12,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /** Every catalog entry against the vanilla block state it names. */
 public class BlockCatalogTest {
@@ -35,6 +37,72 @@ public class BlockCatalogTest {
             assertEquals(t + " normal cube", s.isNormalCube(), t.isNormalCube());
             assertEquals(t + " slipperiness", s.getBlock().slipperiness, t.slipperiness(), 0.0F);
             assertEquals(t + " air", s.getMaterial() == Material.AIR, t.isAir());
+            assertEquals(t + " blocks movement", s.getMaterial().blocksMovement(), t.blocksMovement());
+            assertEquals(t + " liquid", s.getMaterial().isLiquid(), t instanceof VanillaBlocks.Liquid);
+            if (t instanceof VanillaBlocks.Liquid) {
+                assertEquals(t + " lava", s.getMaterial() == Material.LAVA, ((VanillaBlocks.Liquid) t).isLava());
+            }
+            assertEquals(t + " piston exception", exceptWithPiston(s.getBlock()), t.isExcept(BlockType.EXCEPT_PISTON));
+        }
+    }
+
+    /** {@code BlockLiquid.getFlow} at the centre of random 5x5x3 mixes of liquids and other blocks. */
+    @Test
+    public void liquidCurrentsMatchVanilla() {
+        List<BlockType> liquids = new ArrayList<BlockType>();
+        List<BlockType> others = new ArrayList<BlockType>();
+        for (BlockType t : VanillaBlocks.all()) {
+            (t instanceof VanillaBlocks.Liquid ? liquids : others).add(t);
+        }
+        Random r = new Random(2);
+        int compared = 0;
+        for (int trial = 0; trial < 20000; trial++) {
+            SparseBlockWorld w = new SparseBlockWorld();
+            List<BlockType> pick = new ArrayList<BlockType>();
+            for (int i = 0; i < 1 + r.nextInt(3); i++) {
+                pick.add(liquids.get(r.nextInt(liquids.size())));
+            }
+            for (int i = 0; i < r.nextInt(3); i++) {
+                pick.add(others.get(r.nextInt(others.size())));
+            }
+            for (int x = -2; x <= 2; x++) {
+                for (int y = 63; y <= 65; y++) {
+                    for (int z = -2; z <= 2; z++) {
+                        if (r.nextInt(4) != 0) {
+                            w.setBlock(x, y, z, pick.get(r.nextInt(pick.size())));
+                        }
+                    }
+                }
+            }
+            OracleWorld vw = new OracleWorld(w);
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockType t = w.getBlock(x, 64, z);
+                    if (!(t instanceof VanillaBlocks.Liquid)) {
+                        continue;
+                    }
+                    BlockPos pos = new BlockPos(x, 64, z);
+                    Vec3d v = vw.getBlockState(pos).getBlock().modifyAcceleration(vw, pos, null, Vec3d.ZERO);
+                    double[] e = ((VanillaBlocks.Liquid) t).flow(w, x, 64, z);
+                    String where = t + " at " + pos + " in trial " + trial;
+                    assertEquals(where, v.x, e[0], 0.0D);
+                    assertEquals(where, v.y, e[1], 0.0D);
+                    assertEquals(where, v.z, e[2], 0.0D);
+                    compared++;
+                }
+            }
+        }
+        assertTrue(compared > 50000);
+    }
+
+    private static boolean exceptWithPiston(net.minecraft.block.Block b) {
+        try {
+            java.lang.reflect.Method m = net.minecraft.block.Block.class.getDeclaredMethod("isExceptBlockForAttachWithPiston",
+                    net.minecraft.block.Block.class);
+            m.setAccessible(true);
+            return (Boolean) m.invoke(null, b);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
         }
     }
 

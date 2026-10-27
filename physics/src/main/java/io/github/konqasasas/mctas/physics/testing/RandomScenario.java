@@ -13,7 +13,8 @@ import java.util.Random;
 /**
  * A reproducible random course and input sequence for differential testing. The world is a small
  * parkour-like field with gaps, steps, pillars and ceilings, either of full blocks and ice
- * ({@link #generate}) or of every block the engine models ({@link #generateShapes}); the inputs hold
+ * ({@link #generate}), of every solid block the engine models ({@link #generateShapes}), or of those
+ * with pools of water or lava ({@link #generateFluids}); the inputs hold
  * keys for a few ticks at a time and mix smooth turning with sudden angle jumps.
  */
 public final class RandomScenario {
@@ -34,21 +35,45 @@ public final class RandomScenario {
         this.standingStart = standingStart;
     }
 
+    /** The course kinds, by the names the fuzz tools take. */
+    public static final String[] COURSES = {"full", "shapes", "fluids"};
+
+    /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
+    public static RandomScenario generate(String course, long seed, int ticks) {
+        if (course.equals("full")) {
+            return generate(seed, ticks);
+        } else if (course.equals("shapes")) {
+            return generateShapes(seed, ticks);
+        } else if (course.equals("fluids")) {
+            return generateFluids(seed, ticks);
+        }
+        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes or fluids");
+    }
+
     /** Full blocks and ice only. */
     public static RandomScenario generate(long seed, int ticks) {
-        return generate(seed, ticks, false);
+        return generate(seed, ticks, 0);
     }
 
-    /** Courses built from every block in {@link VanillaBlocks}: slabs, stairs, fences, walls, panes, ... */
+    /** Courses built from every solid block in {@link VanillaBlocks}: slabs, stairs, fences, walls, panes, ... */
     public static RandomScenario generateShapes(long seed, int ticks) {
-        return generate(seed, ticks, true);
+        return generate(seed, ticks, 1);
     }
 
-    private static RandomScenario generate(long seed, int ticks, boolean shapes) {
+    /** {@link #generateShapes} courses with pools and puddles of still water or lava (one of the two per course). */
+    public static RandomScenario generateFluids(long seed, int ticks) {
+        return generate(seed, ticks, 2);
+    }
+
+    private static RandomScenario generate(long seed, int ticks, int kind) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
+        boolean shapes = kind != 0;
         BlockType[] palette = shapes ? shapeCourse(r, w, base) : fullBlockCourse(r, w, base);
+        if (kind == 2) {
+            addFluids(r, w, base, palette);
+        }
         double sx = 0.3 + r.nextDouble() * 1.4 - 0.5;
         double sz = 0.3 + r.nextDouble() * 1.4 - 0.5;
         float yaw0 = (r.nextFloat() - 0.5F) * 720.0F;
@@ -151,6 +176,11 @@ public final class RandomScenario {
     private static BlockType[] shapeCourse(Random r, SparseBlockWorld w, int base) {
         List<BlockType> all = new ArrayList<BlockType>(VanillaBlocks.all());
         all.remove(BlockType.AIR);
+        for (java.util.Iterator<BlockType> it = all.iterator(); it.hasNext(); ) {
+            if (it.next() instanceof VanillaBlocks.Liquid) {
+                it.remove();
+            }
+        }
         int kinds = 2 + r.nextInt(5);
         BlockType[] palette = new BlockType[kinds + 1];
         palette[0] = BlockType.STONE;
@@ -192,6 +222,50 @@ public final class RandomScenario {
             w.fill(-size - 4, base - 6, -size - 4, size + 4, base - 6, size + 4, BlockType.STONE);
         }
         return palette;
+    }
+
+    /**
+     * Pools one to three blocks deep, some filled up to the feet, and single puddles on the floor,
+     * including the start area. Only the still blocks ({@code minecraft:water}, {@code minecraft:lava}):
+     * the recorder places them without block updates, so they stay as built.
+     */
+    private static void addFluids(Random r, SparseBlockWorld w, int base, BlockType[] palette) {
+        String id = r.nextDouble() < 0.3 ? "minecraft:lava" : "minecraft:water";
+        BlockType[] liquids = new BlockType[4];
+        for (int i = 0; i < liquids.length; i++) {
+            int level = r.nextDouble() < 0.6 ? 0 : 1 + r.nextInt(15);
+            liquids[i] = VanillaBlocks.require(id + "[level=" + level + "]");
+        }
+        for (int pools = 1 + r.nextInt(4); pools > 0; pools--) {
+            int cx = r.nextInt(13) - 6;
+            int cz = r.nextInt(13) - 6;
+            int hx = r.nextInt(3);
+            int hz = r.nextInt(3);
+            int depth = 1 + r.nextInt(3);
+            boolean full = r.nextDouble() < 0.4;
+            for (int x = cx - hx; x <= cx + hx; x++) {
+                for (int z = cz - hz; z <= cz + hz; z++) {
+                    if (Math.abs(x) <= 1 && Math.abs(z) <= 1) {
+                        // Keep the stone the player starts on.
+                        continue;
+                    }
+                    w.setBlock(x, base - 1 - depth, z, palette[r.nextInt(palette.length)]);
+                    for (int y = base - depth; y <= base - 1; y++) {
+                        w.setBlock(x, y, z, liquids[r.nextInt(liquids.length)]);
+                    }
+                    w.setBlock(x, base, z, full ? liquids[r.nextInt(liquids.length)] : BlockType.AIR);
+                }
+            }
+        }
+        double puddles = r.nextDouble() * 0.15;
+        for (int x = -7; x <= 7; x++) {
+            for (int z = -7; z <= 7; z++) {
+                boolean centre = Math.abs(x) <= 1 && Math.abs(z) <= 1;
+                if (r.nextDouble() < (centre ? puddles * 2.0 : puddles) && w.getBlock(x, base, z).isAir()) {
+                    w.setBlock(x, base, z, liquids[r.nextInt(liquids.length)]);
+                }
+            }
+        }
     }
 
     private static int randomKeys(Random r) {
