@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * {@code /mctas fuzz [runs] [ticks] [firstSeed]}, {@code /mctas script <file>}, {@code /mctas record},
+ * {@code /mctas fuzz [shapes] [runs] [ticks] [firstSeed]}, {@code /mctas script <file>}, {@code /mctas record},
  * {@code /mctas stop}. Script files are read from {@code .minecraft/mctas/scripts}.
  */
 final class McTasCommand extends CommandBase {
@@ -29,7 +29,7 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [runs] [ticks] [firstSeed] | script <file> | record | stop";
+        return "/mctas fuzz [shapes] [runs] [ticks] [firstSeed] | script <file> | record | stop";
     }
 
     @Override
@@ -47,10 +47,12 @@ final class McTasCommand extends CommandBase {
         String sub = args.length == 0 ? "" : args[0];
         try {
             if (sub.equals("fuzz")) {
-                int runs = args.length > 1 ? parseInt(args[1], 1) : 100;
-                int ticks = args.length > 2 ? parseInt(args[2], 1) : 200;
-                long first = args.length > 3 ? parseLong(args[3]) : 1L;
-                controller.startFuzz(runs, ticks, first);
+                boolean shapes = args.length > 1 && args[1].equals("shapes");
+                int i = shapes ? 2 : 1;
+                int runs = args.length > i ? parseInt(args[i], 1) : 100;
+                int ticks = args.length > i + 1 ? parseInt(args[i + 1], 1) : 200;
+                long first = args.length > i + 2 ? parseLong(args[i + 2]) : 1L;
+                controller.startFuzz(runs, ticks, first, shapes);
             } else if (sub.equals("script") && args.length > 1) {
                 File dir = new File(Minecraft.getMinecraft().gameDir, "mctas/scripts");
                 File f = new File(dir, args[1]);

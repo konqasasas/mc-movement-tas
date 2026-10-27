@@ -27,11 +27,12 @@ if (!haveJar) {
 }
 
 def fuzzArgs = { ->
-    [findProperty('runs') ?: '1000', findProperty('ticks') ?: '200', findProperty('firstSeed') ?: '1']
+    [findProperty('runs') ?: '1000', findProperty('ticks') ?: '200', findProperty('firstSeed') ?: '1',
+     findProperty('courses') ?: 'full']
 }
 
 tasks.register('fuzz', JavaExec) {
-    description = 'Compares Physics with the vanilla player on random courses and inputs (-Pruns, -Pticks, -PfirstSeed).'
+    description = 'Compares Physics with the vanilla player on random courses and inputs (-Pruns, -Pticks, -PfirstSeed, -Pcourses=shapes).'
     group = 'verification'
     onlyIf { haveJar }
     classpath = sourceSets.main.runtimeClasspath
@@ -46,6 +47,16 @@ tasks.register('writeGoldens', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'io.github.konqasasas.mctas.oracle.GoldenWriter'
     args = [rootProject.file('physics/src/test/resources/vanilla-goldens.txt').path, '1000', '200']
+    finalizedBy 'writeShapeGoldens'
+}
+
+tasks.register('writeShapeGoldens', JavaExec) {
+    description = 'Regenerates physics/src/test/resources/vanilla-goldens-shapes.txt from the vanilla player.'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.GoldenWriter'
+    args = [rootProject.file('physics/src/test/resources/vanilla-goldens-shapes.txt').path, '1000', '200', 'shapes']
 }
 
 apply from: 'prepare.gradle'

@@ -416,7 +416,7 @@ public final class Physics {
                         if (stopAtFirst && (k1 < -30000000 || k1 >= 30000000 || l1 < -30000000 || l1 >= 30000000)) {
                             return true;
                         }
-                        world.getBlock(k1, i2, l1).addCollisionBoxes(k1, i2, l1, aabb, out);
+                        world.getBlock(k1, i2, l1).addCollisionBoxes(world, k1, i2, l1, aabb, out);
                         if (stopAtFirst && !out.isEmpty()) {
                             return true;
                         }

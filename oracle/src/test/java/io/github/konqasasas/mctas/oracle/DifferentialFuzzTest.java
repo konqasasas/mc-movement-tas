@@ -14,4 +14,11 @@ public class DifferentialFuzzTest {
             assertNull(DifferentialFuzz.check(RandomScenario.generate(seed, 200)));
         }
     }
+
+    @Test
+    public void thousandRandomRunsOnShapeCoursesMatchVanilla() {
+        for (long seed = 1; seed <= 1000; seed++) {
+            assertNull(DifferentialFuzz.check(RandomScenario.generateShapes(seed, 200)));
+        }
+    }
 }
