@@ -1,0 +1,81 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v0/02-gap-1",
+  "title": "1ブロックの隙間を跳ぶ",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          64,
+          2
+        ],
+        "to": [
+          0,
+          64,
+          2
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -0.3,
+      65,
+      1.7
+    ],
+    "max": [
+      1.3,
+      65,
+      3.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 400,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 4,
+    "kind": "upper_bound",
+    "witness": "02-gap-1.tas",
+    "note": "baseline beam search, provisional physics"
+  }
+}
