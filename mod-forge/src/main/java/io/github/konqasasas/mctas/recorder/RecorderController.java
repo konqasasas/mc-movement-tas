@@ -9,6 +9,7 @@ import io.github.konqasasas.mctas.physics.testing.RandomScenario;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.integrated.IntegratedServer;
@@ -71,6 +72,8 @@ public final class RecorderController {
     private ClientWorldBlocks blocks;
     private int runMismatches;
     private int runBetween;
+    /** Ticks on which a pushable entity was close enough to push the player. */
+    private int runEntityTicks;
     private String runFirstMismatch;
 
     // fuzz
@@ -224,6 +227,9 @@ public final class RecorderController {
                 PlayerState real = PlayerSnapshot.read(p);
                 PlayerInput in = mode == Mode.RECORD ? PlayerSnapshot.lastInput(p) : inputs.get(tick);
                 Physics.step(blocks, sim, in);
+                if (entityNearby(p)) {
+                    runEntityTicks++;
+                }
                 String field = sim.firstDifference(real);
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
@@ -253,6 +259,15 @@ public final class RecorderController {
         }
     }
 
+    private boolean entityNearby(EntityPlayerSP p) {
+        for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, p.getEntityBoundingBox().grow(1.0D))) {
+            if (e.canBePushed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void beginRun(String label) {
         EntityPlayerSP p = mc.player;
         sim = PlayerSnapshot.read(p);
@@ -261,6 +276,7 @@ public final class RecorderController {
         tick = 0;
         runMismatches = 0;
         runBetween = 0;
+        runEntityTicks = 0;
         runFirstMismatch = null;
         phase = Phase.RUN;
         log.println("# run " + label);
@@ -272,6 +288,10 @@ public final class RecorderController {
         String result;
         if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
+            runsInvalid++;
+        } else if (runEntityTicks > 0) {
+            // The engine has no other entities; mobs push the player (collideWithNearbyEntities).
+            result = "INVALID: another entity was next to the player on " + runEntityTicks + " ticks";
             runsInvalid++;
         } else if (runMismatches == 0) {
             result = "MATCH " + tick + " ticks";
