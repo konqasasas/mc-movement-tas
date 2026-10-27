@@ -1,0 +1,118 @@
+// Builds oracle/lib/minecraft_server-1.12.2-mcp.jar: the official 1.12.2 server jar with MCP names.
+//
+//   ./gradlew :oracle:prepareMcpJar
+//
+// Downloads the server jar from Mojang (checked against its published SHA-1) and the MCP 1.12.2 SRG
+// and stable_39 name tables from the Forge maven, merges them into one notch->MCP SRG file and
+// remaps the jar with SpecialSource. To work offline, point at local copies instead:
+//   -PmcServerJar=<server jar>   -PmcpConfDir=<dir with joined.srg, fields.csv, methods.csv>
+
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+
+def SERVER_SHA1 = '886945bfb2b978778c3a0288fd7fab09d315b25f'
+def SERVER_URL = "https://launcher.mojang.com/v1/objects/${SERVER_SHA1}/server.jar"
+def SRG_URL = 'https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp/1.12.2/mcp-1.12.2-srg.zip'
+def NAMES_URL = 'https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_stable/39-1.12/mcp_stable-39-1.12.zip'
+
+def sha1 = { File f ->
+    MessageDigest md = MessageDigest.getInstance('SHA-1')
+    f.withInputStream { is ->
+        byte[] buf = new byte[1 << 16]
+        int n
+        while ((n = is.read(buf)) > 0) {
+            md.update(buf, 0, n)
+        }
+    }
+    md.digest().collect { String.format('%02x', it) }.join()
+}
+
+def download = { String url, File dest ->
+    if (!dest.isFile()) {
+        dest.parentFile.mkdirs()
+        logger.lifecycle("downloading ${url}")
+        new URL(url).withInputStream { is -> dest.withOutputStream { os -> os << is } }
+    }
+    dest
+}
+
+def zipText = { File zip, String suffix ->
+    def z = new ZipFile(zip)
+    try {
+        def e = z.entries().find { it.name.endsWith(suffix) }
+        if (e == null) {
+            throw new GradleException("${suffix} not found in ${zip}")
+        }
+        return z.getInputStream(e).getText('UTF-8')
+    } finally {
+        z.close()
+    }
+}
+
+def readCsvNames = { String text ->
+    def names = [:]
+    text.eachLine { line, i ->
+        if (i == 0) return
+        def parts = line.split(',', 3)
+        if (parts.length >= 2) names[parts[0]] = parts[1]
+    }
+    names
+}
+
+tasks.register('prepareMcpJar') {
+    description = 'Downloads the 1.12.2 server jar and remaps it to MCP names for the oracle.'
+    group = 'build setup'
+    def work = layout.buildDirectory.dir('prepare').get().asFile
+    def out = file('lib/minecraft_server-1.12.2-mcp.jar')
+    outputs.file(out)
+    doLast {
+        File server = project.hasProperty('mcServerJar') ? file(project.property('mcServerJar'))
+                : download(SERVER_URL, new File(work, 'server-1.12.2.jar'))
+        def actual = sha1(server)
+        if (actual != SERVER_SHA1) {
+            throw new GradleException("server jar SHA-1 is ${actual}, expected ${SERVER_SHA1}")
+        }
+
+        String srgText
+        String fieldsText
+        String methodsText
+        if (project.hasProperty('mcpConfDir')) {
+            def dir = file(project.property('mcpConfDir'))
+            srgText = new File(dir, 'joined.srg').getText('UTF-8')
+            fieldsText = new File(dir, 'fields.csv').getText('UTF-8')
+            methodsText = new File(dir, 'methods.csv').getText('UTF-8')
+        } else {
+            srgText = zipText(download(SRG_URL, new File(work, 'mcp-1.12.2-srg.zip')), 'joined.srg')
+            def namesZip = download(NAMES_URL, new File(work, 'mcp_stable-39-1.12.zip'))
+            fieldsText = zipText(namesZip, 'fields.csv')
+            methodsText = zipText(namesZip, 'methods.csv')
+        }
+
+        def names = readCsvNames(fieldsText) + readCsvNames(methodsText)
+        def merged = new File(work, 'notch-to-mcp.srg')
+        work.mkdirs()
+        merged.withWriter('UTF-8') { w ->
+            srgText.eachLine { line ->
+                def p = line.trim().split(/\s+/)
+                if (p[0] == 'FD:') {
+                    int slash = p[2].lastIndexOf('/')
+                    def n = p[2].substring(slash + 1)
+                    p[2] = p[2].substring(0, slash + 1) + (names[n] ?: n)
+                } else if (p[0] == 'MD:') {
+                    int slash = p[3].lastIndexOf('/')
+                    def n = p[3].substring(slash + 1)
+                    p[3] = p[3].substring(0, slash + 1) + (names[n] ?: n)
+                }
+                w.write(p.join(' ') + '\n')
+            }
+        }
+
+        out.parentFile.mkdirs()
+        project.javaexec {
+            classpath = configurations.specialSource
+            mainClass = 'net.md_5.specialsource.SpecialSource'
+            args '--in-jar', server.path, '--out-jar', out.path, '--srg-in', merged.path, '--quiet'
+        }
+        logger.lifecycle("wrote ${out}")
+    }
+}

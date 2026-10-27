@@ -1,0 +1,51 @@
+// Differential tests against the game's own 1.12.2 code.
+//
+// Needs the 1.12.2 server jar remapped to MCP names at oracle/lib/minecraft_server-1.12.2-mcp.jar
+// (or -PmcpServerJar=<path>). `./gradlew :oracle:prepareMcpJar` builds it; see oracle/README.md.
+// Without the jar every task of this module is skipped, so the rest of the build never needs it.
+
+configurations {
+    specialSource
+}
+
+def mcpJar = file(findProperty('mcpServerJar') ?: 'lib/minecraft_server-1.12.2-mcp.jar')
+def haveJar = mcpJar.isFile()
+
+dependencies {
+    implementation project(':physics')
+    if (haveJar) {
+        implementation files(mcpJar)
+    }
+    specialSource 'net.md-5:SpecialSource:1.11.4:shaded'
+}
+
+if (!haveJar) {
+    tasks.matching { it.name in ['compileJava', 'compileTestJava', 'test', 'jar', 'classes', 'testClasses'] }.configureEach {
+        enabled = false
+    }
+    logger.info("oracle: ${mcpJar} not found, oracle tasks are skipped")
+}
+
+def fuzzArgs = { ->
+    [findProperty('runs') ?: '1000', findProperty('ticks') ?: '200', findProperty('firstSeed') ?: '1']
+}
+
+tasks.register('fuzz', JavaExec) {
+    description = 'Compares Physics with the vanilla player on random courses and inputs (-Pruns, -Pticks, -PfirstSeed).'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.DifferentialFuzz'
+    args = fuzzArgs()
+}
+
+tasks.register('writeGoldens', JavaExec) {
+    description = 'Regenerates physics/src/test/resources/vanilla-goldens.txt from the vanilla player.'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.GoldenWriter'
+    args = [rootProject.file('physics/src/test/resources/vanilla-goldens.txt').path, '1000', '200']
+}
+
+apply from: 'prepare.gradle'
