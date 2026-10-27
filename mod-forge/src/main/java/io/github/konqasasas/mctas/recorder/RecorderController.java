@@ -237,6 +237,8 @@ public final class RecorderController {
                 tick++;
                 if (mode != Mode.RECORD && tick >= inputs.size()) {
                     endRun();
+                    // Leave RUN first, or stop() would close the finished run a second time.
+                    phase = Phase.PREPARE;
                     if (mode == Mode.FUZZ) {
                         advanceFuzz();
                     } else {
