@@ -10,7 +10,8 @@ import java.util.List;
  * Runs {@link RandomScenario}s through both {@link Physics} and {@link VanillaOracle} and compares
  * every field of every tick bitwise.
  *
- * <p>Usage: {@code DifferentialFuzz [runs] [ticks] [firstSeed]}.
+ * <p>Usage: {@code DifferentialFuzz [runs] [ticks] [firstSeed] [shapes]}; {@code shapes} uses
+ * {@link RandomScenario#generateShapes} instead of the full-block courses.
  */
 public final class DifferentialFuzz {
 
@@ -38,11 +39,12 @@ public final class DifferentialFuzz {
         int runs = args.length > 0 ? Integer.parseInt(args[0]) : 1000;
         int ticks = args.length > 1 ? Integer.parseInt(args[1]) : 200;
         long first = args.length > 2 ? Long.parseLong(args[2]) : 1L;
+        boolean shapes = args.length > 3 && args[3].equals("shapes");
         int failures = 0;
         long totalTicks = 0;
         long t0 = System.nanoTime();
         for (long seed = first; seed < first + runs; seed++) {
-            RandomScenario sc = RandomScenario.generate(seed, ticks);
+            RandomScenario sc = shapes ? RandomScenario.generateShapes(seed, ticks) : RandomScenario.generate(seed, ticks);
             String msg = check(sc);
             totalTicks += ticks;
             if (msg != null) {

@@ -18,15 +18,24 @@ import static org.junit.Assert.assertTrue;
 /**
  * Checks {@link Physics} against trajectory hashes produced by the game's own code
  * ({@code :oracle:writeGoldens}): 1,000 random courses and input sequences of 200 ticks, every
- * field of every tick bitwise.
+ * field of every tick bitwise, on full-block courses and again on courses of every modelled block.
  */
 public class VanillaGoldensTest {
 
     @Test
     public void matchesVanillaOnAllGoldenScenarios() throws IOException {
+        check("/vanilla-goldens.txt", false);
+    }
+
+    @Test
+    public void matchesVanillaOnAllShapeGoldenScenarios() throws IOException {
+        check("/vanilla-goldens-shapes.txt", true);
+    }
+
+    private void check(String resource, boolean shapes) throws IOException {
         List<String> failures = new ArrayList<String>();
         int checked = 0;
-        InputStream in = getClass().getResourceAsStream("/vanilla-goldens.txt");
+        InputStream in = getClass().getResourceAsStream(resource);
         BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         try {
             String line;
@@ -38,7 +47,7 @@ public class VanillaGoldensTest {
                 long seed = Long.parseLong(p[0]);
                 int ticks = Integer.parseInt(p[1]);
                 long expected = Long.parseUnsignedLong(p[2], 16);
-                RandomScenario sc = RandomScenario.generate(seed, ticks);
+                RandomScenario sc = shapes ? RandomScenario.generateShapes(seed, ticks) : RandomScenario.generate(seed, ticks);
                 if (hash(sc, sc.world) != expected) {
                     failures.add("seed " + seed);
                 }

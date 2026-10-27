@@ -44,16 +44,7 @@ final class OracleWorld extends World {
     }
 
     static IBlockState vanilla(BlockType type) {
-        if (type == BlockType.STONE) {
-            return Blocks.STONE.getDefaultState();
-        }
-        if (type == BlockType.ICE) {
-            return Blocks.ICE.getDefaultState();
-        }
-        if (type == BlockType.PACKED_ICE) {
-            return Blocks.PACKED_ICE.getDefaultState();
-        }
-        throw new IllegalArgumentException("no vanilla block for " + type);
+        return VanillaStates.of(type);
     }
 
     @Override

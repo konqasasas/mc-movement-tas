@@ -77,6 +77,7 @@ public final class RecorderController {
     private long seed;
     private long lastSeed;
     private int fuzzTicks;
+    private boolean fuzzShapes;
     private int originX;
     private int originZ;
     private RandomScenario scenario;
@@ -116,7 +117,8 @@ public final class RecorderController {
         chat("Recording your play. /mctas stop to finish.");
     }
 
-    public void startFuzz(int runs, int ticks, long firstSeed) throws IOException {
+    /** @param shapes use the courses of every modelled block instead of full blocks and ice */
+    public void startFuzz(int runs, int ticks, long firstSeed, boolean shapes) throws IOException {
         if (!checkPlayer()) {
             return;
         }
@@ -129,10 +131,11 @@ public final class RecorderController {
         seed = firstSeed;
         lastSeed = firstSeed + runs - 1;
         fuzzTicks = ticks;
+        fuzzShapes = shapes;
         originX = (int) Math.floor(mc.player.posX);
         originZ = (int) Math.floor(mc.player.posZ);
         runsMatched = runsMismatched = runsInvalid = runsSkipped = 0;
-        log.println("# fuzz seeds " + firstSeed + ".." + lastSeed + ", " + ticks + " ticks, origin " + originX + " " + originZ);
+        log.println("# fuzz " + (shapes ? "shapes " : "") + "seeds " + firstSeed + ".." + lastSeed + ", " + ticks + " ticks, origin " + originX + " " + originZ);
         driver.install(mc.player);
         chat("Fuzz: " + runs + " seeds around " + originX + ", " + originZ + ". Do not touch the keyboard or mouse.");
         prepareNextScenario();
@@ -298,7 +301,8 @@ public final class RecorderController {
 
     private void prepareNextScenario() {
         while (seed <= lastSeed) {
-            RandomScenario sc = RandomScenario.generate(seed, fuzzTicks);
+            RandomScenario sc = fuzzShapes ? RandomScenario.generateShapes(seed, fuzzTicks)
+                    : RandomScenario.generate(seed, fuzzTicks);
             if (sc.standingStart) {
                 scenario = sc;
                 break;
@@ -369,13 +373,7 @@ public final class RecorderController {
     }
 
     private static IBlockState vanilla(BlockType type) {
-        if (type == BlockType.ICE) {
-            return Blocks.ICE.getDefaultState();
-        }
-        if (type == BlockType.PACKED_ICE) {
-            return Blocks.PACKED_ICE.getDefaultState();
-        }
-        return Blocks.STONE.getDefaultState();
+        return VanillaStates.of(type);
     }
 
     /** The fuzz mode makes the player invulnerable on the server so falls do not end the session. */
