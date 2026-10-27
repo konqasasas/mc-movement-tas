@@ -9,8 +9,8 @@ import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.Spawn;
 import io.github.konqasasas.mctas.problem.Target;
 import io.github.konqasasas.mctas.problem.Vec3;
-import io.github.konqasasas.mctas.problem.world.BlockType;
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.problem.world.Blocks;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +42,7 @@ public final class ProblemIO {
             expect(!rules.has("autoJump") || !rules.get("autoJump").getAsBoolean(), "rules.autoJump=true is not supported");
         }
 
-        BlockWorld world = readWorld(obj(root, "world"));
+        SparseBlockWorld world = readWorld(obj(root, "world"));
         JsonObject sp = obj(root, "spawn");
         Spawn spawn = new Spawn(vec(sp, "pos"), sp.has("yaw") ? sp.get("yaw").getAsFloat() : 0.0F,
             sp.has("pitch") ? sp.get("pitch").getAsFloat() : 0.0F);
@@ -69,19 +69,19 @@ public final class ProblemIO {
         return new Problem(id, title, world, spawn, start, goal, maxTicks, voidY, target);
     }
 
-    private static BlockWorld readWorld(JsonObject w) {
+    private static SparseBlockWorld readWorld(JsonObject w) {
         String source = str(w, "source");
         if (!"inline".equals(source)) {
             throw new ProblemFormatException("world.source \"" + source + "\" is not supported yet (only \"inline\")");
         }
-        BlockWorld world = new BlockWorld();
+        SparseBlockWorld world = new SparseBlockWorld();
         JsonArray fills = w.getAsJsonArray("fills");
         expect(fills != null, "world.fills is required");
         for (JsonElement e : fills) {
             JsonObject f = e.getAsJsonObject();
             int[] a = ivec(f, "from");
             int[] b = f.has("to") ? ivec(f, "to") : a;
-            world.fill(a[0], a[1], a[2], b[0], b[1], b[2], BlockType.byId(str(f, "block")));
+            world.fill(a[0], a[1], a[2], b[0], b[1], b[2], Blocks.byId(str(f, "block")));
         }
         return world;
     }

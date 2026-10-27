@@ -5,9 +5,9 @@ import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.judge.Judge;
-import io.github.konqasasas.mctas.problem.judge.ProvisionalModel;
+import io.github.konqasasas.mctas.problem.judge.PhysicsModel;
 import io.github.konqasasas.mctas.problem.judge.RunResult;
-import io.github.konqasasas.mctas.problem.provisional.PlayerState;
+import io.github.konqasasas.mctas.physics.PlayerState;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +55,7 @@ public final class BeamSearch {
     };
 
     private final Problem problem;
-    private final ProvisionalModel model;
+    private final PhysicsModel model;
     private final List<Region> waypoints;
     private final List<TickInput> actions = new ArrayList<TickInput>();
     private final List<TickInput> brakes = new ArrayList<TickInput>();
@@ -64,7 +64,7 @@ public final class BeamSearch {
 
     public BeamSearch(Problem problem, float[] yaws, List<Region> waypoints, int beamWidth) {
         this.problem = problem;
-        this.model = new ProvisionalModel(problem);
+        this.model = new PhysicsModel(problem);
         this.waypoints = new ArrayList<Region>(waypoints);
         this.waypoints.add(problem.goal);
         this.beamWidth = beamWidth;
@@ -101,7 +101,7 @@ public final class BeamSearch {
             for (Node n : beam) {
                 for (TickInput a : actions) {
                     PlayerState ns = model.tick(n.state, a);
-                    double x = ns.x(), y = ns.y(), z = ns.z();
+                    double x = ns.posX, y = ns.posY, z = ns.posZ;
                     if (y < problem.voidY || y < floorY) continue;
                     if (n.stage == last && n.startEntry >= 0 && problem.goal.contains(x, y, z)) {
                         int ticks = t - n.startEntry;
@@ -116,7 +116,7 @@ public final class BeamSearch {
                     boolean in = s.contains(x, y, z);
                     int entry = in && !n.inStart ? t : n.startEntry;
                     int stage = n.stage;
-                    if (stage < last && ns.onGround() && waypoints.get(stage).contains(x, y, z)) stage++;
+                    if (stage < last && ns.onGround && waypoints.get(stage).contains(x, y, z)) stage++;
                     Node child = new Node(n, a, ns, entry, in, stage);
                     child.score = score(child, t);
                     long key = bucket(child);
@@ -149,9 +149,9 @@ public final class BeamSearch {
             PlayerState s = st;
             for (int i = 0; i < 40; i++) {
                 s = model.tick(s, brake);
-                if (problem.goal.contains(s.x(), s.y(), s.z())) return false;
-                if (s.onGround() && Math.abs(s.motionX()) < 0.01 && Math.abs(s.motionZ()) < 0.01) return false;
-                if (s.y() < floorY) break;
+                if (problem.goal.contains(s.posX, s.posY, s.posZ)) return false;
+                if (s.onGround && Math.abs(s.motionX) < 0.01 && Math.abs(s.motionZ) < 0.01) return false;
+                if (s.posY < floorY) break;
             }
         }
         return true;
@@ -165,8 +165,8 @@ public final class BeamSearch {
         List<Node> rest = new ArrayList<Node>();
         for (Node n : nodes) {
             if (out.size() >= beamWidth) break;
-            long phase = ((long) Math.floor(n.state.y() * 100.0) * 4 + (n.state.onGround() ? 1 : 0)
-                + (n.state.motionY() > 0 ? 2 : 0)) * 64 + n.stage;
+            long phase = ((long) Math.floor(n.state.posY * 100.0) * 4 + (n.state.onGround ? 1 : 0)
+                + (n.state.motionY > 0 ? 2 : 0)) * 64 + n.stage;
             Integer c = perPhase.get(phase);
             int count = c == null ? 0 : c;
             if (count < cap) {
@@ -187,9 +187,9 @@ public final class BeamSearch {
         PlayerState st = n.state;
         Region g = waypoints.get(n.stage);
         double gx = (g.minX + g.maxX) / 2.0, gz = (g.minZ + g.maxZ) / 2.0;
-        double dx = gx - st.x(), dz = gz - st.z();
+        double dx = gx - st.posX, dz = gz - st.posZ;
         double dist = Math.sqrt(dx * dx + dz * dz);
-        double along = dist > 1e-9 ? (st.motionX() * dx + st.motionZ() * dz) / dist : 0.0;
+        double along = dist > 1e-9 ? (st.motionX * dx + st.motionZ * dz) / dist : 0.0;
         double stageBonus = 1000.0 * n.stage;
         if (n.startEntry < 0) return stageBonus + 10.0 * along - 0.1 * dist;
         return stageBonus - dist / 0.3 + 4.0 * along - (t - n.startEntry);
@@ -197,12 +197,12 @@ public final class BeamSearch {
 
     private static long bucket(Node n) {
         PlayerState st = n.state;
-        long h = (long) Math.floor(st.x() / 0.05);
-        h = h * 1000003L + (long) Math.floor(st.z() / 0.05);
-        h = h * 1000003L + (long) Math.floor(st.y() / 0.25);
-        h = h * 1000003L + (long) Math.floor(st.motionX() / 0.02);
-        h = h * 1000003L + (long) Math.floor(st.motionZ() / 0.02);
-        h = h * 31L + (st.onGround() ? 1 : 0);
+        long h = (long) Math.floor(st.posX / 0.05);
+        h = h * 1000003L + (long) Math.floor(st.posZ / 0.05);
+        h = h * 1000003L + (long) Math.floor(st.posY / 0.25);
+        h = h * 1000003L + (long) Math.floor(st.motionX / 0.02);
+        h = h * 1000003L + (long) Math.floor(st.motionZ / 0.02);
+        h = h * 31L + (st.onGround ? 1 : 0);
         h = h * 31L + (n.startEntry >= 0 ? 1 : 0);
         h = h * 31L + n.stage;
         return h;

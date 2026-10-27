@@ -20,6 +20,6 @@ public final class Evaluator {
     }
 
     public static RunResult run(Problem problem, List<TickInput> inputs) {
-        return run(problem, new ProvisionalModel(problem), inputs);
+        return run(problem, new PhysicsModel(problem), inputs);
     }
 }

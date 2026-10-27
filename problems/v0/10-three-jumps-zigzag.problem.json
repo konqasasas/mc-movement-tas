@@ -102,6 +102,6 @@
     "ticks": 35,
     "kind": "upper_bound",
     "witness": "10-three-jumps-zigzag.tas",
-    "note": "baseline beam search, provisional physics"
+    "note": "baseline beam search"
   }
 }

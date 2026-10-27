@@ -2,7 +2,7 @@ package io.github.konqasasas.mctas.problem;
 
 import io.github.konqasasas.mctas.problem.judge.Judge;
 import io.github.konqasasas.mctas.problem.judge.RunResult;
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class JudgeTest {
     private static Problem line(double spawnZ) {
-        return new Problem("t", "t", new BlockWorld(), new Spawn(new Vec3(0.5, 65, spawnZ), 0, 0),
+        return new Problem("t", "t", new SparseBlockWorld(), new Spawn(new Vec3(0.5, 65, spawnZ), 0, 0),
             new Region(0, 60, 0, 1, 70, 1), new Region(0, 65, 5, 1, 65, 6), 100, 0, null);
     }
 
