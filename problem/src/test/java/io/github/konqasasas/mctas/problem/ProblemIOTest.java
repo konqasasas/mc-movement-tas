@@ -1,15 +1,19 @@
 package io.github.konqasasas.mctas.problem;
 
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.io.InputText;
 import io.github.konqasasas.mctas.problem.io.ProblemFormatException;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
+import io.github.konqasasas.mctas.problem.world.Blocks;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class ProblemIOTest {
@@ -40,6 +44,26 @@ public class ProblemIOTest {
     @Test(expected = IllegalArgumentException.class)
     public void rejectsUnsupportedBlocks() {
         ProblemIO.parse(BASE.replace("stone", "stone_slab") + "\"goal\":{\"min\":[0,65,8],\"max\":[1,65,9]}}");
+    }
+
+    @Test
+    public void acceptsVanillaBlockStates() {
+        assertSame(VanillaBlocks.require("minecraft:oak_stairs[facing=north,half=bottom]"),
+            Blocks.byId("oak_stairs[shape=straight,half=bottom,facing=north]"));
+        assertSame(VanillaBlocks.require("minecraft:stone_slab[half=top]"),
+            Blocks.byId("minecraft:stone_slab[variant=stone,half=top]"));
+        assertSame(VanillaBlocks.require("minecraft:slime"), Blocks.byId("slime"));
+        assertSame(BlockType.STONE, Blocks.byId("minecraft:wool[color=red]"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsMissingCollisionProperties() {
+        Blocks.byId("minecraft:oak_stairs[facing=north]");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsBlocksTheEngineCannotModel() {
+        Blocks.byId("minecraft:water");
     }
 
     @Test
