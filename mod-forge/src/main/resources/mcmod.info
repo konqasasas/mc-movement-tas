@@ -1,0 +1,12 @@
+[
+{
+  "modid": "mctasrecorder",
+  "name": "MC TAS Recorder",
+  "description": "Drives the player with scripted inputs, records every tick, and compares the real game with the headless engine.",
+  "version": "${version}",
+  "mcversion": "1.12.2",
+  "url": "https://github.com/konqasasas/mc-movement-tas",
+  "authorList": ["konqasasas"],
+  "dependencies": []
+}
+]

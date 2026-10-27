@@ -20,12 +20,16 @@ public final class RandomScenario {
     public final SparseBlockWorld world;
     public final PlayerState start;
     public final List<PlayerInput> inputs;
+    /** True when {@link #start} is a player standing on the ground, which the real game can set up by teleport. */
+    public final boolean standingStart;
 
-    private RandomScenario(long seed, SparseBlockWorld world, PlayerState start, List<PlayerInput> inputs) {
+    private RandomScenario(long seed, SparseBlockWorld world, PlayerState start, List<PlayerInput> inputs,
+                           boolean standingStart) {
         this.seed = seed;
         this.world = world;
         this.start = start;
         this.inputs = inputs;
+        this.standingStart = standingStart;
     }
 
     public static RandomScenario generate(long seed, int ticks) {
@@ -63,6 +67,7 @@ public final class RandomScenario {
         float yaw0 = (r.nextFloat() - 0.5F) * 720.0F;
         PlayerState start = PlayerState.standing(sx, base, sz, yaw0);
         double variant = r.nextDouble();
+        boolean standing = true;
         if (variant < 0.15) {
             // Pillars that may overlap the player, so the client's push-out-of-blocks fires.
             for (int i = 1 + r.nextInt(3); i > 0; i--) {
@@ -72,6 +77,7 @@ public final class RandomScenario {
             }
         } else if (variant < 0.45) {
             // Mid-air entry with arbitrary velocity and carried-over flags.
+            standing = false;
             start.setPosition(sx, base + r.nextDouble() * 2.5, sz);
             start.motionX = (r.nextDouble() - 0.5) * 1.2;
             start.motionY = (r.nextDouble() - 0.5) * 1.0;
@@ -113,7 +119,7 @@ public final class RandomScenario {
             float pitch = (r.nextFloat() - 0.5F) * 180.0F;
             inputs.add(new PlayerInput(k, yaw, pitch));
         }
-        return new RandomScenario(seed, w, start, inputs);
+        return new RandomScenario(seed, w, start, inputs, standing);
     }
 
     private static int randomKeys(Random r) {

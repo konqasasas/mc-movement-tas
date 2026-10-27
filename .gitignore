@@ -6,3 +6,6 @@ out/
 .vscode/
 oracle/lib/
 logs/
+mod-forge/run/
+mod-forge/build/
+mod-forge/.gradle/

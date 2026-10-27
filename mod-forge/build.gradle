@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'xyz.wagyourtail.unimined' version '1.4.1'
+}
+
+group = 'io.github.konqasasas.mctas'
+version = project.mod_version
+
+base {
+    archivesName = 'mctas-recorder-1.12.2'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+}
+
+tasks.withType(JavaExec).configureEach {
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// The headless engine is compiled into the mod so it can be checked live against the real player.
+sourceSets.main.java.srcDir '../physics/src/main/java'
+
+unimined.useGlobalCache = false
+
+unimined.minecraft {
+    version project.minecraft_version
+    mappings {
+        searge()
+        mcp(project.mcp_channel, project.mcp_version)
+    }
+    minecraftForge {
+        loader project.forge_version
+    }
+    minecraftRemapper.config {
+        ignoreConflicts(true)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('mcmod.info') {
+        expand 'version': project.version
+    }
+}
