@@ -1,0 +1,41 @@
+# v0/01-run-10: 26 ticks
+# found by the baseline beam search (mctas-problem search); an upper bound, not proven optimal
+1 W A SPRINT yaw=-45.0
+1 W D SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+2 W D SPRINT
+5 W A SPRINT yaw=45.0
+1 W D SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+2 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=0.0
+2 W A SPRINT yaw=45.0
+1 W SPRINT yaw=-45.0
+5 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+7 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+5 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=0.0
+5 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+2 W A SPRINT yaw=45.0
+1 W D SPRINT yaw=0.0
+8 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+5 W A SPRINT yaw=45.0
+1 W D SPRINT yaw=0.0
+5 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+7 W A SPRINT yaw=45.0
+1 W A SPRINT yaw=0.0
+3 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+11 W A SPRINT yaw=45.0
+1 W JUMP SPRINT yaw=0.0
+13 W A SPRINT yaw=45.0
+1 W SPRINT yaw=0.0

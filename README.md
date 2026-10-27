@@ -9,6 +9,15 @@ Minecraft Java Edition 1.12.2 の移動TASを自動で探すエンジンです�
 | `problem` | 問題ファイル形式、スタートとゴールの判定、出力形式、問題集 |
 | `physics` | ヘッドレスの 1.12.2 プレイヤー物理 |
 
+## 問題と判定
+
+問題ファイルの形式、スタートとゴールの判定、入力列と解答の形式は [docs/problem-format.md](docs/problem-format.md) にあります。問題集は `problems/` にあります。
+
+```
+./gradlew :problem:installDist
+problem/build/install/mctas-problem/bin/mctas-problem time problems/v0/04-gap-3.problem.json problems/v0/04-gap-3.tas
+```
+
 ## ビルド
 
 JDK 21 で `./gradlew build`(Windows は `gradlew.bat build`)。成果物は Java 8 向けにコンパイルされます。
