@@ -19,6 +19,11 @@ public final class Aabb {
         this.maxZ = Math.max(z1, z2);
     }
 
+    /** {@code AxisAlignedBB.grow}: moves every face outwards (inwards for negative values). */
+    public Aabb grow(double x, double y, double z) {
+        return new Aabb(minX - x, minY - y, minZ - z, maxX + x, maxY + y, maxZ + z);
+    }
+
     /** {@code AxisAlignedBB.expand}: stretches the box in the direction of each component. */
     public Aabb expand(double x, double y, double z) {
         double d0 = minX;

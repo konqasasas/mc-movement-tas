@@ -63,6 +63,7 @@ public final class VanillaOracle {
         p.collidedVertically = s.collidedVertically;
         p.fallDistance = s.fallDistance;
         p.setInWebFlag(s.inWeb);
+        p.setInWaterFlag(s.inWater);
         p.setSprinting(s.sprinting);
         setJumpTicks(s.jumpTicks);
         p.jumpMovementFactor = s.jumpMovementFactor;
@@ -94,6 +95,7 @@ public final class VanillaOracle {
         s.collidedVertically = p.collidedVertically;
         s.fallDistance = p.fallDistance;
         s.inWeb = p.inWebFlag();
+        s.inWater = p.inWaterFlag();
         s.sprinting = p.isSprinting();
         s.jumpTicks = jumpTicks();
         s.jumpMovementFactor = p.jumpMovementFactor;

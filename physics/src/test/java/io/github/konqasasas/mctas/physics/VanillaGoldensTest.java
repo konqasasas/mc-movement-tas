@@ -18,21 +18,27 @@ import static org.junit.Assert.assertTrue;
 /**
  * Checks {@link Physics} against trajectory hashes produced by the game's own code
  * ({@code :oracle:writeGoldens}): 1,000 random courses and input sequences of 200 ticks, every
- * field of every tick bitwise, on full-block courses and again on courses of every modelled block.
+ * field of every tick bitwise, on full-block courses, on courses of every modelled solid block, and on
+ * those with water or lava.
  */
 public class VanillaGoldensTest {
 
     @Test
     public void matchesVanillaOnAllGoldenScenarios() throws IOException {
-        check("/vanilla-goldens.txt", false);
+        check("/vanilla-goldens.txt", "full");
     }
 
     @Test
     public void matchesVanillaOnAllShapeGoldenScenarios() throws IOException {
-        check("/vanilla-goldens-shapes.txt", true);
+        check("/vanilla-goldens-shapes.txt", "shapes");
     }
 
-    private void check(String resource, boolean shapes) throws IOException {
+    @Test
+    public void matchesVanillaOnAllFluidGoldenScenarios() throws IOException {
+        check("/vanilla-goldens-fluids.txt", "fluids");
+    }
+
+    private void check(String resource, String course) throws IOException {
         List<String> failures = new ArrayList<String>();
         int checked = 0;
         InputStream in = getClass().getResourceAsStream(resource);
@@ -47,7 +53,7 @@ public class VanillaGoldensTest {
                 long seed = Long.parseLong(p[0]);
                 int ticks = Integer.parseInt(p[1]);
                 long expected = Long.parseUnsignedLong(p[2], 16);
-                RandomScenario sc = shapes ? RandomScenario.generateShapes(seed, ticks) : RandomScenario.generate(seed, ticks);
+                RandomScenario sc = RandomScenario.generate(course, seed, ticks);
                 if (hash(sc, sc.world) != expected) {
                     failures.add("seed " + seed);
                 }

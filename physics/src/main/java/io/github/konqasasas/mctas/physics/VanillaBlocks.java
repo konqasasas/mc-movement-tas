@@ -33,6 +33,7 @@ public final class VanillaBlocks {
     private static final FaceShape[] ALL_UNDEFINED = BlockType.faces(U, U, U);
     private static final FaceShape[] ALL_SOLID = BlockType.faces(S, S, S);
     private static final int BOTH = BlockType.EXCEPT_FENCE_WALL | BlockType.EXCEPT_PANE;
+    private static final int PISTON = BlockType.EXCEPT_PISTON;
 
     static {
         put(BlockType.AIR, "minecraft:air");
@@ -41,9 +42,9 @@ public final class VanillaBlocks {
         put(BlockType.PACKED_ICE, "minecraft:packed_ice");
 
         full("minecraft:double_stone_slab", true, 0);
-        full("minecraft:glass", false, BlockType.EXCEPT_FENCE_WALL);
-        full("minecraft:stained_glass", false, BlockType.EXCEPT_FENCE_WALL);
-        full("minecraft:glowstone", false, BOTH);
+        full("minecraft:glass", false, BlockType.EXCEPT_FENCE_WALL | PISTON);
+        full("minecraft:stained_glass", false, BlockType.EXCEPT_FENCE_WALL | PISTON);
+        full("minecraft:glowstone", false, BOTH | PISTON);
         full("minecraft:pumpkin", true, BOTH);
         full("minecraft:melon_block", true, BOTH);
 
@@ -52,12 +53,12 @@ public final class VanillaBlocks {
             put(simple(id + "[half=bottom]", box(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D), DOWN_SOLID, 0), null);
             put(simple(id + "[half=top]", box(0.0D, 0.5D, 0.0D, 1.0D, 1.0D, 1.0D), BlockType.faces(U, S, U), 0), null);
         }
-        simple("minecraft:carpet", box(0.0D, 0.0D, 0.0D, 1.0D, 0.0625D, 1.0D), DOWN_SOLID);
+        put(simple("minecraft:carpet", box(0.0D, 0.0D, 0.0D, 1.0D, 0.0625D, 1.0D), DOWN_SOLID, 0).notBlockingMovement(), "minecraft:carpet");
         props("minecraft:snow_layer", "layers");
         for (int layers = 1; layers <= 8; layers++) {
             // BlockSnow.getCollisionBoundingBox: one layer lower than it looks.
             Aabb b = new Aabb(0.0D, 0.0D, 0.0D, 1.0D, (double) ((float) (layers - 1) * 0.125F), 1.0D);
-            put(simple("minecraft:snow_layer[layers=" + layers + "]", Collections.singletonList(b), DOWN_SOLID, 0), null);
+            put(simple("minecraft:snow_layer[layers=" + layers + "]", Collections.singletonList(b), DOWN_SOLID, 0).notBlockingMovement(), null);
         }
         for (String id : new String[] {"minecraft:trapdoor", "minecraft:iron_trapdoor"}) {
             props(id, "facing", "half", "open");
@@ -87,7 +88,7 @@ public final class VanillaBlocks {
                 new Aabb(0.0D, 0.0D, 0.0D, 0.125D, 1.0D, 1.0D),
                 new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.125D),
                 new Aabb(0.875D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D),
-                new Aabb(0.0D, 0.0D, 0.875D, 1.0D, 1.0D, 1.0D)), BlockType.faces(U, FaceShape.BOWL, S), BOTH), null);
+                new Aabb(0.0D, 0.0D, 0.875D, 1.0D, 1.0D, 1.0D)), BlockType.faces(U, FaceShape.BOWL, S), BOTH | PISTON), null);
         simple("minecraft:brewing_stand", Arrays.asList(
                 new Aabb(0.4375D, 0.0D, 0.4375D, 0.5625D, 0.875D, 0.5625D),
                 new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 0.125D, 1.0D)), ALL_UNDEFINED);
@@ -99,7 +100,8 @@ public final class VanillaBlocks {
             double minX = (double) (1 + bites * 2) / 16.0D;
             put(simple("minecraft:cake[bites=" + bites + "]", box(minX, 0.0D, 0.0625D, 0.9375D, 0.5D, 0.9375D), ALL_UNDEFINED, 0), null);
         }
-        simple("minecraft:flower_pot", box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.375D, 0.6875D), ALL_UNDEFINED);
+        put(simple("minecraft:flower_pot", box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.375D, 0.6875D), ALL_UNDEFINED, 0).notBlockingMovement(),
+                "minecraft:flower_pot");
 
         for (String id : new String[] {"minecraft:chest", "minecraft:trapped_chest"}) {
             props(id);
@@ -142,6 +144,12 @@ public final class VanillaBlocks {
         put(new Bed(), "minecraft:bed");
         put(new SoulSand(), "minecraft:soul_sand");
         put(new Web(), "minecraft:web");
+        for (String id : new String[] {"minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"}) {
+            props(id, "level");
+            for (int level = 0; level < 16; level++) {
+                put(new Liquid(id, level), null);
+            }
+        }
         props("minecraft:cobblestone_wall");
         put(new Wall("minecraft:cobblestone_wall"), null);
         for (String id : new String[] {"minecraft:glass_pane", "minecraft:stained_glass_pane", "minecraft:iron_bars"}) {
@@ -279,7 +287,7 @@ public final class VanillaBlocks {
         private final boolean open;
 
         Trapdoor(String name, Aabb box, FaceShape[] faces, Facing facing, boolean open) {
-            super(name, Collections.singletonList(box), 0.6F, false, false, faces, EXCEPT_FENCE_WALL);
+            super(name, Collections.singletonList(box), 0.6F, false, false, faces, EXCEPT_FENCE_WALL | EXCEPT_PISTON);
             this.facing = facing;
             this.open = open;
         }
@@ -299,6 +307,7 @@ public final class VanillaBlocks {
             super("minecraft:ladder[facing=" + facing.id() + "]", Collections.singletonList(ladderBox(facing)),
                     0.6F, false, false, ALL_UNDEFINED, 0);
             this.facing = facing;
+            notBlockingMovement();
         }
 
         private static Aabb ladderBox(Facing facing) {
@@ -324,6 +333,7 @@ public final class VanillaBlocks {
     static final class Vine extends BlockType {
         Vine() {
             super("minecraft:vine", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+            notBlockingMovement();
         }
 
         @Override
@@ -392,12 +402,116 @@ public final class VanillaBlocks {
     static final class Web extends BlockType {
         Web() {
             super("minecraft:web", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+            notBlockingMovement();
         }
 
         @Override
         void onEntityCollision(PlayerState s) {
             s.inWeb = true;
             s.fallDistance = 0.0F;
+        }
+    }
+
+    /**
+     * {@code BlockLiquid}: water and lava, still or flowing, with no collision. The player's movement
+     * in them is in {@link Physics}; this class gives the surface height and the current.
+     */
+    public static final class Liquid extends BlockType {
+        final boolean lava;
+        final int level;
+
+        Liquid(String id, int level) {
+            super(id + "[level=" + level + "]", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+            this.lava = id.endsWith("lava");
+            this.level = level;
+            notBlockingMovement();
+        }
+
+        public boolean isLava() {
+            return lava;
+        }
+
+        /** {@code BlockLiquid.getLiquidHeightPercent}: the part of the block above the surface. */
+        static float heightPercent(int level) {
+            if (level >= 8) {
+                level = 0;
+            }
+            return (float) (level + 1) / 9.0F;
+        }
+
+        /** {@code getRenderedDepth} as seen from this liquid: -1 for anything of another material. */
+        private int renderedDepth(BlockType t) {
+            if (!(t instanceof Liquid) || ((Liquid) t).lava != lava) {
+                return -1;
+            }
+            int i = ((Liquid) t).level;
+            return i >= 8 ? 0 : i;
+        }
+
+        /** {@code BlockLiquid.causesDownwardCurrent}. */
+        private boolean causesDownwardCurrent(BlockWorld world, int x, int y, int z, Facing side) {
+            BlockType t = world.getBlock(x, y, z);
+            if (t instanceof Liquid && ((Liquid) t).lava == lava) {
+                return false;
+            }
+            if (side == Facing.UP) {
+                return true;
+            }
+            if (t == BlockType.ICE) {
+                // Material.ICE; packed ice has a material of its own.
+                return false;
+            }
+            boolean flag = t.isExcept(EXCEPT_PISTON) || t instanceof Stairs;
+            return !flag && t.faceShape(world, x, y, z, side) == FaceShape.SOLID;
+        }
+
+        /** {@code BlockLiquid.getFlow}, as {x, y, z}. */
+        public double[] flow(BlockWorld world, int x, int y, int z) {
+            double d0 = 0.0D;
+            double d1 = 0.0D;
+            double d2 = 0.0D;
+            int i = renderedDepth(this);
+            for (Facing f : Facing.HORIZONTALS) {
+                int nx = x + f.dx;
+                int nz = z + f.dz;
+                BlockType n = world.getBlock(nx, y, nz);
+                int j = renderedDepth(n);
+                if (j < 0) {
+                    if (!n.blocksMovement()) {
+                        j = renderedDepth(world.getBlock(nx, y - 1, nz));
+                        if (j >= 0) {
+                            int k = j - (i - 8);
+                            d0 += (double) (f.dx * k);
+                            d1 += (double) (f.dy * k);
+                            d2 += (double) (f.dz * k);
+                        }
+                    }
+                } else if (j >= 0) {
+                    int l = j - i;
+                    d0 += (double) (f.dx * l);
+                    d1 += (double) (f.dy * l);
+                    d2 += (double) (f.dz * l);
+                }
+            }
+            double[] v = {d0, d1, d2};
+            if (level >= 8) {
+                for (Facing f : Facing.HORIZONTALS) {
+                    int nx = x + f.dx;
+                    int nz = z + f.dz;
+                    if (causesDownwardCurrent(world, nx, y, nz, f) || causesDownwardCurrent(world, nx, y + 1, nz, f)) {
+                        v = normalize(v);
+                        v[1] += -6.0D;
+                        break;
+                    }
+                }
+            }
+            return normalize(v);
+        }
+
+        /** {@code Vec3d.normalize}. */
+        static double[] normalize(double[] v) {
+            double d0 = (double) McMath.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+            return d0 < 1.0E-4D ? new double[3] : new double[] {v[0] / d0, v[1] / d0, v[2] / d0};
         }
     }
 

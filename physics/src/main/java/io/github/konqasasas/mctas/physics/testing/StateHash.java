@@ -31,6 +31,9 @@ public final class StateHash {
             // Only mixed when set, so hashes of runs without webs stay as they were.
             mix(0x5745_4221);
         }
+        if (s.inWater) {
+            mix(0x5741_5452);
+        }
         mix(Float.floatToIntBits(s.width));
         mix(Float.floatToIntBits(s.height));
         mix(s.jumpTicks);

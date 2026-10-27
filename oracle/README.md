@@ -24,7 +24,7 @@ Without the jar, every task in this module is skipped and the rest of the build 
 | Command | What it does |
 | --- | --- |
 | `./gradlew :oracle:test` | M1 gate: 1,000 random runs of 200 ticks must match vanilla on every field of every tick |
-| `./gradlew :oracle:fuzz -Pruns=10000 -Pticks=400 -PfirstSeed=1` | Same comparison at any size; prints the first differing tick and field. `-Pcourses=shapes` uses courses of every modelled block |
-| `./gradlew :oracle:writeGoldens` | Regenerates `physics/src/test/resources/vanilla-goldens.txt` and `vanilla-goldens-shapes.txt`, the vanilla trajectory hashes that `physics` checks itself against without the jar |
+| `./gradlew :oracle:fuzz -Pruns=10000 -Pticks=400 -PfirstSeed=1` | Same comparison at any size; prints the first differing tick and field. `-Pcourses=shapes` uses courses of every modelled solid block, `-Pcourses=fluids` adds pools of water or lava |
+| `./gradlew :oracle:writeGoldens` | Regenerates `physics/src/test/resources/vanilla-goldens.txt`, `vanilla-goldens-shapes.txt` and `vanilla-goldens-fluids.txt`, the vanilla trajectory hashes that `physics` checks itself against without the jar |
 
 Random scenarios come from `physics`' `RandomScenario`: courses of stone, ice and packed ice with gaps, steps, pillars and ceilings; standing, mid-air and embedded starts; inputs that hold keys for a few ticks, turn smoothly or jump to arbitrary angles, including yaws in the millions.

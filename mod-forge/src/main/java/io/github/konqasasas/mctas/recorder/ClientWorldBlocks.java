@@ -90,9 +90,7 @@ final class ClientWorldBlocks implements BlockWorld {
         Block block = state.getBlock();
         String id = String.valueOf(Block.REGISTRY.getNameForObject(block));
         AxisAlignedBB box = state.getCollisionBoundingBox(world, pos);
-        boolean special = block == Blocks.WATER || block == Blocks.FLOWING_WATER
-                || block == Blocks.LAVA || block == Blocks.FLOWING_LAVA
-                || block == Blocks.PORTAL || block == Blocks.END_PORTAL
+        boolean special = block == Blocks.PORTAL || block == Blocks.END_PORTAL
                 || block == Blocks.FARMLAND || block == Blocks.CACTUS || block == Blocks.MAGMA
                 || block.slipperiness != 0.6F || state.getMaterial() == Material.AIR;
         // Only blocks whose collision is the plain getCollisionBoundingBox can be described by it.
@@ -123,7 +121,16 @@ final class ClientWorldBlocks implements BlockWorld {
         int except = (leavesLike ? BlockType.EXCEPT_FENCE_WALL | BlockType.EXCEPT_PANE : 0)
                 | (b == Blocks.GLASS || b == Blocks.STAINED_GLASS || b instanceof net.minecraft.block.BlockTrapDoor
                 ? BlockType.EXCEPT_FENCE_WALL : 0);
-        return new BlockType(name, boxes, b.slipperiness, state.isNormalCube(), false, faces, except);
+        // Block.isExceptBlockForAttachWithPiston, for the downward current of liquids.
+        boolean piston = b instanceof BlockLeaves || b instanceof BlockShulkerBox || b instanceof net.minecraft.block.BlockTrapDoor
+                || b == Blocks.BEACON || b == Blocks.CAULDRON || b == Blocks.GLASS || b == Blocks.GLOWSTONE || b == Blocks.ICE
+                || b == Blocks.SEA_LANTERN || b == Blocks.STAINED_GLASS
+                || b == Blocks.PISTON || b == Blocks.STICKY_PISTON || b == Blocks.PISTON_HEAD;
+        if (piston) {
+            except |= BlockType.EXCEPT_PISTON;
+        }
+        BlockType t = new BlockType(name, boxes, b.slipperiness, state.isNormalCube(), false, faces, except);
+        return state.getMaterial().blocksMovement() ? t : t.notBlockingMovement();
     }
 
     /** True if the block's class or a superclass below Block declares the method. */

@@ -21,6 +21,7 @@ public final class PlayerSnapshot {
     private static final Field JUMP_TICKS = field(EntityLivingBase.class, "jumpTicks", "field_70773_bE");
     private static final Field SPRINT_TOGGLE_TIMER = field(EntityPlayerSP.class, "sprintToggleTimer", "field_71156_d");
     private static final Field IN_WEB = field(net.minecraft.entity.Entity.class, "isInWeb", "field_70134_J");
+    private static final Field IN_WATER = field(net.minecraft.entity.Entity.class, "inWater", "field_70171_ac");
 
     private PlayerSnapshot() {
     }
@@ -73,6 +74,7 @@ public final class PlayerSnapshot {
         s.collidedVertically = p.collidedVertically;
         s.fallDistance = p.fallDistance;
         s.inWeb = getBoolean(IN_WEB, p);
+        s.inWater = getBoolean(IN_WATER, p);
         s.sprinting = p.isSprinting();
         s.jumpTicks = getInt(JUMP_TICKS, p);
         s.jumpMovementFactor = p.jumpMovementFactor;

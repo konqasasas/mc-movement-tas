@@ -63,7 +63,7 @@ public class ProblemIOTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void rejectsBlocksTheEngineCannotModel() {
-        Blocks.byId("minecraft:water");
+        Blocks.byId("minecraft:cactus");
     }
 
     @Test

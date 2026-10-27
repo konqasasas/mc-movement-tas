@@ -195,4 +195,12 @@ final class OraclePlayer extends net.minecraft.entity.player.EntityPlayer {
     void setInWebFlag(boolean v) {
         isInWeb = v;
     }
+
+    boolean inWaterFlag() {
+        return inWater;
+    }
+
+    void setInWaterFlag(boolean v) {
+        inWater = v;
+    }
 }
