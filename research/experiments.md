@@ -37,5 +37,6 @@
 | E-103 | 2026-10-28 | 細かい区画での下界 | `mctas-search bound --cell 0.1 problems/v0/{03-gap-2,05-up-1,07-side-2}.problem.json` | 03 = 9、05 = 5、07 = 7 | F-103 |
 | E-104 | 2026-10-28 | x 方向だけ細かい区画での下界 | `mctas-search bound --cell 0.1 --max-steps 300000000 problems/v0/{07-side-2,09-three-jumps,10-three-jumps-zigzag}.problem.json`、05 は `--cell 0.05` | 09 = 33、07 = 7、10 = 31、05 = 5 | F-104 |
 | E-105 | 2026-10-28 | 05 の 5 ティックの可否と、加速度の見積もりの影響 | 総当たり(連続ジャンプの位相 × ストレイフ)、`bound --cell 0.1` を ROT = 1 で(健全でない実験) | 実測の最良 z = 1.69909(必要 1.7)、下界は 05 = 5、07 = 7、10 = 31 で変わらず | F-105, F-106 |
+| E-106 | 2026-10-28 | どのコースでも出る速度の下界 | `mctas-search speed problems/v0/*.problem.json problems/v1-dev/*.problem.json problems/v1-full/*.problem.json <realdev ex1〜ex6(ex4 は書き出し直し版)> <human6 6 問> <stpt1>`(共有フォルダ benchmarks/、ws3b/stpt1/)、`./gradlew :search:test --tests '*SpeedBoundTest'` | realdev 131/141/13/130/155/236、stpt1 132、human6 は poseidon 210・prism 55・rampart 218・remaining 138・tohell 136・verdure 55。v0・v1-dev で既知の解を超えず、テスト通過 | F-107 |
 | E-408 | 2026-10-28 | stpt1 の 187 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-187.tas` | 問題なし(ユーザーの報告) | F-408 |
 | E-409 | 2026-10-28 | realdev の詰まる区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique region ...`(technique/README.md の表) | つた 75、塀の柱 60(chain)、1 ブロックのはしご 33、水柱 57 | F-409 |
