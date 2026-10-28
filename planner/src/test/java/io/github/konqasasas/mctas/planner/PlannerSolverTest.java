@@ -60,6 +60,24 @@ public class PlannerSolverTest {
     }
 
     @Test
+    @Category(Slow.class)
+    public void dropsThroughTheHoleInTwoByTwoIronBars() throws Exception {
+        solve(Paths.get("src/test/resources/course/hole.problem.json"), 5000);
+    }
+
+    @Test
+    @Category(Slow.class)
+    public void swimsUpAStaircaseOfSingleWaterBlocks() throws Exception {
+        solve(Paths.get("src/test/resources/course/water-stairs.problem.json"), 5000);
+    }
+
+    @Test
+    @Category(Slow.class)
+    public void bouncesOffSlimeOntoAHigherTop() throws Exception {
+        solve(Paths.get("src/test/resources/course/slime.problem.json"), 5000);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));

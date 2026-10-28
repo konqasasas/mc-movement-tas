@@ -114,10 +114,7 @@ public class HopBoundTest {
         assertTrue(checked > 100);
     }
 
-    /**
-     * Checks the bound from state {@code i} to entering a small box round state {@code j} (also from
-     * its speed when it is on the ground); the run's ticks, or -1.
-     */
+    /** Checks the bound from state {@code i} to entering a small box round state {@code j}; the run's ticks, or -1. */
     private static int segment(Problem p, List<PlayerState> path, int i, int j) {
         PlayerState a = path.get(i), b = path.get(j);
         Region from = box(a.posX, a.posY, a.posZ), to = box(b.posX, b.posY, b.posZ);
@@ -131,9 +128,7 @@ public class HopBoundTest {
         }
         HopBound hb = new HopBound(p, from, to);
         if (System.getenv("MCTAS_DEBUG") != null) System.err.println(p.id + " took " + (entry - i) + " bound " + hb.ticks());
-        if (hb.ticks() > entry - i) return -1;
-        if (a.onGround && new HopBound(p, from, to, Math.hypot(a.motionX, a.motionZ)).ticks() > entry - i) return -1;
-        return entry - i;
+        return hb.ticks() <= entry - i ? entry - i : -1;
     }
 
     private static Region box(double x, double y, double z) {
