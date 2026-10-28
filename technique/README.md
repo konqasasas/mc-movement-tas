@@ -34,7 +34,7 @@ List<Technique.Segment> segs = Technique.solve(world, entry, ticksSinceLastToggl
 
 ## stpt1 での結果
 
-近似探索の解(232 ティック)と、動画から復元した人間の解(187 ティック、F-025)の状態から、段差の 3 区間を幅 20000 で探しました(research/findings.md の F-401)。
+近似探索の解(232 ティック)と、動画から復元した人間の解(187 ティック、F-025)の状態から、段差の 3 区間を幅 20000 で探しました(research/findings.md の F-029)。
 
 | 区間 | 近似 | 近似の状態から探索 | 人間 | 人間の状態から探索 |
 | --- | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ List<Technique.Segment> segs = Technique.solve(world, entry, ticksSinceLastToggl
 
 ## 踏み切りの窓(`StepWindow`)
 
-平らな床を +z に走り、段差の面の手前で跳んだとき、面に当たらずに段差の上に着地できる「前面(z + 0.3)から面までの距離」です(`window` の出力の抜粋、research/findings.md の F-402)。着地はどれもジャンプから 9 ティック後です。
+平らな床を +z に走り、段差の面の手前で跳んだとき、面に当たらずに段差の上に着地できる「前面(z + 0.3)から面までの距離」です(`window` の出力の抜粋、research/findings.md の F-030)。着地はどれもジャンプから 9 ティック後です。
 
 | 段差 | 天井 | 入口の速さ(次のティックの移動量) | 前に跳ぶ(W、段差の方を向く) | 後ろ向きに跳ぶ(W+D、135 度ずらす) |
 | --- | --- | --- | --- | --- |
