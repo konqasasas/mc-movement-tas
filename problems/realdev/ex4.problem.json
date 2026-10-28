@@ -1,18 +1,19 @@
 {
   "format": "mctas-problem",
   "version": 1,
-  "id": "realdev/ex4",
+  "id": "ex4v2",
   "mcVersion": "1.12.2",
   "world": {
     "source": "inline",
-    "imported": {"exportedFrom": "mctas-recorder", "from": [89, 63, 208], "to": [107, 85, 319]},
+    "imported": {"exportedFrom": "mctas-recorder", "from": [88, 63, 208], "to": [108, 85, 320]},
     "fills": [
-      {"from": [89, 63, 208], "to": [107, 63, 209], "block": "minecraft:obsidian"},
+      {"from": [88, 63, 208], "to": [108, 63, 209], "block": "minecraft:obsidian"},
       {"from": [91, 64, 209], "to": [93, 64, 316], "block": "minecraft:end_bricks"},
       {"from": [94, 64, 209], "to": [97, 64, 316], "block": "minecraft:end_stone"},
       {"from": [98, 64, 209], "to": [98, 64, 316], "block": "minecraft:end_bricks"},
       {"from": [99, 64, 209], "to": [102, 64, 316], "block": "minecraft:end_stone"},
       {"from": [103, 64, 209], "to": [105, 64, 316], "block": "minecraft:end_bricks"},
+      {"from": [108, 64, 209], "block": "minecraft:leaves"},
       {"from": [91, 65, 209], "to": [95, 80, 209], "block": "minecraft:bedrock"},
       {"from": [96, 65, 209], "to": [96, 66, 209], "block": "minecraft:concrete"},
       {"from": [97, 65, 209], "to": [99, 65, 209], "block": "minecraft:piston[extended=false,facing=north]"},
@@ -3642,8 +3643,8 @@
       {"from": [105, 80, 295], "to": [105, 80, 297], "block": "minecraft:piston[extended=false,facing=east]"}
     ]
   },
-  "spawn": {"pos": [98.50212169630898, 69.0, 211.68310820511925], "yaw": -359.69983, "pitch": 28.463377},
-  "start": {"min": [97.3, 69.0, 311.7], "max": [99.7, 70.0, 312.7]},
-  "goal": {"min": [-0.3, 78.0, 229.7], "max": [5.3, 78.0, 300.7]},
+  "spawn": {"pos": [98.5615744177019, 69.0, 211.74950359521267], "yaw": -361.52155, "pitch": 32.17949},
+  "start": {"min": [93.7, 69.0, 215.7], "max": [103.3, 69.0, 217.3]},
+  "goal": {"min": [97.3, 69.0, 311.7], "max": [99.7, 69.0, 312.7]},
   "limits": {"maxTicks": 1200, "voidY": 63.0}
 }
