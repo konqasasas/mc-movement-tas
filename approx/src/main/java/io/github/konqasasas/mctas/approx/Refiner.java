@@ -81,8 +81,9 @@ final class Refiner {
             boolean now = problem.start.contains(s.posX, s.posY, s.posZ);
             if (now && !in) entry = t;
             in = now;
-            if (stage < route.waypoints.size() - 1 && route.landed(stage, s.posX, s.posY, s.posZ, s.onGround)) {
-                stage++;
+            int next = route.after(stage, s.posX, s.posY, s.posZ, s.onGround);
+            if (next > stage) {
+                stage = next;
                 landings.add(t);
             }
         }

@@ -19,6 +19,15 @@ final class Rollout {
     private Rollout() {
     }
 
+    /**
+     * The input without its sprint key when pressing it now would start sprinting too soon after the
+     * last toggle (say a wall just stopped the sprint), so the toggle rule holds; otherwise the input.
+     */
+    static PlayerInput holdSprint(PlayerState s, PlayerInput a, int lastToggle, int t) {
+        if (!a.has(PlayerInput.SPRINT) || s.sprinting || ToggleRule.allowed(lastToggle, t)) return a;
+        return new PlayerInput(a.keys & ~PlayerInput.SPRINT, a.yaw, a.pitch, a.slot);
+    }
+
     static PlayerState spawn(Problem p) {
         PlayerState s = PlayerState.standing(p.spawn.pos.x, p.spawn.pos.y, p.spawn.pos.z, p.spawn.yaw);
         s.rotationPitch = p.spawn.pitch;

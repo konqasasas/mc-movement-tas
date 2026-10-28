@@ -61,6 +61,10 @@ public final class Route {
             return (minX + maxX) / 2;
         }
 
+        boolean contains(double px, double pz) {
+            return px >= minX && px <= maxX && pz >= minZ && pz <= maxZ;
+        }
+
         double cz() {
             return (minZ + maxZ) / 2;
         }
@@ -108,6 +112,8 @@ public final class Route {
     /** Lowest top among the start platform and the waypoints, for pruning falls. */
     public final double floorY;
     public final double startTop;
+    /** The stage on reaching the start: past this stage without a start entry, the run missed the start. */
+    public final int startStage;
 
     /** Jumps must clear their gap with this much reach to spare; larger is safer, smaller finds shortcuts. */
     public final double slack;
@@ -174,6 +180,9 @@ public final class Route {
             }
             i = j;
         }
+        int before = 0;
+        for (Waypoint w : waypoints) if (w.firstChainIndex <= runUp.size()) before++;
+        this.startStage = before;
         chain.add(goalCell);
         boolean goalJump = false;
         if (!full.isEmpty()) {
@@ -239,7 +248,15 @@ public final class Route {
             }
         }
         List<Surface> path = new ArrayList<Surface>();
-        if (dist[end] == Double.POSITIVE_INFINITY) return path;
+        if (dist[end] == Double.POSITIVE_INFINITY) {
+            if (System.getenv("ROUTE_DEBUG") != null) {
+                for (int i = 0; i < n; i++) {
+                    Surface c = surfaces.get(i);
+                    System.err.println((dist[i] < Double.POSITIVE_INFINITY ? "R " : "- ") + c + " fp " + c.minX + ".." + c.maxX + " / " + c.minZ + ".." + c.maxZ);
+                }
+            }
+            return path;
+        }
         if (target >= 0) path.add(surfaces.get(target));
         for (int v = prev[end]; v >= 0; v = prev[v]) path.add(surfaces.get(v));
         Collections.reverse(path);
@@ -307,8 +324,32 @@ public final class Route {
         if (walkable(a, b)) return d / RUN_SPEED;
         double gap = rectGap(a, b);
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
+        if (obstructed(a, b)) return -1;
         // A jump costs at least its airtime; a short hop between close surfaces still takes it.
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
+    }
+
+    /**
+     * Something in the way at body height on the straight line between two surfaces' centres: a
+     * wall or a step that the jump would run into. The route then has to go over it as a surface.
+     */
+    private boolean obstructed(Surface a, Surface b) {
+        double base = Math.max(a.top, b.top);
+        double ax = a.cx(), az = a.cz(), bx = b.cx(), bz = b.cz();
+        double len = Math.hypot(bx - ax, bz - az);
+        int steps = Math.max(1, (int) Math.ceil(len / 0.25));
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int i = 1; i < steps; i++) {
+            double px = ax + (bx - ax) * i / steps, pz = az + (bz - az) * i / steps;
+            if (a.contains(px, pz) || b.contains(px, pz)) continue;
+            Aabb probe = new Aabb(px - 0.1, base + 0.55, pz - 0.1, px + 0.1, base + 1.2, pz + 0.1);
+            int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
+            for (int yy = (int) Math.floor(base + 0.55) - 1; yy <= (int) Math.floor(base + 1.2); yy++) {
+                problem.world.getBlock(bxI, yy, bzI).addCollisionBoxes(problem.world, bxI, yy, bzI, probe, hit);
+            }
+            if (!hit.isEmpty()) return true;
+        }
+        return false;
     }
 
     private double goalCost(Surface a, JumpTable jumps) {
@@ -474,6 +515,18 @@ public final class Route {
     }
 
     /** True when a player standing at this position has landed on waypoint {@code stage}. */
+    /**
+     * The stage after standing at (x, y, z): one past the furthest of the next few waypoints the
+     * player is standing on (a jump may skip a waypoint), or {@code stage} when on none of them.
+     */
+    public int after(int stage, double x, double y, double z, boolean onGround) {
+        if (!onGround) return stage;
+        for (int k = Math.min(stage + 3, waypoints.size() - 2); k >= stage; k--) {
+            if (landed(k, x, y, z, true)) return k + 1;
+        }
+        return stage;
+    }
+
     public boolean landed(int stage, double x, double y, double z, boolean onGround) {
         Waypoint w = waypoints.get(stage);
         if (w.goal) return false;
@@ -505,22 +558,33 @@ public final class Route {
                     maxX = Math.max(maxX, b.maxX);
                     maxZ = Math.max(maxZ, b.maxZ);
                 }
-                // Room for the player above the centre of the footprint.
-                double cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
-                Aabb room = new Aabb(cx - 0.25, top + 1e-6, cz - 0.25, cx + 0.25, top + 1.8, cz + 0.25);
-                List<Aabb> above = new ArrayList<Aabb>();
-                for (int yy = y; yy <= y + 3; yy++) {
-                    for (int xx = x - 1; xx <= x + 1; xx++) {
-                        for (int zz = z - 1; zz <= z + 1; zz++) {
-                            world.getBlock(xx, yy, zz).addCollisionBoxes(world, xx, yy, zz, room, above);
-                        }
-                    }
+                // Room for the player somewhere on the footprint: at its centre, a corner or an
+                // edge (a fence under an open trapdoor has room only on one side).
+                boolean room = false;
+                for (int i = 0; i < 9 && !room; i++) {
+                    double px = i % 3 == 0 ? minX : i % 3 == 1 ? (minX + maxX) / 2 : maxX;
+                    double pz = i / 3 == 0 ? minZ : i / 3 == 1 ? (minZ + maxZ) / 2 : maxZ;
+                    room = hasRoom(world, x, y, z, px, top, pz);
                 }
-                if (!above.isEmpty()) return;
+                if (!room) return;
                 out.add(new Surface(x, y, z, top, minX, minZ, maxX, maxZ));
             }
         });
         return out;
+    }
+
+    /** No collision box in the player's 0.6 x 1.8 box standing at (px, top, pz). */
+    private static boolean hasRoom(SparseBlockWorld world, int x, int y, int z, double px, double top, double pz) {
+        Aabb box = new Aabb(px - 0.299, top + 1e-6, pz - 0.299, px + 0.299, top + 1.8, pz + 0.299);
+        List<Aabb> above = new ArrayList<Aabb>();
+        for (int yy = y; yy <= y + 3; yy++) {
+            for (int xx = x - 1; xx <= x + 1; xx++) {
+                for (int zz = z - 1; zz <= z + 1; zz++) {
+                    world.getBlock(xx, yy, zz).addCollisionBoxes(world, xx, yy, zz, box, above);
+                }
+            }
+        }
+        return above.isEmpty();
     }
 
     @Override

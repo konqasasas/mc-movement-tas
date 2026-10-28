@@ -34,10 +34,17 @@ public final class ApproxSolver {
     private final Problem problem;
     private final long budgetMillis;
     private PrintStream log;
+    private boolean fixedYawLanes;
 
     public ApproxSolver(Problem problem, long budgetMillis) {
         this.problem = problem;
         this.budgetMillis = budgetMillis;
+    }
+
+    /** Also search keys only at a fixed yaw (off by default: it has not paid off yet, F-024). */
+    public ApproxSolver fixedYawLanes(boolean on) {
+        this.fixedYawLanes = on;
+        return this;
     }
 
     public ApproxSolver log(PrintStream out) {
@@ -47,6 +54,25 @@ public final class ApproxSolver {
 
     private void say(String s) {
         if (log != null) log.println("  " + s);
+    }
+
+    /** Yaws for the keys-only lanes: the spawn's, and 45 degrees off the start-to-goal heading (strafing straight). */
+    private List<Float> fixedYaws() {
+        List<Float> out = new ArrayList<Float>();
+        out.add(wrap(problem.spawn.yaw));
+        double sx = (problem.start.minX + problem.start.maxX) / 2, sz = (problem.start.minZ + problem.start.maxZ) / 2;
+        double gx = (problem.goal.minX + problem.goal.maxX) / 2, gz = (problem.goal.minZ + problem.goal.maxZ) / 2;
+        float heading = (float) Math.toDegrees(Math.atan2(-(gx - sx), gz - sz));
+        float strafe = wrap(heading + 45F);
+        if (Math.abs(wrap(strafe - out.get(0))) > 1F) out.add(strafe);
+        return out;
+    }
+
+    private static float wrap(float yaw) {
+        yaw %= 360F;
+        if (yaw >= 180F) yaw -= 360F;
+        if (yaw < -180F) yaw += 360F;
+        return yaw;
     }
 
     public Solution solve() {
@@ -87,26 +113,39 @@ public final class ApproxSolver {
         List<Integer> order = new ArrayList<Integer>();
         for (int i = 0; i < routes.size(); i++) order.add(i);
         order.sort((a, b) -> Integer.compare(pilotTicks[a], pilotTicks[b]));
-        int[] stale = new int[routes.size()];
+        // Lanes: each route with free turning, then (when asked) the most promising route searched
+        // with keys only at a fixed yaw (the spawn's, and strafing straight from start to goal).
+        List<Integer> laneRoute = new ArrayList<Integer>();
+        List<Float> laneYaw = new ArrayList<Float>();
+        for (int i : order) {
+            laneRoute.add(i);
+            laneYaw.add(null);
+        }
+        for (float yaw : fixedYawLanes ? fixedYaws() : java.util.Collections.<Float>emptyList()) {
+            laneRoute.add(order.get(0));
+            laneYaw.add(yaw);
+        }
+        int[] stale = new int[laneRoute.size()];
         for (int width = 200; System.currentTimeMillis() < deadline; width *= 2) {
             boolean any = false;
             List<Integer> live = new ArrayList<Integer>();
-            for (int i : order) if (!(stale[i] >= 2 && best != null)) live.add(i);
+            for (int i = 0; i < laneRoute.size(); i++) if (!(stale[i] >= 2 && best != null)) live.add(i);
             for (int k = 0; k < live.size() && System.currentTimeMillis() < deadline; k++) {
-                int i = live.get(k);
+                int lane = live.get(k);
                 any = true;
-                Route route = routes.get(i);
-                // Share what is left of the budget between the routes still to run this round.
+                Route route = routes.get(laneRoute.get(lane));
+                String name = "route " + laneRoute.get(lane) + (laneYaw.get(lane) == null ? "" : " yaw " + laneYaw.get(lane));
+                // Share what is left of the budget between the lanes still to run this round.
                 long now0 = System.currentTimeMillis();
                 long until = now0 + (deadline - now0) / (live.size() - k);
-                TickBeam.Result r = new TickBeam(problem, route, width).deadline(until).run(bestTicks);
+                TickBeam.Result r = new TickBeam(problem, route, width).fixedYaw(laneYaw.get(lane)).deadline(until).run(bestTicks);
                 long now = System.currentTimeMillis() - t0;
                 if (r != null && r.ticks < bestTicks) {
                     best = r.inputs;
                     bestTicks = r.ticks;
                     foundAt = now;
-                    stale[i] = 0;
-                    say("route " + i + " beam " + width + ": " + bestTicks + " ticks at " + now + " ms");
+                    stale[lane] = 0;
+                    say(name + " beam " + width + ": " + bestTicks + " ticks at " + now + " ms");
                     // Polishing gets a quarter of what is left; wider beams get the rest.
                     long left = deadline - System.currentTimeMillis();
                     Refiner.Outcome o = new Refiner(problem, route).deadline(System.currentTimeMillis() + left / 4).improve(best, bestTicks);
@@ -117,8 +156,8 @@ public final class ApproxSolver {
                         say("refined: " + bestTicks + " ticks at " + foundAt + " ms");
                     }
                 } else {
-                    stale[i]++;
-                    say("route " + i + " beam " + width + ": no improvement (" + now + " ms)");
+                    stale[lane]++;
+                    say(name + " beam " + width + ": no improvement (" + now + " ms)");
                 }
             }
             if (!any) break;

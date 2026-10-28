@@ -24,3 +24,4 @@
 | E-018 | 2026-10-28 | 近似探索の解の実機再生 | 実機で `/mctas replay` に `problems/v1-holdout/s1008-5j`、`s1011-8j`、`problems/v1-dev/s0005-10j` の問題と `.tas` | 3 本とも予測どおり(60, 67, 134 ティック)で、全ティック一致 | F-021 |
 | E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
 | E-020 | 2026-10-28 | 実際のワールドから書き出した問題を解いて実機再生 | ユーザーが `/mctas export test1` で書き出した問題(10 ジャンプほど、石と羊毛)を `mctas-approx solve test1.problem.json out --budget 60`(approx v2)で解き、実機で `/mctas replay problems/test1.problem.json problems/test1.tas` | 86 ティック。実機も 86 ティックで全ティック一致 | F-023 |
+| E-021 | 2026-10-28 | stpt1(低い天井・段差の通路)で人間の記録と比べる | `mctas-approx solve problems/real/stpt1.problem.json out --budget 60`、解を `mctas-problem time --trace` で区間に分ける | 232 ティック(人間は約 187)。遅れは天井の終わりと段差の 3 区間に集中 | F-024 |

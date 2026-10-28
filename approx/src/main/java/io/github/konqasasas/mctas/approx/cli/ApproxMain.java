@@ -23,7 +23,7 @@ import java.util.List;
 public final class ApproxMain {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-approx solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet]",
+        "  mctas-approx solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet] [--fixed-yaw]",
         "  mctas-approx gen <out-dir> <set-name> <first-seed> <count> [--full]",
         "",
         "Writes <id>.solution.json (and a .tas copy) per problem into out-dir. The budget is per problem.");
@@ -52,9 +52,11 @@ public final class ApproxMain {
         Path out = Paths.get(args[2]);
         double budget = 30;
         boolean quiet = false;
+        boolean fixedYaw = false;
         for (int i = 3; i < args.length; i++) {
             if (args[i].equals("--budget")) budget = Double.parseDouble(args[++i]);
             else if (args[i].equals("--quiet")) quiet = true;
+            else if (args[i].equals("--fixed-yaw")) fixedYaw = true;
             else {
                 System.err.println(USAGE);
                 System.exit(2);
@@ -74,7 +76,7 @@ public final class ApproxMain {
         for (Path f : files) {
             Problem problem = ProblemIO.read(f);
             long t0 = System.currentTimeMillis();
-            ApproxSolver solver = new ApproxSolver(problem, (long) (budget * 1000));
+            ApproxSolver solver = new ApproxSolver(problem, (long) (budget * 1000)).fixedYawLanes(fixedYaw);
             if (!quiet) solver.log(System.out);
             ApproxSolver.Solution sol = solver.solve();
             long ms = System.currentTimeMillis() - t0;

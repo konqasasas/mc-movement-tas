@@ -1,0 +1,606 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "real/stpt1",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "imported": {
+      "exportedFrom": "mctas-recorder",
+      "from": [
+        1,
+        3,
+        20
+      ],
+      "to": [
+        12,
+        20,
+        92
+      ]
+    },
+    "fills": [
+      {
+        "from": [
+          1,
+          3,
+          20
+        ],
+        "to": [
+          12,
+          3,
+          20
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          3,
+          21
+        ],
+        "to": [
+          4,
+          3,
+          24
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          5,
+          3,
+          21
+        ],
+        "to": [
+          5,
+          14,
+          92
+        ],
+        "block": "minecraft:quartz_block"
+      },
+      {
+        "from": [
+          6,
+          3,
+          21
+        ],
+        "to": [
+          10,
+          3,
+          92
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          11,
+          3,
+          21
+        ],
+        "to": [
+          11,
+          14,
+          92
+        ],
+        "block": "minecraft:quartz_block"
+      },
+      {
+        "from": [
+          12,
+          3,
+          21
+        ],
+        "to": [
+          12,
+          3,
+          24
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          4,
+          50
+        ],
+        "to": [
+          10,
+          9,
+          50
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          4,
+          92
+        ],
+        "to": [
+          10,
+          12,
+          92
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          7,
+          34
+        ],
+        "to": [
+          10,
+          7,
+          35
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          7,
+          38
+        ],
+        "to": [
+          10,
+          7,
+          40
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          7,
+          43
+        ],
+        "to": [
+          10,
+          7,
+          43
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          7,
+          44
+        ],
+        "to": [
+          10,
+          7,
+          45
+        ],
+        "block": "minecraft:fence"
+      },
+      {
+        "from": [
+          6,
+          8,
+          22
+        ],
+        "to": [
+          10,
+          8,
+          23
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          8,
+          24
+        ],
+        "to": [
+          7,
+          8,
+          29
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          8,
+          8,
+          24
+        ],
+        "block": "minecraft:wool"
+      },
+      {
+        "from": [
+          9,
+          8,
+          24
+        ],
+        "to": [
+          10,
+          8,
+          29
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          8,
+          8,
+          25
+        ],
+        "to": [
+          8,
+          8,
+          29
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          8,
+          30
+        ],
+        "to": [
+          10,
+          8,
+          30
+        ],
+        "block": "minecraft:cobblestone_wall"
+      },
+      {
+        "from": [
+          6,
+          8,
+          48
+        ],
+        "to": [
+          10,
+          8,
+          49
+        ],
+        "block": "minecraft:fence"
+      },
+      {
+        "from": [
+          6,
+          9,
+          21
+        ],
+        "to": [
+          10,
+          10,
+          21
+        ],
+        "block": "minecraft:iron_bars"
+      },
+      {
+        "from": [
+          6,
+          9,
+          48
+        ],
+        "to": [
+          10,
+          9,
+          48
+        ],
+        "block": "minecraft:iron_trapdoor[facing=north,half=bottom,open=true]"
+      },
+      {
+        "from": [
+          6,
+          9,
+          49
+        ],
+        "to": [
+          10,
+          9,
+          49
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          9,
+          51
+        ],
+        "to": [
+          10,
+          9,
+          84
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          10,
+          61
+        ],
+        "to": [
+          10,
+          10,
+          63
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          10,
+          66
+        ],
+        "to": [
+          10,
+          10,
+          69
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          10,
+          70
+        ],
+        "to": [
+          10,
+          10,
+          70
+        ],
+        "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          6,
+          10,
+          74
+        ],
+        "to": [
+          10,
+          10,
+          77
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          10,
+          78
+        ],
+        "to": [
+          10,
+          10,
+          78
+        ],
+        "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          6,
+          10,
+          82
+        ],
+        "to": [
+          10,
+          10,
+          84
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          11,
+          62
+        ],
+        "to": [
+          10,
+          11,
+          63
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          11,
+          67
+        ],
+        "to": [
+          10,
+          11,
+          68
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          11,
+          69
+        ],
+        "to": [
+          10,
+          11,
+          69
+        ],
+        "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          6,
+          11,
+          75
+        ],
+        "to": [
+          10,
+          11,
+          76
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          11,
+          77
+        ],
+        "to": [
+          10,
+          11,
+          77
+        ],
+        "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          6,
+          11,
+          83
+        ],
+        "to": [
+          10,
+          11,
+          88
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          12,
+          49
+        ],
+        "to": [
+          10,
+          12,
+          59
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          12,
+          60
+        ],
+        "to": [
+          10,
+          12,
+          60
+        ],
+        "block": "minecraft:iron_trapdoor[facing=south,half=bottom,open=true]"
+      },
+      {
+        "from": [
+          6,
+          12,
+          88
+        ],
+        "to": [
+          10,
+          12,
+          89
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          6,
+          12,
+          90
+        ],
+        "to": [
+          7,
+          12,
+          91
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          8,
+          12,
+          90
+        ],
+        "block": "minecraft:wool"
+      },
+      {
+        "from": [
+          9,
+          12,
+          90
+        ],
+        "to": [
+          10,
+          12,
+          91
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          8,
+          12,
+          91
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          19,
+          92
+        ],
+        "block": "minecraft:wool"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      8.494915532938737,
+      9.0,
+      22.50830458285976
+    ],
+    "yaw": -0.6438565,
+    "pitch": 31.349365
+  },
+  "start": {
+    "min": [
+      8.0,
+      9.0,
+      24.0
+    ],
+    "max": [
+      9.0,
+      9.00001,
+      25.0
+    ]
+  },
+  "goal": {
+    "min": [
+      8.0,
+      13.0,
+      90.0
+    ],
+    "max": [
+      9.0,
+      13.00001,
+      91.0
+    ]
+  },
+  "limits": {
+    "maxTicks": 1200,
+    "voidY": 3.0
+  },
+  "target": {
+    "ticks": 232,
+    "kind": "upper_bound",
+    "witness": "stpt1.tas",
+    "note": "approx, 60 s; a human run is about 187"
+  }
+}

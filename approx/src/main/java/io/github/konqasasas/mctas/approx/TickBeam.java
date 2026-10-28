@@ -95,12 +95,19 @@ public final class TickBeam {
     private static final int PILOT_FAIL_TICKS = 100;
     private static final double RUN_UP_TICK_WEIGHT = 0.05;
     private long deadline = Long.MAX_VALUE;
+    private Float fixedYaw;
 
     public TickBeam(Problem problem, Route route, int width) {
         this.problem = problem;
         this.route = route;
         this.width = width;
         this.pilot = new Pilot(problem, route);
+    }
+
+    /** Search keys only at this yaw, or turn freely when null. */
+    public TickBeam fixedYaw(Float yaw) {
+        this.fixedYaw = yaw;
+        return this;
     }
 
     public TickBeam offsets(float[] offsets) {
@@ -144,6 +151,7 @@ public final class TickBeam {
 
     /** Applies one input; null when the child is illegal (toggle rule, void). Does not check the goal. */
     private Node child(Node n, PlayerInput a, int t) {
+        a = Rollout.holdSprint(n.state, a, n.lastToggle, t);
         PlayerState ns = Physics.tick(problem.world, n.state, a);
         int lastToggle = n.lastToggle;
         if (ToggleRule.toggles(n.state, ns)) {
@@ -154,7 +162,7 @@ public final class TickBeam {
         boolean in = problem.start.contains(ns.posX, ns.posY, ns.posZ);
         int entry = in && !n.inStart ? t : n.entry;
         int stage = n.stage;
-        if (stage < route.waypoints.size() - 1 && route.landed(stage, ns.posX, ns.posY, ns.posZ, ns.onGround)) stage++;
+        stage = route.after(stage, ns.posX, ns.posY, ns.posZ, ns.onGround);
         return new Node(n, a, ns, entry, in, stage, lastToggle);
     }
 
@@ -266,6 +274,8 @@ public final class TickBeam {
         n.score = (r.entry >= 0 ? endTick - r.entry : 0) + rest;
         // Before the start entry the run-up costs nothing, but dawdling should not win ties.
         if (n.entry < 0) n.score += RUN_UP_TICK_WEIGHT * ((r.entry >= 0 ? r.entry : endTick) - n.tick);
+        // A run-up whose rollout never enters the start has not started the clock: that is no gain.
+        if (n.entry < 0 && r.entry < 0) n.score += PILOT_FAIL_TICKS + MISS_TICKS_PER_BLOCK * startDistance(r.end);
     }
 
     /** Horizontal distance from the player to the start box. */
@@ -293,9 +303,25 @@ public final class TickBeam {
         return new Result(inputs, ticks);
     }
 
+    /** Movement keys tried at a fixed yaw: forward, back, sideways, diagonals, and none. */
+    private static final int[] FIXED_MOVES = {
+        PlayerInput.W, PlayerInput.W | PlayerInput.A, PlayerInput.W | PlayerInput.D,
+        PlayerInput.A, PlayerInput.D, PlayerInput.S, PlayerInput.S | PlayerInput.A, PlayerInput.S | PlayerInput.D, 0,
+    };
+
     private List<Node> expand(Node n, int bestTicks) {
         int t = n.tick + 1;
         PlayerState s = n.state;
+        if (fixedYaw != null) {
+            // Keys only, never turning (like a player who holds the mouse still).
+            boolean canJump = (s.onGround && s.jumpTicks <= 1) || s.inWater;
+            List<Node> out = new ArrayList<Node>(FIXED_MOVES.length * 2);
+            for (int m : FIXED_MOVES) {
+                add(out, n, PlayerInput.of(m | PlayerInput.SPRINT, fixedYaw), t, bestTicks);
+                if (canJump) add(out, n, PlayerInput.of(m | PlayerInput.SPRINT | PlayerInput.JUMP, fixedYaw), t, bestTicks);
+            }
+            return out;
+        }
         double[] aim = new double[2];
         if (s.onGround) route.aimAlong(s.posX, s.posZ, n.stage, aim);
         else route.remaining(s.posX, s.posZ, n.stage, aim);
@@ -338,6 +364,7 @@ public final class TickBeam {
             if (elapsed + route.remaining(s.posX, s.posZ, c.stage, null) / MAX_SPEED >= bestTicks) return;
             c.score = elapsed + est;
         } else {
+            if (c.stage > route.startStage) return; // went past the start without entering it
             c.score = est;
         }
         out.add(c);

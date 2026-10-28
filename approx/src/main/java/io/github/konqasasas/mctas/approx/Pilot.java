@@ -45,10 +45,13 @@ final class Pilot {
 
     private final Problem problem;
     private final Route route;
+    /** The start box is too thin to enter in the air. */
+    private final boolean flatStart;
 
     Pilot(Problem problem, Route route) {
         this.problem = problem;
         this.route = route;
+        this.flatStart = problem.start.maxY - problem.start.minY < 0.5;
     }
 
     /**
@@ -64,9 +67,12 @@ final class Pilot {
         int stopStage = landings >= route.waypoints.size() - 1 - stage ? Integer.MAX_VALUE : stage + landings;
         double[] aim = new double[2];
         for (int k = 1; k <= maxTicks; k++) {
-            PlayerInput a = decide(s, stage, aim);
-            PlayerState ns = Physics.tick(problem.world, s, a);
             int t = tick + k;
+            PlayerInput a = decide(s, stage, entry >= 0, aim);
+            // After the entry, a wall that stops the sprint must not make the next press break
+            // the toggle rule. (Holding back before it too made the run-up beam dawdle on v1-dev.)
+            if (entry >= 0) a = Rollout.holdSprint(s, a, lastToggle, t);
+            PlayerState ns = Physics.tick(problem.world, s, a);
             if (ToggleRule.toggles(s, ns)) {
                 if (!ToggleRule.allowed(lastToggle, t)) {
                     r.failed = true;
@@ -87,8 +93,9 @@ final class Pilot {
                 r.finished = true;
                 return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
-            if (stage < route.waypoints.size() - 1 && route.landed(stage, s.posX, s.posY, s.posZ, s.onGround)) {
-                stage++;
+            int next = route.after(stage, s.posX, s.posY, s.posZ, s.onGround);
+            if (next > stage) {
+                stage = next;
                 if (stage >= stopStage) return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
             if (s.posY < problem.voidY || fallen(s, stage)) {
@@ -117,7 +124,7 @@ final class Pilot {
         return s.posY < Math.min(ahead, behind) - 0.6 || s.posY < route.floorY - 1.0;
     }
 
-    private PlayerInput decide(PlayerState s, int stage, double[] aim) {
+    private PlayerInput decide(PlayerState s, int stage, boolean entered, double[] aim) {
         Route.Waypoint w = route.waypoints.get(stage);
         route.remaining(s.posX, s.posZ, stage, aim);
         double dx = aim[0] - s.posX, dz = aim[1] - s.posZ;
@@ -129,7 +136,9 @@ final class Pilot {
                 boolean supported = route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) != null;
                 int landing = Flight.landingTick(w.top - s.posY);
                 boolean reaches = landing > 0 && Flight.jumpDistance(Math.max(0, along), landing - 1) >= d;
-                if (reaches || !supported) return PlayerInput.of(TickBeam.JUMP_W, heading);
+                // Up against a step too high to walk onto: jump now.
+                boolean blocked = w.top - s.posY > 0.6 && (s.collidedHorizontally || route.missDistance(stage, s.posX, s.posZ) < 0.35);
+                if (reaches || !supported || blocked) return PlayerInput.of(TickBeam.JUMP_W, heading);
             }
             // Otherwise follow the route's ground. Sprint-jumping is faster than running: hop
             // whenever the hop lands on this same ground short of the aim.
@@ -139,7 +148,9 @@ final class Pilot {
             float runHeading = ad > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
             double runAlong = ad > 1e-9 ? (s.motionX * ax + s.motionZ * az) / ad : 0;
             double hop = Flight.jumpDistance(Math.max(0, runAlong), HOP_TICKS - 1);
-            if (hop < d && ad > 1e-9 && route.support(s.posX + ax / ad * hop, s.posZ + az / ad * hop, s.posY - 1e-6, s.posY + 1e-6) != null) {
+            // Before entering a start box that is only a block top, stay on the ground: a hop
+            // could sail over it.
+            if ((entered || !flatStart) && hop < d && ad > 1e-9 && route.support(s.posX + ax / ad * hop, s.posZ + az / ad * hop, s.posY - 1e-6, s.posY + 1e-6) != null) {
                 return PlayerInput.of(TickBeam.JUMP_W, runHeading);
             }
             return PlayerInput.of(TickBeam.RUN, runHeading + 45F);

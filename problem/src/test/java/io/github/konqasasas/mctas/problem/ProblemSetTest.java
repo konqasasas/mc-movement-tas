@@ -41,6 +41,7 @@ public class ProblemSetTest {
         // Some held-out courses have no known solution yet.
         assertEquals(9, checkWitnesses(Paths.get("..", "problems", "v1-holdout"), false));
         assertEquals(7, checkWitnesses(Paths.get("..", "problems", "v1-full"), false));
+        assertEquals(2, checkWitnesses(Paths.get("..", "problems", "real")));
     }
 
     private static int checkWitnesses(Path dir) throws IOException {
