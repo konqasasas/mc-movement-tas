@@ -315,6 +315,46 @@ public final class VanillaBlocks {
         return BY_NAME.get(name);
     }
 
+    private static final Map<String, BlockType> PARTIAL = new java.util.concurrent.ConcurrentHashMap<String, BlockType>();
+
+    /**
+     * A block named with only some of its kept properties, as problem files written before a property was
+     * kept name it (a button without its facing). The states that match must differ in nothing but the
+     * selection box; the block moves the player like any of them, and a view ray that reaches it reports
+     * {@link UnsupportedBlockException}. Null if no state matches or the matches move the player apart.
+     */
+    public static BlockType partial(String blockId, Map<String, String> given) {
+        String key = name(blockId, given);
+        BlockType t = PARTIAL.get(key);
+        if (t != null) {
+            return t;
+        }
+        List<String> keys = PROPERTIES.get(blockId);
+        if (keys == null || !keys.containsAll(given.keySet())) {
+            return null;
+        }
+        List<BlockType> matches = new ArrayList<BlockType>();
+        for (BlockType c : BY_NAME.values()) {
+            if (blockId(c.name()).equals(blockId) && parseProperties(c.name()).entrySet().containsAll(given.entrySet())) {
+                matches.add(c);
+            }
+        }
+        if (matches.isEmpty()) {
+            return null;
+        }
+        if (matches.size() == 1) {
+            return matches.get(0);
+        }
+        for (BlockType c : matches) {
+            if (!c.sameExceptSelection(matches.get(0))) {
+                return null;
+            }
+        }
+        t = matches.get(0).withUnknownSelection(key);
+        BlockType prev = PARTIAL.putIfAbsent(key, t);
+        return prev != null ? prev : t;
+    }
+
     public static BlockType require(String name) {
         BlockType t = BY_NAME.get(name);
         if (t == null) {

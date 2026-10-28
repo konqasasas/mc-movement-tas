@@ -77,6 +77,34 @@ public class BlockType {
         this.blocksMovement = !air;
     }
 
+    /**
+     * The same block under another name, with an unknown selection box: a state named without some of
+     * the properties that only change the selection box (a problem file written before those properties
+     * were kept). Only for blocks read from the table, which carry nothing but these fields.
+     */
+    BlockType withUnknownSelection(String otherName) {
+        if (getClass() != BlockType.class) {
+            throw new IllegalArgumentException(name + " is written by hand");
+        }
+        BlockType t = new BlockType(otherName, Arrays.asList(boxes), slipperiness, normalCube, air, faces, except);
+        t.blocksMovement = blocksMovement;
+        t.setInteraction(rayHittable, materialReplaceable, activates, placeable, replaceable, replaceableFromNeighbours,
+                selection, selectionFromNeighbours, selectionOffsetXZ, fragile);
+        t.selectionUnknown = true;
+        return t;
+    }
+
+    /** True if the two table blocks differ in nothing the engine reads but the selection box. */
+    boolean sameExceptSelection(BlockType o) {
+        return getClass() == BlockType.class && o.getClass() == BlockType.class && Arrays.equals(boxes, o.boxes)
+                && Float.floatToIntBits(slipperiness) == Float.floatToIntBits(o.slipperiness)
+                && normalCube == o.normalCube && air == o.air && Arrays.equals(faces, o.faces) && except == o.except
+                && blocksMovement == o.blocksMovement && rayHittable == o.rayHittable
+                && materialReplaceable == o.materialReplaceable && activates == o.activates && placeable == o.placeable
+                && replaceable == o.replaceable && replaceableFromNeighbours == o.replaceableFromNeighbours
+                && fragile == o.fragile;
+    }
+
     /** Marks a block whose material does not block movement ({@code MaterialLogic}, webs). Returns this block. */
     public BlockType notBlockingMovement() {
         blocksMovement = false;
@@ -146,6 +174,7 @@ public class BlockType {
     private boolean selectionFromNeighbours;
     private boolean selectionOffsetXZ;
     private boolean fragile;
+    private boolean selectionUnknown;
 
     void setInteraction(boolean rayHittable, boolean materialReplaceable, boolean activates, boolean placeable,
                         boolean replaceable, boolean replaceableFromNeighbours, Aabb selection,
@@ -215,6 +244,9 @@ public class BlockType {
     public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
         if (selectionFromNeighbours) {
             throw new UnsupportedBlockException(name + ": selection box depends on the neighbours");
+        }
+        if (selectionUnknown) {
+            throw new UnsupportedBlockException(name + ": the selection box depends on properties the name leaves out");
         }
         if (selectionOffsetXZ && selection != null) {
             // BlockFlower.getBoundingBox: Block.getOffset with EnumOffsetType.XZ, from the position alone.
