@@ -1,5 +1,6 @@
 package io.github.konqasasas.mctas.recorder;
 
+import io.github.konqasasas.mctas.physics.testing.RandomScenario;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -21,10 +22,12 @@ import java.io.IOException;
 final class McTasCommand extends CommandBase {
 
     private final RecorderController controller;
+    private final ShulkerProbe probe;
     private final ProblemExporter exporter = new ProblemExporter();
 
-    McTasCommand(RecorderController controller) {
+    McTasCommand(RecorderController controller, ShulkerProbe probe) {
         this.controller = controller;
+        this.probe = probe;
     }
 
     @Override
@@ -34,7 +37,7 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [shapes|fluids|place] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | stop"
+        return "/mctas fuzz [shapes|fluids|place|press] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | probe shulker [trials] | stop"
                 + " | mark from|to [x y z] | mark spawn | mark start x1 y1 z1 x2 y2 z2 | mark goal [x y z | x1 y1 z1 x2 y2 z2] | export <name> [id] | checkids";
     }
 
@@ -53,8 +56,9 @@ final class McTasCommand extends CommandBase {
         String sub = args.length == 0 ? "" : args[0];
         try {
             if (sub.equals("fuzz")) {
-                String course = args.length > 1 && (args[1].equals("shapes") || args[1].equals("fluids") || args[1].equals("place")) ? args[1] : "full";
-                int i = course.equals("full") ? 1 : 2;
+                boolean named = args.length > 1 && java.util.Arrays.asList(RandomScenario.COURSES).contains(args[1]);
+                String course = named ? args[1] : "full";
+                int i = named ? 2 : 1;
                 int runs = args.length > i ? parseInt(args[i], 1) : 100;
                 int ticks = args.length > i + 1 ? parseInt(args[i + 1], 1) : 200;
                 long first = args.length > i + 2 ? parseLong(args[i + 2]) : 1L;
@@ -72,8 +76,15 @@ final class McTasCommand extends CommandBase {
                         args.length > 3 && args[3].equals("force"));
             } else if (sub.equals("record")) {
                 controller.startRecord();
+            } else if (sub.equals("probe") && args.length > 1 && args[1].equals("shulker")) {
+                if (controller.active()) {
+                    say(sender, "Already running. /mctas stop first.");
+                } else {
+                    probe.start(args.length > 2 ? parseInt(args[2], 1) : 20);
+                }
             } else if (sub.equals("stop")) {
                 controller.stop("stopped by command");
+                probe.stop("stopped by command");
             } else if (sub.equals("mark")) {
                 say(sender, mark(sender, args));
             } else if (sub.equals("export") && args.length > 1) {

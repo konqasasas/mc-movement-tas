@@ -26,6 +26,7 @@ import net.minecraft.block.BlockPane;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.BlockPistonExtension;
 import net.minecraft.block.BlockReed;
+import net.minecraft.block.BlockShulkerBox;
 import net.minecraft.block.BlockSponge;
 import net.minecraft.block.BlockStem;
 import net.minecraft.block.material.Material;
@@ -106,11 +107,13 @@ public final class BlockTableWriter {
                 }
             }
             Map<IBlockState, String> records = new LinkedHashMap<IBlockState, String>();
+            Map<IBlockState, String> behaviour = new LinkedHashMap<IBlockState, String>();
             boolean neighbourDependent = false;
             for (IBlockState s : states) {
                 world.clear();
                 world.set(BlockPos.ORIGIN, s);
                 records.put(s, record(world, BlockPos.ORIGIN, s));
+                behaviour.put(s, records.get(s) + "\t" + interaction(world, BlockPos.ORIGIN, s));
                 BlockPos centre = new BlockPos(0, 1, 0);
                 world.clear();
                 world.set(centre, s);
@@ -140,7 +143,7 @@ public final class BlockTableWriter {
                 dependent.add(id);
                 continue;
             }
-            List<String> keep = relevantProperties(block, records);
+            List<String> keep = relevantProperties(block, behaviour);
             lines.add("props\t" + id + "\t" + join(keep, ","));
             Map<String, String> byName = new TreeMap<String, String>();
             for (Map.Entry<IBlockState, String> e : records.entrySet()) {
@@ -204,6 +207,20 @@ public final class BlockTableWriter {
                     .append(Double.toHexString(a.maxY)).append(',').append(Double.toHexString(a.maxZ));
         }
         return sb.toString();
+    }
+
+    /**
+     * What else the engine reads from a state, which the name must therefore keep though the table line
+     * leaves it out: the selection box the view ray hits (a button's facing and whether it is pressed),
+     * and the side a shulker box opens to.
+     */
+    private static String interaction(OracleWorld world, BlockPos pos, IBlockState s) {
+        AxisAlignedBB a = s.getBoundingBox(world, pos);
+        String sel = a == null || a == Block.NULL_AABB ? "-" : a.toString();
+        if (s.getBlock() instanceof BlockShulkerBox) {
+            sel += "\tlid " + s.getValue(BlockShulkerBox.FACING);
+        }
+        return sel;
     }
 
     static int flags(Block b) {

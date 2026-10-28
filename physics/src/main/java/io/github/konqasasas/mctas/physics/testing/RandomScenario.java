@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.physics.testing;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Facing;
 import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -42,7 +43,7 @@ public final class RandomScenario {
             "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
 
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids", "place"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -54,8 +55,10 @@ public final class RandomScenario {
             return generateFluids(seed, ticks);
         } else if (course.equals("place")) {
             return generatePlacing(seed, ticks);
+        } else if (course.equals("press")) {
+            return generatePressing(seed, ticks);
         }
-        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes, fluids or place");
+        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes, fluids, place or press");
     }
 
     /** Full blocks and ice only. */
@@ -81,13 +84,26 @@ public final class RandomScenario {
         return generate(seed, ticks, 3);
     }
 
+    /**
+     * {@link #generatePlacing} courses with stone posts that carry buttons and levers on their sides and
+     * tops, some next to blocks that react to power; the hotbar is empty half the time, and the inputs
+     * often look level, at the posts.
+     */
+    public static RandomScenario generatePressing(long seed, int ticks) {
+        return generate(seed, ticks, 4);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
         boolean shapes = kind != 0;
-        boolean placing = kind == 3;
+        boolean pressing = kind == 4;
+        boolean placing = kind == 3 || pressing;
         BlockType[] palette = shapes ? shapeCourse(r, w, base, placing) : fullBlockCourse(r, w, base);
+        if (pressing) {
+            addPosts(r, w, base);
+        }
         if (kind == 2) {
             addFluids(r, w, base, palette);
         }
@@ -133,8 +149,9 @@ public final class RandomScenario {
                     blocks.add(t);
                 }
             }
+            boolean emptyHand = pressing && r.nextBoolean();
             for (int i = 0; i < Hotbar.SLOTS; i++) {
-                if (r.nextDouble() < 0.6) {
+                if (!emptyHand && r.nextDouble() < 0.6) {
                     start.hotbar = start.hotbar.with(i, blocks.get(r.nextInt(blocks.size())), 1 + r.nextInt(r.nextBoolean() ? 4 : 64));
                 }
             }
@@ -179,7 +196,10 @@ public final class RandomScenario {
             if (use) {
                 k |= PlayerInput.USE;
             }
-            if (r.nextDouble() < 0.7) {
+            if (pressing && r.nextDouble() < 0.7) {
+                // Level, at the posts around.
+                pitch = -20.0F + r.nextFloat() * 70.0F;
+            } else if (r.nextDouble() < 0.7) {
                 // Down at the floor or the block just below, as when bridging or pillaring.
                 pitch = 30.0F + r.nextFloat() * 60.0F;
             }
@@ -187,6 +207,77 @@ public final class RandomScenario {
             inputs.add(new PlayerInput(k, yaw, pitch, slot));
         }
         return new RandomScenario(seed, w, start, inputs, standing);
+    }
+
+    /**
+     * Stone posts two blocks high with buttons and levers on the free sides and the top, each facing
+     * away from the stone it hangs on; next to some, a block that reacts to power.
+     */
+    private static void addPosts(Random r, SparseBlockWorld w, int base) {
+        String[] reacting = {"minecraft:redstone_lamp", "minecraft:trapdoor[facing=north,half=bottom,open=false]",
+                "minecraft:piston[extended=false,facing=up]", "minecraft:water[level=0]", "minecraft:noteblock",
+                "minecraft:sand"};
+        for (int posts = 2 + r.nextInt(5); posts > 0; posts--) {
+            int px = r.nextInt(9) - 4;
+            int pz = r.nextInt(9) - 4;
+            if (Math.abs(px) <= 2 && Math.abs(pz) <= 2 || !clear(w, px, base, pz)) {
+                // Keep the start free, and every button and lever on stone.
+                continue;
+            }
+            for (int x = px - 1; x <= px + 1; x++) {
+                for (int z = pz - 1; z <= pz + 1; z++) {
+                    w.fill(x, base, z, x, base + 3, z, BlockType.AIR);
+                }
+            }
+            int h = 1 + r.nextInt(2);
+            w.fill(px, base, pz, px, base + h - 1, pz, BlockType.STONE);
+            for (int y = base; y < base + h; y++) {
+                for (Facing f : Facing.HORIZONTALS) {
+                    int bx = px + f.dx;
+                    int bz = pz + f.dz;
+                    if (Math.abs(bx) <= 1 && Math.abs(bz) <= 1 || !w.getBlock(bx, y, bz).isAir() || r.nextDouble() < 0.4) {
+                        continue;
+                    }
+                    w.setBlock(bx, y, bz, attached(r, f.name().toLowerCase(java.util.Locale.ROOT), false));
+                }
+            }
+            if (r.nextBoolean()) {
+                w.setBlock(px, base + h, pz, attached(r, "up", true));
+            }
+            if (r.nextDouble() < 0.4) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                int y = base + r.nextInt(h + 1);
+                if (w.getBlock(px - f.dx, y, pz - f.dz).isAir()) {
+                    w.setBlock(px - f.dx, y, pz - f.dz, VanillaBlocks.require(reacting[r.nextInt(reacting.length)]));
+                }
+            }
+        }
+    }
+
+    /** True if no other post stands within two blocks of (px, pz). */
+    private static boolean clear(SparseBlockWorld w, int px, int base, int pz) {
+        for (int x = px - 2; x <= px + 2; x++) {
+            for (int z = pz - 2; z <= pz + 2; z++) {
+                for (int y = base; y <= base + 3; y++) {
+                    String id = VanillaBlocks.blockId(w.getBlock(x, y, z).name());
+                    if (id.endsWith("_button") || id.equals("minecraft:lever")) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /** A button or lever facing {@code facing}, on and off at random. */
+    private static BlockType attached(Random r, String facing, boolean top) {
+        double roll = r.nextDouble();
+        if (roll < 0.25) {
+            String f = top ? (r.nextBoolean() ? "up_x" : "up_z") : facing;
+            return VanillaBlocks.require("minecraft:lever[facing=" + f + "]");
+        }
+        String id = roll < 0.6 ? "minecraft:stone_button" : "minecraft:wooden_button";
+        return VanillaBlocks.require(id + "[facing=" + facing + ",powered=" + (r.nextDouble() < 0.1) + "]");
     }
 
     private static BlockType[] fullBlockCourse(Random r, SparseBlockWorld w, int base) {

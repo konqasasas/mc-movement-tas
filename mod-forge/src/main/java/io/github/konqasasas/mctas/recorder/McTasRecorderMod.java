@@ -12,10 +12,12 @@ public class McTasRecorderMod {
     public static final String MODID = "mctasrecorder";
 
     private final RecorderController controller = new RecorderController();
+    private final ShulkerProbe probe = new ShulkerProbe();
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(controller);
-        ClientCommandHandler.instance.registerCommand(new McTasCommand(controller));
+        MinecraftForge.EVENT_BUS.register(probe);
+        ClientCommandHandler.instance.registerCommand(new McTasCommand(controller, probe));
     }
 }
