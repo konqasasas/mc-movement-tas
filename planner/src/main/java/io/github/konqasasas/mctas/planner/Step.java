@@ -15,6 +15,9 @@ import java.util.List;
  */
 final class Step implements Move {
     static final int NO_JUMP = -1;
+    /** Walks without jumping until the player is within {@link #CORNER_REACH} of the aim (a corner on the platform), then stops. */
+    static final int CORNER = -2;
+    static final double CORNER_REACH = 0.5;
     /** Give up a step that is still on the ground after this many ticks. */
     static final int MAX_GROUND = 60;
     static final int MAX_AIR = 120;
@@ -173,6 +176,11 @@ final class Step implements Move {
         return dp > dv + 0.1;
     }
 
+    /** Within {@link #CORNER_REACH} of the aim. */
+    boolean atCorner(Run r) {
+        return Math.hypot(aimX - r.s.posX, aimZ - r.s.posZ) < CORNER_REACH;
+    }
+
     /** The jump input: facing the aim, so that the sprint-jump boost points there. */
     PlayerInput jump(Run r) {
         boolean v = bounce != null || viaFirst(r);
@@ -233,6 +241,7 @@ final class Step implements Move {
             }
             int now = r.course.platformAt(r.s);
             if (now >= 0 && now != platform) return;
+            if (jumpAt == CORNER && atCorner(r)) return;
         }
     }
 

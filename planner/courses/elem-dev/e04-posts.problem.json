@@ -1,0 +1,9 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e04-posts", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [0, 64, 2], "to": [0, 64, 2], "block": "minecraft:cobblestone_wall"}, 
+    {"from": [1, 64, 5], "to": [1, 64, 5], "block": "minecraft:spruce_fence"}, 
+    {"from": [0, 64, 8], "to": [0, 64, 8], "block": "minecraft:cobblestone_wall"}, 
+    {"from": [-1, 64, 11], "to": [-1, 64, 11], "block": "minecraft:spruce_fence"}, 
+    {"from": [0, 64, 14], "to": [0, 64, 14], "block": "minecraft:cobblestone_wall"}, 
+    {"from": [1, 64, 17], "to": [1, 64, 17], "block": "minecraft:spruce_fence"}, 
+    {"from": [-1, 64, 20], "to": [1, 64, 23], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 65, 21], "max": [2, 65, 24]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

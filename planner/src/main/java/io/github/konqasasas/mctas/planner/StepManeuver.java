@@ -47,6 +47,8 @@ final class StepManeuver implements Maneuver {
         Course c = from.course;
         int platform = c.platformAt(from.s);
         Step walk = new Step(aim[0], aim[2], aim[1], region(aim), strafe, Step.NO_JUMP, 0F, via(aim), bounce(aim));
+        // A corner on this platform (Planner#addCorner): the walk stops when it gets there.
+        Step corner = aim.length == 8 ? walk.withJump(Step.CORNER) : null;
         Run r = from.copy();
         Run prev = null;
         List<PlayerInput> in = new ArrayList<PlayerInput>();
@@ -76,6 +78,10 @@ final class StepManeuver implements Maneuver {
             int now = c.platformAt(r.s);
             if (now >= 0 && now != platform) {
                 out.add(new Successor(walk, r, in));
+                return;
+            }
+            if (corner != null && corner.atCorner(r)) {
+                out.add(new Successor(corner, r, in));
                 return;
             }
         }

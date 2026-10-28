@@ -18,7 +18,7 @@ final class ClimbManeuver implements Maneuver {
     /** (Foothold, body) pairs looked at per node at most. */
     static final int ATTEMPTS = 12;
     static final boolean TRACE = System.getenv("PLANNER_TRACE") != null;
-    static final int[] JUMPS = {0, 1, 3, 6, 10, 15};
+    static final int[] JUMPS = {0, 1, 3, 6, 10, 15, ClimbStep.EDGE};
     /** Landings on a block of a platform that the climbs are tried from, per search. */
     static final int PER_PLATFORM = 2;
     private final java.util.Map<Long, Integer> perPlatform = new java.util.HashMap<Long, Integer>();

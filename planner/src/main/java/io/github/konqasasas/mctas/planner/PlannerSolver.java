@@ -24,6 +24,11 @@ public final class PlannerSolver {
     public static final String ENGINE = "planner-v1";
     /** Run-up roots the A* starts from, when set (0: all of them; the tightener always tries all). */
     static final int ROOTS = Integer.getInteger("planner.roots", 0);
+    /**
+     * Heuristic weight of the first, greedy round: a plan within seconds on the long courses, which
+     * bounds the rounds after it (weights 3, 1.6, then 1).
+     */
+    static final double FIRST_WEIGHT = Double.parseDouble(System.getProperty("planner.firstWeight", "6.0"));
 
     public static final class Solution {
         public final List<TickInput> inputs;
@@ -82,7 +87,7 @@ public final class PlannerSolver {
         // jump branching, until the budget runs out. Each new plan is tightened.
         for (int level = 0; System.currentTimeMillis() < deadline; level++) {
             Planner planner = new Planner(course);
-            planner.weight = level == 0 ? 3.0 : level == 1 ? 1.6 : 1.0;
+            planner.weight = level == 0 ? FIRST_WEIGHT : level == 1 ? 3.0 : level == 2 ? 1.6 : 1.0;
             planner.targets = Math.min(4 + level, 10);
             planner.window = 4 + 2 * level;
             planner.posCell = 0.2 / (1 + 0.5 * level);

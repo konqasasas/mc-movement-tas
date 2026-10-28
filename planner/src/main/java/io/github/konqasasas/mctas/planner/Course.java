@@ -82,7 +82,8 @@ final class Course {
         }
 
         boolean contains(double px, double pz) {
-            return px >= minX && px <= maxX && pz >= minZ && pz <= maxZ;
+            // A player pressed against a wall stands a rounding error past the footprint built from it.
+            return px >= minX - 1e-7 && px <= maxX + 1e-7 && pz >= minZ - 1e-7 && pz <= maxZ + 1e-7;
         }
 
         double cx() {
@@ -476,7 +477,7 @@ final class Course {
                 if (climbable(x, y, z) || water(x, y, z)) cells.put(key(x, y, z), new int[] {x, y, z});
             }
         });
-        // Bodies: 6-connected groups of cells.
+        // Bodies: connected groups of cells (CLIMB_NEIGHBOURS, WATER_NEIGHBOURS).
         Set<Long> done = new HashSet<Long>();
         int r = (int) Math.ceil(reach.reach(-8) + REACH_MARGIN) + 1;
         for (Map.Entry<Long, int[]> e0 : cells.entrySet()) {
@@ -488,7 +489,7 @@ final class Course {
                 int[] c = q.poll();
                 body.add(c);
                 boolean wet = water(c[0], c[1], c[2]);
-                for (int[] d : wet ? WATER_NEIGHBOURS : NEIGHBOURS) {
+                for (int[] d : wet ? WATER_NEIGHBOURS : CLIMB_NEIGHBOURS) {
                     long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
                     if (cells.containsKey(k) && (!wet || water(c[0] + d[0], c[1] + d[1], c[2] + d[2])) && done.add(k)) q.add(cells.get(k));
                 }
@@ -533,8 +534,17 @@ final class Course {
      * each other, and straddles the corner between diagonal ones (a staircase of single water blocks).
      */
     private static final int[][] WATER_NEIGHBOURS;
+    /**
+     * Ladder and vine cells the player climbs on from one to the other: any of the 26 around. The
+     * player climbs while the cell at the feet is climbable, and the box (0.6 wide) straddles the line
+     * between two columns, so a zigzag of single ladders up a wall is climbed by moving across at each.
+     */
+    private static final int[][] CLIMB_NEIGHBOURS;
 
     static {
+        List<int[]> m = new ArrayList<int[]>();
+        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) m.add(new int[] {dx, dy, dz});
+        CLIMB_NEIGHBOURS = m.toArray(new int[0][]);
         List<int[]> l = new ArrayList<int[]>();
         for (int dx = -1; dx <= 1; dx++) for (int dy = -2; dy <= 2; dy++) for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) l.add(new int[] {dx, dy, dz});
         WATER_NEIGHBOURS = l.toArray(new int[0][]);
@@ -563,7 +573,7 @@ final class Course {
                 return path;
             }
             boolean wet = water(c[0], c[1], c[2]);
-            for (int[] d : wet ? WATER_NEIGHBOURS : NEIGHBOURS) {
+            for (int[] d : wet ? WATER_NEIGHBOURS : CLIMB_NEIGHBOURS) {
                 long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
                 int[] n = cells.get(k);
                 if (n == null || prev.containsKey(k) || (wet && !water(n[0], n[1], n[2]))) continue;
