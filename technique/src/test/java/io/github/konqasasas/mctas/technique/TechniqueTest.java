@@ -165,4 +165,12 @@ public class TechniqueTest {
         assertEquals(f + 3.5, s.posY, 1e-9);
         assertTrue("ticks " + segs.get(0).ticks(), segs.get(0).ticks() <= 80);
     }
+
+    /** A closed top trapdoor one block up leaves 1.8125 of headroom: the jump chain beats a 2-high ceiling. */
+    @Test
+    public void trapdoorCeilingIsTheFastestJumpChain() {
+        int trapdoor = CeilingBench.policy(1.8125, 20, true);
+        int stone = CeilingBench.policy(2, 20, true);
+        assertTrue(trapdoor + " vs " + stone, trapdoor > 0 && trapdoor < stone);
+    }
 }

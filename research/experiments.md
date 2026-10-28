@@ -40,3 +40,4 @@
 | E-106 | 2026-10-28 | どのコースでも出る速度の下界 | `mctas-search speed problems/v0/*.problem.json problems/v1-dev/*.problem.json problems/v1-full/*.problem.json <realdev ex1〜ex6(ex4 は書き出し直し版)> <human6 6 問> <stpt1>`(共有フォルダ benchmarks/、ws3b/stpt1/)、`./gradlew :search:test --tests '*SpeedBoundTest'` | realdev 131/141/13/130/155/236、stpt1 132、human6 は poseidon 210・prism 55・rampart 218・remaining 138・tohell 136・verdure 55。v0・v1-dev で既知の解を超えず、テスト通過 | F-107 |
 | E-408 | 2026-10-28 | stpt1 の 187 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-187.tas` | 問題なし(ユーザーの報告) | F-408 |
 | E-409 | 2026-10-28 | realdev の詰まる区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique region ...`(technique/README.md の表) | つた 75、塀の柱 60(chain)、1 ブロックのはしご 33、水柱 57 | F-409 |
+| E-410 | 2026-10-28 | 鉄のトラップドアの表 | ブランチ `claude/project-thread-usu2am` で `mctas-technique ceiling 3000`、`window`、`trapdoor 3000` | 天井 1.8125 で 38、段差 1.1875 の窓 1.37〜1.93、開いたもの 38/39/38 | F-410 |

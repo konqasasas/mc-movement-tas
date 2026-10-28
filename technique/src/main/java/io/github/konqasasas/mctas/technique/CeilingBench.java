@@ -13,11 +13,13 @@ import java.util.List;
  * Covering a flat stretch under a ceiling: running, chaining sprint jumps, and the search.
  *
  * <p>A flat floor (top at {@link StepWindow#FLOOR}, x -3..3) with a ceiling over z 0..60 whose bottom
- * is {@code gap} blocks above the floor (2, 2.5 with top slabs, 3, or none). The player starts at
+ * is {@code gap} blocks above the floor (2, 2.5 with top slabs, 1.8125 and 2.8125 with closed
+ * top trapdoors, 3, or none). The player starts at
  * steady sprint at z 5 and the exit is passing z 5 + {@code distance} (feet at floor height or above).
  */
 public final class CeilingBench {
     static final BlockType TOP_SLAB = Blocks.byId("minecraft:stone_slab[half=top]");
+    static final BlockType TOP_TRAPDOOR = Blocks.byId("minecraft:iron_trapdoor[facing=north,half=top,open=false]");
 
     private CeilingBench() {
     }
@@ -27,7 +29,9 @@ public final class CeilingBench {
         SparseBlockWorld w = new SparseBlockWorld();
         int f = StepWindow.FLOOR;
         w.fill(-3, f - 1, -40, 3, f - 1, 80, StepWindow.STONE);
-        if (gap == 2.5) {
+        if (gap - Math.floor(gap) == 0.8125) {
+            w.fill(-3, f + (int) gap, 0, 3, f + (int) gap, 60, TOP_TRAPDOOR);
+        } else if (gap == 2.5) {
             w.fill(-3, f + 2, 0, 3, f + 2, 60, TOP_SLAB);
         } else if (gap > 0) {
             w.fill(-3, f + (int) gap, 0, 3, f + (int) gap, 60, StepWindow.STONE);
