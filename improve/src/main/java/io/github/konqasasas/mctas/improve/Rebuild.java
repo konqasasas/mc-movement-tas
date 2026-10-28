@@ -30,6 +30,9 @@ final class Rebuild {
      */
     double deepChance = 0.1;
     int deepWidth = 20000;
+    /** Mend splices that break the toggle rule further on ({@link ToggleFix}). */
+    boolean fixToggles = true;
+    private final ToggleFix toggleFix = new ToggleFix();
     /** {@code System.nanoTime()} after which no search may run; 0 for none. */
     long deadlineNanos;
 
@@ -85,6 +88,7 @@ final class Rebuild {
             PlayerInput[] in = Edits.splice(cur.inputs, a, r.inputs, cur.inputs, toGoal ? cur.inputs.length : b);
             Run run = c.evaluate(cur, a, in);
             Run spliced = run;
+            if (fixToggles) run = toggleFix.apply(c, run, rnd);
             if (!run.valid && !toGoal && tried <= 3) run = repair(c, cur, run, a + r.ticks(), len - r.ticks(), rnd);
             if (DEBUG) log.append("  splice ").append(r.ticks()).append(" ticks, joint ").append(a + r.ticks())
                     .append(": ").append(spliced).append(run != spliced ? "; repaired: " + run : "").append('\n');
@@ -163,6 +167,7 @@ final class Rebuild {
                 if (tried++ >= 6) break;
                 PlayerInput[] in = Edits.splice(run.inputs, s, r.inputs, cur.inputs, toGoal ? cur.inputs.length : tO);
                 Run x = c.evaluate(run, s, in);
+                if (fixToggles) x = toggleFix.apply(c, x, rnd);
                 boolean better = next == null || x.betterThan(next) || (!x.valid && !next.valid && x.length > next.length);
                 if (better) {
                     next = x;
