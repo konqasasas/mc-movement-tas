@@ -9,6 +9,5 @@
 ## 次にやること(優先順。1 つ終えたら指示を待たずに次へ)
 
 1. realdev の残り(調整してよい)。v2 で ex2・ex5・ex6 が解けた(E-506)。ex3 は z 264 の水の下のスライムから先がつながらない(F-507)。ex4v2 は z 244〜249(左右対称の飾りの多い区間)で止まる
-2. human6 remaining で足場グラフがつながらない原因を直す(原因の切り分けだけ。内容に合わせた調整はしない)
-3. human6 poseidon・rampart・verdure で A* が止まる原因を直す(同上)
-- human6 の残り 4 問は版の節目ごとに固定設定で 1 回だけ回して報告する。解けた解は `/mnt/project-files/solutions/ws9/` に置く
+2. human6 poseidon・rampart・verdure で A* が止まる原因を直す(同上)
+- human6 remaining は v2 で解けた(328、E-509)。残り 3 問は版の節目ごとに固定設定で 1 回だけ回して報告する。解けた解は `/mnt/project-files/solutions/ws9/` に置く
