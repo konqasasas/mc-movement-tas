@@ -153,4 +153,19 @@ public class ImproveTest {
         assertEquals(jump, w.get(2));
         assertEquals(2, Rebuild.windowInputs(in, 3, 5).size());
     }
+
+    @Test
+    public void driftFindsWhereARunLeavesTheOldOne() throws Exception {
+        Problem p = problem("08-two-jumps");
+        Course c = new Course(p);
+        PlayerInput[] in = witness(p, "08-two-jumps");
+        Run old = c.evaluate(in);
+        assertEquals(old.length, Rebuild.drift(old, old, 0, 0));
+        // Stop moving after tick 10: the run falls behind the old one a few ticks later.
+        PlayerInput[] stop = in.clone();
+        for (int i = 10; i < stop.length; i++) stop[i] = PlayerInput.of(0, in[i].yaw);
+        Run r = c.evaluate(stop);
+        int d = Rebuild.drift(r, old, 0, 0);
+        assertTrue(d > 10 && d < r.length);
+    }
 }

@@ -41,6 +41,8 @@ final class Planner {
         final List<Move> moves;
         final List<PlayerInput> inputs;
         final int time;
+        /** The platforms the plan lands on (from the search; empty for a plan built elsewhere). */
+        final java.util.Set<Integer> platforms = new java.util.HashSet<Integer>();
 
         Plan(Runup.Root root, List<Move> moves, List<PlayerInput> inputs, int time) {
             this.root = root;
@@ -65,6 +67,8 @@ final class Planner {
     double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
+    /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
+    java.util.Set<Integer> corridor;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
@@ -180,7 +184,12 @@ final class Planner {
             moves.add(chain.get(i).move);
             inputs.addAll(chain.get(i).inputs);
         }
-        return new Plan(root, moves, inputs, bestTime);
+        Plan plan = new Plan(root, moves, inputs, bestTime);
+        for (Node k : chain) {
+            int pl = course.platformAt(k.run.s);
+            if (pl >= 0) plan.platforms.add(pl);
+        }
+        return plan;
     }
 
     /**
@@ -318,6 +327,7 @@ final class Planner {
         int taken = 0;
         for (Course.Surface b : cand) {
             if (taken >= targets) break;
+            if (corridor != null && !corridor.contains(b.platform)) continue;
             int k = perPlatform.getOrDefault(b.platform, 0);
             if (k >= 2) continue;
             perPlatform.put(b.platform, k + 1);
