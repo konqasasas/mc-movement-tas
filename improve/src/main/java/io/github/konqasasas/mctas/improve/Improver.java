@@ -29,6 +29,13 @@ public final class Improver {
         public long seed = 1;
         public int maxWidth = 8000;
         public int maxWindow = 80;
+        /**
+         * Moves the shares towards the moves that improve the thread's run: every
+         * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
+         * the rate is the fitness it gained per second (halved each period, so it follows the run).
+         */
+        public boolean adaptive = true;
+        public double adaptSeconds = 20;
         /** Late acceptance history length. */
         public int history = 200;
         /** Ticks the run-up may grow beyond the longest run-up of the seeds. */
@@ -122,6 +129,9 @@ public final class Improver {
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
         double[] spent = new double[Move.values().length];
+        double[] share = o.shares.clone();
+        double[] gain = new double[share.length], time = new double[share.length];
+        long nextAdapt = System.nanoTime() + (long) (o.adaptSeconds * 1e9);
         Run cur = home;
         boolean onHome = true;
         double[] hist = new double[o.history];
@@ -130,7 +140,12 @@ public final class Improver {
         long sinceImproved = 0;
         Run curBest = cur;
         while (System.nanoTime() < deadline) {
-            Move m = pick(spent);
+            if (o.adaptive && System.nanoTime() > nextAdapt) {
+                adapt(share, gain, time);
+                Arrays.fill(spent, 0);
+                nextAdapt = System.nanoTime() + (long) (o.adaptSeconds * 1e9);
+            }
+            Move m = pick(spent, share);
             long t0 = System.nanoTime();
             Run r;
             try {
@@ -144,7 +159,8 @@ public final class Improver {
                 r = null;
             }
             long dt = System.nanoTime() - t0;
-            spent[m.ordinal()] += dt / o.shares[m.ordinal()];
+            spent[m.ordinal()] += dt / share[m.ordinal()];
+            time[m.ordinal()] += dt / 1e9;
             synchronized (this) {
                 stats.calls[m.ordinal()]++;
                 stats.nanos[m.ordinal()] += dt;
@@ -152,6 +168,7 @@ public final class Improver {
             if (r != null && r.valid) {
                 offer(r, m);
                 double f = r.fitness();
+                if (f < cur.fitness()) gain[m.ordinal()] += cur.fitness() - f;
                 int h = (int) (step % hist.length);
                 if (f <= cur.fitness() || f <= hist[h]) cur = r;
                 hist[h] = cur.fitness();
@@ -172,10 +189,25 @@ public final class Improver {
     }
 
     /** The move whose time, divided by its share, is smallest. */
-    private Move pick(double[] spent) {
+    private static Move pick(double[] spent, double[] share) {
         int k = 0;
-        for (int i = 1; i < spent.length; i++) if (o.shares[i] > 0 && (o.shares[k] <= 0 || spent[i] < spent[k])) k = i;
+        for (int i = 1; i < spent.length; i++) if (share[i] > 0 && (share[k] <= 0 || spent[i] < spent[k])) k = i;
         return Move.values()[k];
+    }
+
+    /** New shares from the gains per second of each move ({@link Options#adaptive}); halves the counts. */
+    private void adapt(double[] share, double[] gain, double[] time) {
+        double[] rate = new double[share.length];
+        double top = 0;
+        for (int i = 0; i < share.length; i++) {
+            rate[i] = gain[i] / Math.max(time[i], 1);
+            top = Math.max(top, rate[i]);
+        }
+        for (int i = 0; i < share.length; i++) {
+            share[i] = top > 0 ? o.shares[i] * (0.2 + 0.8 * rate[i] / top) : o.shares[i];
+            gain[i] /= 2;
+            time[i] /= 2;
+        }
     }
 
     /** A population run, better ones more often (rank weights 1, 1/2, 1/3, ...). */
