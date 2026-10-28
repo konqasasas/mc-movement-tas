@@ -32,3 +32,4 @@
 | E-201 | 2026-10-28 | human6 の初回測定 | `mctas-approx solve problems/human6 out --budget 60 --quiet` を v2 と新版で、`mctas-problem score problems/human6 out-v2 out-v3` | どちらも 0/6 | F-201 |
 | E-202 | 2026-10-28 | human6 の解けない理由の種別 | 経路 6 種を引き、方策だけを走らせて、経路の有無・止まった通過点・止まり方だけを出す使い捨てのクラス(`Route`、`Pilot.play`) | 2 問は経路なし、4 問は方策が序盤で落ちる | F-202 |
 | E-203 | 2026-10-28 | 段差の跳び方を方策とビームに足す試み | `-Dbrakes`(ビームの手を足す)と `-Dsteps`(方策の規則)で `mctas-approx solve problems/real/stpt1.problem.json out --budget 60`、`PilotCheck -Dslack=1.0` で区間ごとのティック | 60 秒で改善なし、方策だけで 1 ティック速い | F-203 |
+| E-204 | 2026-10-28 | realdev/ex1 で経路が切れる場所 | `ROUTE_DEBUG=1 mctas-approx solve problems/realdev/ex1.problem.json out --budget 1` で届く面と届かない面を出し、切れ目の前後のブロックを問題ファイルで見る | z 289 で切れ、その先はつたの区間 | F-204 |
