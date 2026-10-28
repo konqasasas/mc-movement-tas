@@ -460,6 +460,10 @@ public final class Route {
             // Up the same column: a ladder pushes up against its wall at 0.12 a tick (about 0.118),
             // water with the jump key held at somewhat less.
             if (a.x == b.x && a.z == b.z && b.y == a.y + 1) return 1.0 / UP_SPEED;
+            // Up a ladder that zigzags between neighbouring columns: sidestep while climbing.
+            if (b.y == a.y + 1 && Math.abs(a.x - b.x) + Math.abs(a.z - b.z) == 1 && !waterAt(a) && !waterAt(b)) {
+                return 1.0 / UP_SPEED + d / CLIMB_SPEED;
+            }
             if (rectGap(a, b) > EPS || (b.y != a.y && b.y != a.y - 1)) return -1;
             if (a.x == b.x && a.z == b.z && b.y != a.y - 1) return -1;
             return Math.max(d, 1.0 / 8) / CLIMB_SPEED;
