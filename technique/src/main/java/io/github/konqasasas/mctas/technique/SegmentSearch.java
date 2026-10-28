@@ -35,6 +35,8 @@ public final class SegmentSearch {
     public static final class Options {
         public int width = 16000;
         public int bucketCap = 300;
+        /** States every bucket keeps before the rest of the beam is filled by score. */
+        public int bucketMin = 8;
         public int maxTicks = 60;
         public int extraTicks = 2;
         /** Ticks of velocity added to the distance along the heading when ranking. */
@@ -53,6 +55,19 @@ public final class SegmentSearch {
         public boolean cells = true;
         /** {@code System.nanoTime()} after which the search stops and returns what it has; 0 for none. */
         public long deadlineNanos;
+
+        /**
+         * A light setting for planners that call many segments: 5 directions (0, +-10, +-45 degrees), a
+         * beam of 200. About a fifth of a second for a 40-tick segment; {@link Technique#solve} runs it
+         * once and stops.
+         */
+        public static Options fast() {
+            Options o = new Options();
+            o.width = 200;
+            o.bucketCap = 40;
+            o.offsets = new float[] {0, 10, -10, 45, -45};
+            return o;
+        }
     }
 
     /** With a guide: the first tick whose guide state the beam dropped, or -1. */
@@ -196,14 +211,22 @@ public final class SegmentSearch {
             List<Cand> cands = new ArrayList<Cand>(merged.values());
             Collections.sort(cands, (p, q) -> Double.compare(q.score, p.score));
             Layer next = new Layer(Math.min(o.width, cands.size()));
+            // First the best few of every bucket, so a bucket that ranks low as a whole (climbing a
+            // ladder while others stand closer at the wall) keeps going; then the rest by score.
             Map<Long, int[]> counts = new HashMap<Long, int[]>();
-            for (Cand c : cands) {
-                if (next.size >= o.width) break;
-                int[] n = counts.get(c.bucket);
-                if (n == null) counts.put(c.bucket, n = new int[1]);
-                if (n[0] >= o.bucketCap) continue;
-                n[0]++;
-                next.add(c.s, c.parent, c.a, c.lastToggle);
+            boolean[] taken = new boolean[cands.size()];
+            for (int pass = 0; pass < 2; pass++) {
+                int cap = pass == 0 ? o.bucketMin : o.bucketCap;
+                for (int i = 0; i < cands.size() && next.size < o.width; i++) {
+                    if (taken[i]) continue;
+                    Cand c = cands.get(i);
+                    int[] n = counts.get(c.bucket);
+                    if (n == null) counts.put(c.bucket, n = new int[1]);
+                    if (n[0] >= cap) continue;
+                    n[0]++;
+                    taken[i] = true;
+                    next.add(c.s, c.parent, c.a, c.lastToggle);
+                }
             }
             layers.add(next);
             if (o.guide != null && guideLost < 0 && t <= o.guide.size()) {

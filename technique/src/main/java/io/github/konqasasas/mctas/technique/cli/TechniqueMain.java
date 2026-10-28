@@ -3,6 +3,7 @@ package io.github.konqasasas.mctas.technique.cli;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.io.InputText;
@@ -28,11 +29,29 @@ public final class TechniqueMain {
             return;
         }
         switch (args[0]) {
+            case "ladder":
+                ladder(args);
+                break;
+            case "neo":
+                neo(args);
+                break;
+            case "ceiling":
+                ceiling(args);
+                break;
+            case "corner":
+                corner(args);
+                break;
             case "window":
                 window(args);
                 break;
+            case "runup":
+                runup(args);
+                break;
             case "segment":
                 segment(args);
+                break;
+            case "region":
+                region(args);
                 break;
             default:
                 usage();
@@ -43,7 +62,24 @@ public final class TechniqueMain {
         System.err.println("usage:\n"
                 + "  mctas-technique segment <problem.json> <inputs.tas> <fromTick> <headingYaw> <px|goal> <pz> <minY> <ground 0|1>\n        [--width N] [--cap N] [--max ticks] [--offsets a,b,c] [--extra N] [--cells 0|1]\n"
                 + "        replays the inputs to fromTick, then searches for the fastest way past the plane through\n"
-                + "        (px, pz) across the heading, feet at or above minY; compares with the inputs' own crossing");
+                + "        (px, pz) across the heading, feet at or above minY; compares with the inputs' own crossing\n"
+                + "  mctas-technique region <problem.json> <x> <y> <z> <minX> <minZ> <maxX> <maxZ> <topY>\n"
+                + "        [--sneak 0|1] [--width N] [--max ticks] [--budget ms] [--offsets a,b,c] [--yaw deg]\n"
+                + "        [--via minX,minZ,maxX,maxZ,topY ...]\n"
+                + "        Technique.solve from standing still at (x, y, z) onto the top face topY of the box; with\n"
+                + "        --via, Technique.chain through those landings first (budget per leg)\n"
+                + "  mctas-technique runup <problem.json> <tries> <out.tas> <headingYaw> [width]\n"
+                + "        searches the run-up into the start box, then from the best <tries> entries to the goal\n"
+                + "  mctas-technique ladder [width]\n"
+                + "        compares holding W with the search for climbing a ladder onto a wall\n"
+                + "  mctas-technique neo [width]\n"
+                + "        the fastest neo around a wall end, landing 1 to 4 blocks past the wall\n"
+                + "  mctas-technique ceiling [width]\n"
+                + "        ticks to cover 20 blocks under ceilings 2, 2.5, 3 high and none: run, jump chain, search\n"
+                + "  mctas-technique corner [width]\n"
+                + "        the fastest 90-degree turn on paths 1 to 3 blocks wide over a drop\n"
+                + "  mctas-technique window\n"
+                + "        prints the clean jump distances for climbing a step");
     }
 
     /** Prints the clean jump windows for step heights, ceilings, entry speeds and takeoffs as Markdown. */
@@ -68,6 +104,85 @@ public final class TechniqueMain {
         }
     }
 
+    /** Prints ladder climbs (holding W against the search) as Markdown, and the searched inputs. */
+    private static void ladder(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 120;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        System.out.println("| height | entry | hold W | search |");
+        System.out.println("| --- | --- | --- | --- |");
+        StringBuilder detail = new StringBuilder();
+        for (int h : new int[] {2, 3, 4, 6, 8}) {
+            for (boolean running : new boolean[] {false, true}) {
+                io.github.konqasasas.mctas.technique.LadderBench.Row r =
+                        io.github.konqasasas.mctas.technique.LadderBench.run(h, 0.5, running, o);
+                System.out.printf("| %d | %s | %d | %d |%n", h, running ? "running, 0.5 before" : "standing, 0.5 before",
+                        r.holdW, r.search);
+                if (r.inputs != null) {
+                    detail.append("height ").append(h).append(running ? " running" : " standing").append(":");
+                    for (PlayerInput x : r.inputs) detail.append(' ').append(x.keyString()).append('@').append(x.yaw);
+                    detail.append('\n');
+                }
+            }
+        }
+        System.out.print(detail);
+    }
+
+    /** Prints the fastest neo around a wall end for landing floors 1 to 4 blocks past the wall. */
+    private static void neo(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 60;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        for (int gap = 1; gap <= 4; gap++) {
+            SegmentSearch.Result r = io.github.konqasasas.mctas.technique.NeoBench.run(gap, o);
+            System.out.println("landing " + gap + " past the wall: " + (r == null ? "none" : r.ticks() + " ticks"));
+            if (r == null) continue;
+            PlayerState q = io.github.konqasasas.mctas.technique.NeoBench.entry();
+            SparseBlockWorld w = io.github.konqasasas.mctas.technique.NeoBench.world(gap);
+            int k = 0;
+            for (PlayerInput x : r.inputs) {
+                q = Physics.tick(w, q, x);
+                System.out.printf("    %3d %-14s pos %.4f %.4f %.4f%s%n", ++k, x, q.posX, q.posY, q.posZ, q.onGround ? " G" : "");
+            }
+        }
+    }
+
+    /** Prints the ticks to cover 20 blocks under ceilings of several heights: run, jump chain, search. */
+    private static void ceiling(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 100;
+        o.offsets = new float[] {0};
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        double dist = 20;
+        System.out.println("| ceiling | run | jump on every landing | search |");
+        System.out.println("| --- | --- | --- | --- |");
+        for (double gap : new double[] {2, 2.5, 3, 0}) {
+            System.out.printf("| %s | %d | %d | %d |%n", gap == 0 ? "none" : "" + gap,
+                    io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, false),
+                    io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, true),
+                    io.github.konqasasas.mctas.technique.CeilingBench.search(gap, dist, o));
+        }
+    }
+
+    /** Prints the fastest 90-degree turn on paths 1 to 3 wide, with the path of the first. */
+    private static void corner(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 100;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        for (int width = 1; width <= 3; width++) {
+            SegmentSearch.Result r = io.github.konqasasas.mctas.technique.CornerBench.run(width, o);
+            System.out.println("path " + width + " wide: " + (r == null ? "none" : r.ticks() + " ticks"));
+            if (r == null) continue;
+            PlayerState q = io.github.konqasasas.mctas.technique.CornerBench.entry(width);
+            SparseBlockWorld w = io.github.konqasasas.mctas.technique.CornerBench.world(width);
+            int k = 0;
+            for (PlayerInput x : r.inputs) {
+                q = Physics.tick(w, q, x);
+                System.out.printf("    %3d %-14s pos %.4f %.4f %.4f%s%n", ++k, x, q.posX, q.posY, q.posZ, q.onGround ? " G" : "");
+            }
+        }
+    }
+
     private static String ranges(List<StepWindow.Jump> js) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -88,6 +203,66 @@ public final class TechniqueMain {
             i = j + 1;
         }
         return sb.length() == 0 ? "none" : sb.toString();
+    }
+
+    /**
+     * Searches the run-up from the spawn for ways into the start box (from outside it), ranks the entry
+     * states by how far along and how fast they are, then searches from the best few to the goal and
+     * writes the fastest whole run.
+     */
+    private static void runup(String[] a) throws Exception {
+        Problem p = ProblemIO.read(Paths.get(a[1]));
+        int tries = Integer.parseInt(a[2]);
+        String out = a[3];
+        float heading = Float.parseFloat(a[4]);
+        int width = a.length > 5 ? Integer.parseInt(a[5]) : 20000;
+        PhysicsModel m = new PhysicsModel(p);
+        PlayerState spawn = m.spawn(p);
+        Exit entry = (before, after) -> p.start.contains(after.posX, after.posY, after.posZ)
+                && !p.start.contains(before.posX, before.posY, before.posZ);
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.width = width;
+        o.maxTicks = 60;
+        o.extraTicks = 25;
+        o.results = 100000;
+        o.voidY = p.voidY;
+        List<SegmentSearch.Result> ins = new SegmentSearch().search(p.world, spawn, Integer.MIN_VALUE / 2, entry,
+                heading, o);
+        double r = Math.toRadians(heading);
+        double dx = -Math.sin(r), dz = Math.cos(r);
+        java.util.function.ToDoubleFunction<SegmentSearch.Result> lead =
+                q -> q.end.posX * dx + q.end.posZ * dz + 3 * (q.end.motionX * dx + q.end.motionZ * dz);
+        ins.sort((x, y) -> Double.compare(lead.applyAsDouble(y), lead.applyAsDouble(x)));
+        System.out.println(ins.size() + " ways into the start");
+        Exit goal = Exit.box(p.goal.minX, p.goal.minY, p.goal.minZ, p.goal.maxX, p.goal.maxY, p.goal.maxZ);
+        List<TickInput> best = null;
+        int bestTicks = Integer.MAX_VALUE;
+        for (int k = 0; k < Math.min(tries, ins.size()); k++) {
+            SegmentSearch.Result e = ins.get(k);
+            System.out.printf("entry %d: after %d ticks, %s%n", k, e.ticks(), e.end);
+            SegmentSearch.Options g = new SegmentSearch.Options();
+            g.width = width;
+            g.maxTicks = Math.min(p.maxTicks, bestTicks == Integer.MAX_VALUE ? 300 : bestTicks);
+            g.voidY = p.voidY;
+            List<SegmentSearch.Result> rest = new SegmentSearch().search(p.world, e.end, e.lastToggle - e.ticks(), goal,
+                    io.github.konqasasas.mctas.technique.Technique.headingTo(e.end, (p.goal.minX + p.goal.maxX) / 2,
+                            (p.goal.minZ + p.goal.maxZ) / 2), g);
+            if (rest.isEmpty()) continue;
+            List<TickInput> all = new ArrayList<TickInput>();
+            for (PlayerInput x : e.inputs) all.add(toTick(x));
+            for (PlayerInput x : rest.get(0).inputs) all.add(toTick(x));
+            io.github.konqasasas.mctas.problem.judge.RunResult rr = io.github.konqasasas.mctas.problem.judge.Evaluator.run(p, all);
+            List<Integer> viol = io.github.konqasasas.mctas.problem.judge.ToggleRule.violations(p, all);
+            System.out.println("  -> " + rr.status + " " + rr.ticks() + " ticks, toggle violations " + viol);
+            if (rr.finished() && viol.isEmpty() && rr.ticks() < bestTicks) {
+                bestTicks = rr.ticks();
+                best = all;
+            }
+        }
+        if (best != null) {
+            Files.write(Paths.get(out), InputText.format(best, p.spawn).getBytes(StandardCharsets.UTF_8));
+            System.out.println("wrote " + bestTicks + " ticks to " + out);
+        }
     }
 
     /**
@@ -205,6 +380,59 @@ public final class TechniqueMain {
                 System.out.printf("    %3d %-14s pos %.4f %.4f %.4f  v %.4f %.4f %.4f %s%s%n", ++k, x, q.posX, q.posY, q.posZ,
                         q.motionX, q.motionY, q.motionZ, q.onGround ? "G" : "-", q.collidedHorizontally ? " wall" : "");
             }
+        }
+    }
+
+    private static void region(String[] a) throws Exception {
+        Problem p = ProblemIO.read(Paths.get(a[1]));
+        PlayerState entry = PlayerState.standing(Double.parseDouble(a[2]), Double.parseDouble(a[3]),
+                Double.parseDouble(a[4]), 0);
+        io.github.konqasasas.mctas.technique.Target t = new io.github.konqasasas.mctas.technique.Target(
+                Double.parseDouble(a[5]), Double.parseDouble(a[7]), Double.parseDouble(a[6]),
+                Double.parseDouble(a[8]), Double.parseDouble(a[9]));
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        long budget = 60000;
+        List<io.github.konqasasas.mctas.technique.Target> via = new ArrayList<io.github.konqasasas.mctas.technique.Target>();
+        float heading = io.github.konqasasas.mctas.technique.Technique.headingTo(entry, t.centerX(), t.centerZ());
+        for (int i = 10; i + 1 < a.length; i += 2) {
+            switch (a[i]) {
+                case "--width": o.width = Integer.parseInt(a[i + 1]); break;
+                case "--max": o.maxTicks = Integer.parseInt(a[i + 1]); break;
+                case "--budget": budget = Long.parseLong(a[i + 1]); break;
+                case "--offsets": o.offsets = floats(a[i + 1]); break;
+                case "--sneak": o.sneak = a[i + 1].equals("1"); break;
+                case "--yaw": heading = Float.parseFloat(a[i + 1]); break;
+                case "--via": {
+                    float[] v = floats(a[i + 1]);
+                    via.add(new io.github.konqasasas.mctas.technique.Target(v[0], v[2], v[1], v[3], v[4]));
+                    break;
+                }
+                default: throw new IllegalArgumentException("unknown option " + a[i]);
+            }
+        }
+        o.voidY = p.voidY;
+        long t0 = System.nanoTime();
+        List<io.github.konqasasas.mctas.technique.Technique.Segment> segs;
+        if (via.isEmpty()) {
+            segs = io.github.konqasasas.mctas.technique.Technique.solve(p.world, entry, 100, Exit.landing(t), heading,
+                    budget, o);
+        } else {
+            via.add(t);
+            segs = io.github.konqasasas.mctas.technique.Technique.chain(p.world, entry, 100, via, budget, 4, o);
+        }
+        System.out.printf("region: %d segments in %.1f s, heading %.1f%n", segs.size(), (System.nanoTime() - t0) / 1e9,
+                heading);
+        for (io.github.konqasasas.mctas.technique.Technique.Segment g : segs) {
+            System.out.printf("  %d ticks, exit speed %.4f, end %s%n", g.ticks(), g.exitSpeed(), g.exit);
+        }
+        if (segs.isEmpty()) return;
+        PlayerState q = entry;
+        int k = 0;
+        for (PlayerInput x : segs.get(0).inputs) {
+            q = Physics.tick(p.world, q, x);
+            System.out.printf("    %3d %-22s pos %.4f %.4f %.4f  v %.4f %.4f %.4f %s%s%s%n", ++k, x, q.posX, q.posY,
+                    q.posZ, q.motionX, q.motionY, q.motionZ, q.onGround ? "G" : "-",
+                    q.collidedHorizontally ? " wall" : "", q.sprinting ? " spr" : "");
         }
     }
 }
