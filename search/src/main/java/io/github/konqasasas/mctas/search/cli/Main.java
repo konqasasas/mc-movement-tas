@@ -4,6 +4,7 @@ import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
 import io.github.konqasasas.mctas.problem.io.InputText;
 import io.github.konqasasas.mctas.search.bound.LowerBound;
+import io.github.konqasasas.mctas.search.bound.SpeedBound;
 import io.github.konqasasas.mctas.search.exact.Beam;
 
 import java.nio.charset.StandardCharsets;
@@ -16,17 +17,30 @@ public final class Main {
     private static final String USAGE = String.join("\n",
         "usage:",
         "  mctas-search bound [--cell S] [--zcell S] [--cap N] [--max-steps N] [--trace] <problem.json>...",
-        "  mctas-search beam <problem.json> [--width N] [--out file.tas]");
+        "  mctas-search beam <problem.json> [--width N] [--out file.tas]",
+        "  mctas-search speed <problem.json>...");
 
     public static void main(String[] args) throws IOException {
         if (args.length >= 2 && args[0].equals("bound")) {
             bound(args);
+        } else if (args.length >= 2 && args[0].equals("speed")) {
+            for (int i = 1; i < args.length; i++) speed(args[i]);
         } else if (args.length >= 2 && args[0].equals("beam")) {
             beam(args);
         } else {
             System.err.println(USAGE);
             System.exit(2);
         }
+    }
+
+    private static void speed(String file) throws IOException {
+        Problem problem = ProblemIO.read(Paths.get(file));
+        long t0 = System.nanoTime();
+        SpeedBound sb = new SpeedBound(problem);
+        int ticks = sb.ticks(problem.maxTicks);
+        long ms = (System.nanoTime() - t0) / 1000000;
+        String target = problem.target == null ? "" : " (target " + problem.target.ticks + ")";
+        System.out.println(problem.id + ": >= " + ticks + " ticks" + target + "  [" + sb + ", " + ms + " ms]");
     }
 
     private static void beam(String[] args) throws IOException {
