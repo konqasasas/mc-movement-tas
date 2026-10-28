@@ -84,6 +84,20 @@ public class PlannerSolverTest {
     }
 
     @Test
+    @Category(Slow.class)
+    public void weavesThroughTheGapsInRowsOfPanes() throws Exception {
+        // One floor with walls across it: only aiming at the corners on the way gets round them.
+        solve(Paths.get("src/test/resources/course/slalom.problem.json"), 5000);
+    }
+
+    @Test
+    @Category(Slow.class)
+    public void climbsSingleLaddersAndAZigzagOfThem() throws Exception {
+        // realdev/exp2: jumps onto single ladders hung over nothing, then up ladders alternating between two columns.
+        solve("realdev/exp2", 15000);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));

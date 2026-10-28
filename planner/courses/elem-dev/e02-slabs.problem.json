@@ -1,0 +1,11 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e02-slabs", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 2], "to": [0, 65, 2], "block": "minecraft:stone_slab[half=bottom]"}, 
+    {"from": [0, 65, 5], "to": [0, 65, 5], "block": "minecraft:stone_slab[half=top]"}, 
+    {"from": [0, 66, 8], "to": [0, 66, 8], "block": "minecraft:stone_slab[half=bottom]"}, 
+    {"from": [0, 66, 11], "to": [0, 66, 11], "block": "minecraft:stone_slab[half=top]"}, 
+    {"from": [0, 67, 14], "to": [0, 67, 14], "block": "minecraft:stone_slab[half=bottom]"}, 
+    {"from": [0, 67, 17], "to": [0, 67, 17], "block": "minecraft:stone_slab[half=top]"}, 
+    {"from": [0, 68, 20], "to": [0, 68, 20], "block": "minecraft:stone_slab[half=bottom]"}, 
+    {"from": [0, 68, 23], "to": [0, 68, 23], "block": "minecraft:stone_slab[half=top]"}, 
+    {"from": [-1, 68, 26], "to": [1, 68, 29], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 69, 27], "max": [2, 69, 30]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

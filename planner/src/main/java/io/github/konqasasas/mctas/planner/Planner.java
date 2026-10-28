@@ -130,6 +130,7 @@ final class Planner {
                     if (t < bestTime) {
                         bestTime = t;
                         best = new Node(x.run, n, x.move, x.inputs, t);
+                        if (DEBUG) System.err.printf("  found %d ticks, %d expanded, %d ms before the deadline%n", t, expanded, deadline - System.currentTimeMillis());
                     }
                     continue;
                 }
@@ -320,6 +321,7 @@ final class Planner {
             double nx = clamp(x, bx0 + ix, bx1 - ix), nz = clamp(z, bz0 + iz, bz1 - iz);
             out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             addVias(x, z, Math.max(y, b.top), new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, out);
+            if (here >= 0) addCorner(r, new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, a -> a.next.contains(b) && !a.notByStep.contains(b), out);
             // A bounce: by way of the slime block's middle.
             if (here >= 0) {
                 for (Course.Surface a : course.platforms.get(here)) {
@@ -345,9 +347,61 @@ final class Planner {
         if (goalNear || here < 0) {
             Region g = course.problem.goal;
             double ix = Math.min(0.2, (g.maxX - g.minX) / 2), iz = Math.min(0.2, (g.maxZ - g.minZ) / 2);
-            out.add(new double[] {clamp(x, g.minX + ix, g.maxX - ix), clamp(z, g.minZ + iz, g.maxZ - iz), g.minY, g.minX, g.maxX, g.minZ, g.maxZ});
+            double[] ga = {clamp(x, g.minX + ix, g.maxX - ix), clamp(z, g.minZ + iz, g.maxZ - iz), g.minY, g.minX, g.maxX, g.minZ, g.maxZ};
+            out.add(ga);
+            if (here >= 0) addCorner(r, ga, a -> a.nearGoal, out);
         }
         return out;
+    }
+
+    /** Footholds a corner search ({@link #addCorner}) visits at most. */
+    static final int CORNER_SEARCH = 600;
+
+    /**
+     * When walls on the player's own platform stand between the player and an aim (a slalom between
+     * posts or panes), the first corner to round, as an aim of its own: the shortest walk
+     * over the platform's footholds to one from which the move is made ({@code from}) with a clear line
+     * into the aim's region, pulled straight to its furthest foothold the player can see.
+     */
+    private void addCorner(Run r, double[] aim, java.util.function.Predicate<Course.Surface> from, List<double[]> out) {
+        double x = r.s.posX, y = r.s.posY, z = r.s.posZ;
+        if (!course.blockedLine(x, z, aim[0], aim[1], y)) return;
+        Course.Surface start = course.support(x, y, z);
+        if (start == null) return;
+        Map<Course.Surface, Course.Surface> back = new HashMap<Course.Surface, Course.Surface>();
+        java.util.ArrayDeque<Course.Surface> queue = new java.util.ArrayDeque<Course.Surface>();
+        back.put(start, start);
+        queue.add(start);
+        Course.Surface end = null;
+        while (!queue.isEmpty() && back.size() < CORNER_SEARCH) {
+            Course.Surface a = queue.poll();
+            if (a != start && from.test(a) && !course.blockedLine(a.cx(), a.cz(), clamp(a.cx(), aim[3], aim[4]), clamp(a.cz(), aim[5], aim[6]), a.top)) {
+                end = a;
+                break;
+            }
+            for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                List<Course.Surface> col = course.column(a.x + d[0], a.z + d[1]);
+                if (col == null) continue;
+                for (Course.Surface n : col) {
+                    if (n.platform != a.platform || n.top != a.top || back.containsKey(n)) continue;
+                    if (course.blockedLine(a.cx(), a.cz(), n.cx(), n.cz(), a.top)) continue;
+                    back.put(n, a);
+                    queue.add(n);
+                }
+            }
+        }
+        if (end == null) return;
+        List<Course.Surface> path = new ArrayList<Course.Surface>();
+        for (Course.Surface a = end; a != start; a = back.get(a)) path.add(0, a);
+        Course.Surface corner = null;
+        for (Course.Surface a : path) {
+            if (course.blockedLine(x, z, a.cx(), a.cz(), y)) break;
+            corner = a;
+        }
+        if (corner == null) return;
+        for (double[] o : out) if (o.length == 8 && o[0] == corner.cx() && o[1] == corner.cz()) return;
+        // Length 8 marks a corner: the walk stops there (StepManeuver).
+        out.add(new double[] {corner.cx(), corner.cz(), corner.top, corner.minX, corner.maxX, corner.minZ, corner.maxZ, 1});
     }
 
     /**
