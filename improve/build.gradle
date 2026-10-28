@@ -1,0 +1,20 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':physics')
+    implementation project(':problem')
+    implementation project(':technique')
+    implementation 'com.google.code.gson:gson:2.8.0'
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.improve.cli.ImproveMain'
+    applicationName = 'mctas-improve'
+    applicationDefaultJvmArgs = ['-Xmx8g']
+}
+
+run {
+    workingDir = rootProject.projectDir
+}
