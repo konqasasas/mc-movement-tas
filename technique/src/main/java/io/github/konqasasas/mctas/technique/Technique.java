@@ -74,6 +74,44 @@ public final class Technique {
         return pareto(all);
     }
 
+    /**
+     * Ways through {@code legs} in order, each leg a landing searched from the previous leg's exit. For
+     * obstacles the one-shot search cannot rank, such as climbing back and forth over posts: the beam
+     * scores closeness to its target, so a route that first moves away from the exit needs the
+     * intermediate landings named. Up to {@code keep} partial chains (the leg's Pareto set over ticks
+     * and exit speed) go on to the next leg; the result is the Pareto set of whole chains.
+     */
+    public static List<Segment> chain(BlockWorld world, PlayerState entry, int ticksSinceLastToggle,
+                                      List<Target> legs, long budgetMillisPerLeg, int keep,
+                                      SegmentSearch.Options base) {
+        List<Segment> partial = new ArrayList<Segment>();
+        partial.add(new Segment(new ArrayList<PlayerInput>(), entry, ticksSinceLastToggle));
+        for (Target t : legs) {
+            List<Segment> next = new ArrayList<Segment>();
+            for (Segment p : partial) {
+                long budget = budgetMillisPerLeg / partial.size();
+                for (Segment g : solve(world, p.exit, p.ticksSinceLastToggle, Exit.landing(t),
+                        headingTo(p.exit, t.centerX(), t.centerZ()), budget, base)) {
+                    List<PlayerInput> in = new ArrayList<PlayerInput>(p.inputs);
+                    in.addAll(g.inputs);
+                    next.add(new Segment(in, g.exit, g.ticksSinceLastToggle));
+                }
+            }
+            Collections.sort(next, (p, q) -> p.ticks() != q.ticks() ? Integer.compare(p.ticks(), q.ticks())
+                    : Double.compare(q.exitSpeed(), p.exitSpeed()));
+            partial = new ArrayList<Segment>();
+            double best = -1;
+            for (Segment s : next) {
+                if (s.exitSpeed() > best + 1e-9 && partial.size() < keep) {
+                    partial.add(s);
+                    best = s.exitSpeed();
+                }
+            }
+            if (partial.isEmpty()) return partial;
+        }
+        return partial;
+    }
+
     static List<Segment> pareto(List<SegmentSearch.Result> rs) {
         List<Segment> segs = new ArrayList<Segment>();
         for (SegmentSearch.Result r : rs) segs.add(new Segment(r.inputs, r.end, r.ticks() - r.lastToggle));

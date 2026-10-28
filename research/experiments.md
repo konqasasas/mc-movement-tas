@@ -32,3 +32,5 @@
 | E-406 | 2026-10-28 | 天井の下の連続ジャンプ | ブランチ `claude/project-thread-usu2am` で `mctas-technique ceiling 5000` | 20 ブロックで走り 70、天井 2 で 43、2.5 で 51、3 で 57、なし 58 | F-406 |
 | E-407 | 2026-10-28 | 90 度の角 | ブランチ `claude/project-thread-usu2am` で `mctas-technique corner 5000` | 幅 1/2/3 で 73/66/63 | F-407 |
 | E-301 | 2026-10-28 | 物理の高速化の前後比較 | main(`a4cc840`)とブランチ `claude/project-thread-k025c7` で `./gradlew :problem:bench -Prounds=6 -Pproblems=problems/v1-full/s2007-12j.problem.json,problems/place/01-pillar-2.problem.json,<test1.problem.json>,<stpt1.problem.json>`(test1 と stpt1 は共有フォルダ ws3b/) | 探索型の木 37〜45 万 → 88〜101 万ティック/秒、状態 1 つ約 240 バイトで変わらず、チェックサム一致 | F-301 |
+| E-408 | 2026-10-28 | stpt1 の 187 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-187.tas` | 問題なし(ユーザーの報告) | F-408 |
+| E-409 | 2026-10-28 | realdev の詰まる区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique region ...`(technique/README.md の表) | つた 75、塀の柱 60(chain)、1 ブロックのはしご 33、水柱 57 | F-409 |

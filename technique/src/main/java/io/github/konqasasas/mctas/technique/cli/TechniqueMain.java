@@ -50,6 +50,9 @@ public final class TechniqueMain {
             case "segment":
                 segment(args);
                 break;
+            case "region":
+                region(args);
+                break;
             default:
                 usage();
         }
@@ -60,6 +63,11 @@ public final class TechniqueMain {
                 + "  mctas-technique segment <problem.json> <inputs.tas> <fromTick> <headingYaw> <px|goal> <pz> <minY> <ground 0|1>\n        [--width N] [--cap N] [--max ticks] [--offsets a,b,c] [--extra N] [--cells 0|1]\n"
                 + "        replays the inputs to fromTick, then searches for the fastest way past the plane through\n"
                 + "        (px, pz) across the heading, feet at or above minY; compares with the inputs' own crossing\n"
+                + "  mctas-technique region <problem.json> <x> <y> <z> <minX> <minZ> <maxX> <maxZ> <topY>\n"
+                + "        [--sneak 0|1] [--width N] [--max ticks] [--budget ms] [--offsets a,b,c] [--yaw deg]\n"
+                + "        [--via minX,minZ,maxX,maxZ,topY ...]\n"
+                + "        Technique.solve from standing still at (x, y, z) onto the top face topY of the box; with\n"
+                + "        --via, Technique.chain through those landings first (budget per leg)\n"
                 + "  mctas-technique runup <problem.json> <tries> <out.tas> <headingYaw> [width]\n"
                 + "        searches the run-up into the start box, then from the best <tries> entries to the goal\n"
                 + "  mctas-technique ladder [width]\n"
@@ -372,6 +380,59 @@ public final class TechniqueMain {
                 System.out.printf("    %3d %-14s pos %.4f %.4f %.4f  v %.4f %.4f %.4f %s%s%n", ++k, x, q.posX, q.posY, q.posZ,
                         q.motionX, q.motionY, q.motionZ, q.onGround ? "G" : "-", q.collidedHorizontally ? " wall" : "");
             }
+        }
+    }
+
+    private static void region(String[] a) throws Exception {
+        Problem p = ProblemIO.read(Paths.get(a[1]));
+        PlayerState entry = PlayerState.standing(Double.parseDouble(a[2]), Double.parseDouble(a[3]),
+                Double.parseDouble(a[4]), 0);
+        io.github.konqasasas.mctas.technique.Target t = new io.github.konqasasas.mctas.technique.Target(
+                Double.parseDouble(a[5]), Double.parseDouble(a[7]), Double.parseDouble(a[6]),
+                Double.parseDouble(a[8]), Double.parseDouble(a[9]));
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        long budget = 60000;
+        List<io.github.konqasasas.mctas.technique.Target> via = new ArrayList<io.github.konqasasas.mctas.technique.Target>();
+        float heading = io.github.konqasasas.mctas.technique.Technique.headingTo(entry, t.centerX(), t.centerZ());
+        for (int i = 10; i + 1 < a.length; i += 2) {
+            switch (a[i]) {
+                case "--width": o.width = Integer.parseInt(a[i + 1]); break;
+                case "--max": o.maxTicks = Integer.parseInt(a[i + 1]); break;
+                case "--budget": budget = Long.parseLong(a[i + 1]); break;
+                case "--offsets": o.offsets = floats(a[i + 1]); break;
+                case "--sneak": o.sneak = a[i + 1].equals("1"); break;
+                case "--yaw": heading = Float.parseFloat(a[i + 1]); break;
+                case "--via": {
+                    float[] v = floats(a[i + 1]);
+                    via.add(new io.github.konqasasas.mctas.technique.Target(v[0], v[2], v[1], v[3], v[4]));
+                    break;
+                }
+                default: throw new IllegalArgumentException("unknown option " + a[i]);
+            }
+        }
+        o.voidY = p.voidY;
+        long t0 = System.nanoTime();
+        List<io.github.konqasasas.mctas.technique.Technique.Segment> segs;
+        if (via.isEmpty()) {
+            segs = io.github.konqasasas.mctas.technique.Technique.solve(p.world, entry, 100, Exit.landing(t), heading,
+                    budget, o);
+        } else {
+            via.add(t);
+            segs = io.github.konqasasas.mctas.technique.Technique.chain(p.world, entry, 100, via, budget, 4, o);
+        }
+        System.out.printf("region: %d segments in %.1f s, heading %.1f%n", segs.size(), (System.nanoTime() - t0) / 1e9,
+                heading);
+        for (io.github.konqasasas.mctas.technique.Technique.Segment g : segs) {
+            System.out.printf("  %d ticks, exit speed %.4f, end %s%n", g.ticks(), g.exitSpeed(), g.exit);
+        }
+        if (segs.isEmpty()) return;
+        PlayerState q = entry;
+        int k = 0;
+        for (PlayerInput x : segs.get(0).inputs) {
+            q = Physics.tick(p.world, q, x);
+            System.out.printf("    %3d %-22s pos %.4f %.4f %.4f  v %.4f %.4f %.4f %s%s%s%n", ++k, x, q.posX, q.posY,
+                    q.posZ, q.motionX, q.motionY, q.motionZ, q.onGround ? "G" : "-",
+                    q.collidedHorizontally ? " wall" : "", q.sprinting ? " spr" : "");
         }
     }
 }
