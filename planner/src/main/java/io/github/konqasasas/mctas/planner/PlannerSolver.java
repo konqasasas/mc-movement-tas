@@ -82,6 +82,7 @@ public final class PlannerSolver {
         say(roots.size() + " run-up roots, searching from " + picked.size() + " (" + (System.currentTimeMillis() - t0) + " ms)");
         Planner.Plan best = null;
         long foundAt = -1;
+        boolean segmentsDone = false;
         // Rounds of growing breadth: a greedy first round for a plan soon, then each round bounded by
         // the best time with a lower weight, more footholds to aim for, finer speed states and wider
         // jump branching, until the budget runs out. Each new plan is tightened.
@@ -93,33 +94,44 @@ public final class PlannerSolver {
             planner.posCell = 0.2 / (1 + 0.5 * level);
             planner.velCell = 0.04 / (1 + 0.5 * level);
             planner.far = 1.5 + 0.5 * level;
+            // The greedy first round hands most of the time on once it has a plan.
+            if (level == 0) planner.afterFirst = 0.2;
             // Until there is a plan, a round keeps the whole budget: restarting a long course from
-            // scratch with a stricter search only throws the frontier away.
-            long until = best == null ? deadline : System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
+            // scratch with a stricter search only throws the frontier away. After the greedy round's
+            // plan, the next round (weight 3) takes most of what is left: it is the one that finds the
+            // good plans on the short courses (F-518).
+            long left = deadline - System.currentTimeMillis();
+            long until = best == null ? deadline : System.currentTimeMillis() + (level == 1 ? left * 2 / 3 : left / 2);
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
-            if (p == null) continue;
-            best = p;
-            foundAt = System.currentTimeMillis() - t0;
-            Tightener tight = new Tightener(roots);
-            long tUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 3;
-            Planner.Plan q = tight.tighten(best, tUntil);
-            say("tightened: " + q.time + " ticks (" + tight.kept + " of " + tight.tried + " changes kept, " + (System.currentTimeMillis() - t0) + " ms)");
-            if (q.time < best.time) {
-                best = q;
+            if (p != null) {
+                best = p;
                 foundAt = System.currentTimeMillis() - t0;
+                segmentsDone = false;
+                Tightener tight = new Tightener(roots);
+                long tUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 3;
+                Planner.Plan q = tight.tighten(best, tUntil);
+                say("tightened: " + q.time + " ticks (" + tight.kept + " of " + tight.tried + " changes kept, " + (System.currentTimeMillis() - t0) + " ms)");
+                if (q.time < best.time) {
+                    best = q;
+                    foundAt = System.currentTimeMillis() - t0;
+                }
             }
-            if (segments) {
+            // The segment re-search is slow: not on the greedy round's plan, which the next round
+            // usually beats, but on the best plan after each later round that has not had it yet.
+            if (segments && best != null && !segmentsDone && level >= 1) {
+                segmentsDone = true;
                 Tightener seg = new Tightener(roots);
                 long sUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
                 long perCall = Math.max(200, (sUntil - System.currentTimeMillis()) / Math.max(1, 2 * best.moves.size()));
-                q = seg.segments(best, sUntil, perCall);
+                Planner.Plan q = seg.segments(best, sUntil, perCall);
                 say("technique re-search: " + q.time + " ticks (" + seg.kept + " of " + seg.tried + " segments kept, " + (System.currentTimeMillis() - t0) + " ms)");
                 if (q.time < best.time) {
                     best = q;
                     foundAt = System.currentTimeMillis() - t0;
+                    Tightener tight = new Tightener(roots);
                     q = tight.tighten(best, System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 3);
                     if (q.time < best.time) best = q;
                 }

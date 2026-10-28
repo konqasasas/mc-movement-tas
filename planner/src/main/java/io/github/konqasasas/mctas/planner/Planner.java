@@ -61,6 +61,8 @@ final class Planner {
     double backSlack = 8;
     /** Jump branching reaches this far past the best jump's reach (see {@link StepManeuver}). */
     double far = 1.5;
+    /** Share of the time left that the round keeps after its first plan (the rest goes to the rounds after it). */
+    double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
 
@@ -128,6 +130,10 @@ final class Planner {
                 if (x.run.done()) {
                     int t = x.run.time();
                     if (t < bestTime) {
+                        if (best == null) {
+                            long now = System.currentTimeMillis();
+                            deadline = Math.min(deadline, now + (long) ((deadline - now) * afterFirst));
+                        }
                         bestTime = t;
                         best = new Node(x.run, n, x.move, x.inputs, t);
                         if (DEBUG) System.err.printf("  found %d ticks, %d expanded, %d ms before the deadline%n", t, expanded, deadline - System.currentTimeMillis());
