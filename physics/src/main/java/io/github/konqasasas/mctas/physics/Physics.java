@@ -311,13 +311,13 @@ public final class Physics {
         double d4 = z;
 
         if (s.onGround && s.isSneaking()) {
-            for (; x != 0.0D && collisionBoxes(world, s.box.offset(x, (double) (-STEP_HEIGHT), 0.0D)).isEmpty(); d2 = x) {
+            for (; x != 0.0D && noCollision(world, s.box.offset(x, (double) (-STEP_HEIGHT), 0.0D)); d2 = x) {
                 x = sneakStep(x);
             }
-            for (; z != 0.0D && collisionBoxes(world, s.box.offset(0.0D, (double) (-STEP_HEIGHT), z)).isEmpty(); d4 = z) {
+            for (; z != 0.0D && noCollision(world, s.box.offset(0.0D, (double) (-STEP_HEIGHT), z)); d4 = z) {
                 z = sneakStep(z);
             }
-            for (; x != 0.0D && z != 0.0D && collisionBoxes(world, s.box.offset(x, (double) (-STEP_HEIGHT), z)).isEmpty(); d4 = z) {
+            for (; x != 0.0D && z != 0.0D && noCollision(world, s.box.offset(x, (double) (-STEP_HEIGHT), z)); d4 = z) {
                 x = sneakStep(x);
                 d2 = x;
                 z = sneakStep(z);
@@ -327,27 +327,74 @@ public final class Physics {
         List<Aabb> list1 = collisionBoxes(world, s.box.expand(x, y, z));
         Aabb start = s.box;
 
+        // The box moved along y, x and z in turn, as Aabb.offset would, without making a box for each step.
+        double b0 = start.minX;
+        double b1 = start.minY;
+        double b2 = start.minZ;
+        double b3 = start.maxX;
+        double b4 = start.maxY;
+        double b5 = start.maxZ;
+        boolean moved = false;
         if (y != 0.0D) {
             for (int k = 0, l = list1.size(); k < l; ++k) {
-                y = list1.get(k).calculateYOffset(s.box, y);
+                y = list1.get(k).calculateYOffset(b0, b1, b2, b3, b4, b5, y);
             }
-            s.box = s.box.offset(0.0D, y, 0.0D);
+            double n0 = b0 + 0.0D;
+            double n1 = b1 + y;
+            double n2 = b2 + 0.0D;
+            double n3 = b3 + 0.0D;
+            double n4 = b4 + y;
+            double n5 = b5 + 0.0D;
+            b0 = Math.min(n0, n3);
+            b1 = Math.min(n1, n4);
+            b2 = Math.min(n2, n5);
+            b3 = Math.max(n0, n3);
+            b4 = Math.max(n1, n4);
+            b5 = Math.max(n2, n5);
+            moved = true;
         }
         if (x != 0.0D) {
             for (int k = 0, l = list1.size(); k < l; ++k) {
-                x = list1.get(k).calculateXOffset(s.box, x);
+                x = list1.get(k).calculateXOffset(b0, b1, b2, b3, b4, b5, x);
             }
             if (x != 0.0D) {
-                s.box = s.box.offset(x, 0.0D, 0.0D);
+                double n0 = b0 + x;
+                double n1 = b1 + 0.0D;
+                double n2 = b2 + 0.0D;
+                double n3 = b3 + x;
+                double n4 = b4 + 0.0D;
+                double n5 = b5 + 0.0D;
+                b0 = Math.min(n0, n3);
+                b1 = Math.min(n1, n4);
+                b2 = Math.min(n2, n5);
+                b3 = Math.max(n0, n3);
+                b4 = Math.max(n1, n4);
+                b5 = Math.max(n2, n5);
+                moved = true;
             }
         }
         if (z != 0.0D) {
             for (int k = 0, l = list1.size(); k < l; ++k) {
-                z = list1.get(k).calculateZOffset(s.box, z);
+                z = list1.get(k).calculateZOffset(b0, b1, b2, b3, b4, b5, z);
             }
             if (z != 0.0D) {
-                s.box = s.box.offset(0.0D, 0.0D, z);
+                double n0 = b0 + 0.0D;
+                double n1 = b1 + 0.0D;
+                double n2 = b2 + z;
+                double n3 = b3 + 0.0D;
+                double n4 = b4 + 0.0D;
+                double n5 = b5 + z;
+                b0 = Math.min(n0, n3);
+                b1 = Math.min(n1, n4);
+                b2 = Math.min(n2, n5);
+                b3 = Math.max(n0, n3);
+                b4 = Math.max(n1, n4);
+                b5 = Math.max(n2, n5);
+                moved = true;
             }
+        }
+        if (moved) {
+            s.box = new Aabb(b0, b1, b2, b3, b4, b5);
         }
 
         boolean flag = s.onGround || d3 != y && d3 < 0.0D;
@@ -479,7 +526,10 @@ public final class Physics {
         for (int i = x0; i <= x1; ++i) {
             for (int j = y0; j <= y1; ++j) {
                 for (int k = z0; k <= z1; ++k) {
-                    world.getBlock(i, j, k).onEntityCollision(s);
+                    BlockType b = world.getBlock(i, j, k);
+                    if (b != BlockType.AIR) {
+                        b.onEntityCollision(s);
+                    }
                 }
             }
         }
@@ -487,6 +537,10 @@ public final class Physics {
 
     /** {@code Entity.handleWaterMovement}: sets {@code inWater} and adds the current of the water around the player. */
     private static void handleWaterMovement(BlockWorld world, PlayerState s) {
+        if (!world.mayContainLiquid()) {
+            s.inWater = false;
+            return;
+        }
         Aabb bb = s.box.grow(0.0D, -0.4000000059604645D, 0.0D).grow(-0.001D, -0.001D, -0.001D);
         if (handleWaterAcceleration(world, bb, s)) {
             s.fallDistance = 0.0F;
@@ -537,6 +591,9 @@ public final class Physics {
 
     /** {@code Entity.isInLava}. */
     static boolean isInLava(BlockWorld world, PlayerState s) {
+        if (!world.mayContainLiquid()) {
+            return false;
+        }
         Aabb bb = s.box.grow(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D);
         int x1 = McMath.ceil(bb.maxX);
         int y1 = McMath.ceil(bb.maxY);
@@ -562,6 +619,9 @@ public final class Physics {
 
     /** {@code World.containsAnyLiquid}. */
     private static boolean containsAnyLiquid(BlockWorld world, Aabb bb) {
+        if (!world.mayContainLiquid()) {
+            return false;
+        }
         int x1 = McMath.ceil(bb.maxX);
         int y1 = McMath.ceil(bb.maxY);
         int z1 = McMath.ceil(bb.maxZ);
@@ -598,20 +658,26 @@ public final class Physics {
     /** {@code World.getCollisionBoxes(entity, aabb)} without entities or the world border. */
     static List<Aabb> collisionBoxes(BlockWorld world, Aabb aabb) {
         List<Aabb> out = new ArrayList<Aabb>();
-        collect(world, aabb, out, false);
+        collect(world, aabb, out, false, false);
         return out;
+    }
+
+    /** {@code collisionBoxes(world, aabb).isEmpty()}, stopping at the first box. */
+    private static boolean noCollision(BlockWorld world, Aabb aabb) {
+        return !collect(world, aabb, new ArrayList<Aabb>(1), true, false);
     }
 
     /** {@code World.collidesWithAnyBlock}. */
     static boolean collidesWithAnyBlock(BlockWorld world, Aabb aabb) {
-        return collect(world, aabb, new ArrayList<Aabb>(1), true);
+        return collect(world, aabb, new ArrayList<Aabb>(1), true, true);
     }
 
     /**
      * The private {@code World.getCollisionBoxes}: scans one block beyond the box, skipping the four
-     * corner columns and the top layer of the edge columns, in x, z, y order.
+     * corner columns and the top layer of the edge columns, in x, z, y order. With {@code border}, a
+     * column outside the world border counts as a collision, as in {@code World.collidesWithAnyBlock}.
      */
-    private static boolean collect(BlockWorld world, Aabb aabb, List<Aabb> out, boolean stopAtFirst) {
+    private static boolean collect(BlockWorld world, Aabb aabb, List<Aabb> out, boolean stopAtFirst, boolean border) {
         int i = McMath.floor(aabb.minX) - 1;
         int j = McMath.ceil(aabb.maxX) + 1;
         int k = McMath.floor(aabb.minY) - 1;
@@ -627,12 +693,16 @@ public final class Physics {
                 }
                 for (int i2 = k; i2 < l; ++i2) {
                     if (!flag2 && !flag3 || i2 != l - 1) {
-                        if (stopAtFirst && (k1 < -30000000 || k1 >= 30000000 || l1 < -30000000 || l1 >= 30000000)) {
+                        if (border && (k1 < -30000000 || k1 >= 30000000 || l1 < -30000000 || l1 >= 30000000)) {
                             return true;
                         }
-                        world.getBlock(k1, i2, l1).addCollisionBoxes(world, k1, i2, l1, aabb, out);
-                        if (stopAtFirst && !out.isEmpty()) {
-                            return true;
+                        BlockType b = world.getBlock(k1, i2, l1);
+                        // Air has no boxes; most cells are air, and skipping it saves a call that cannot be inlined.
+                        if (b != BlockType.AIR) {
+                            b.addCollisionBoxes(world, k1, i2, l1, aabb, out);
+                            if (stopAtFirst && !out.isEmpty()) {
+                                return true;
+                            }
                         }
                     }
                 }

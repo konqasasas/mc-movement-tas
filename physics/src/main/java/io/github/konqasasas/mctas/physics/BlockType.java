@@ -252,9 +252,11 @@ public class BlockType {
 
     /** The protected static {@code Block.addCollisionBoxToList}. */
     static void add(int x, int y, int z, Aabb area, List<Aabb> out, Aabb local) {
-        Aabb box = local.offset(x, y, z);
-        if (area.intersects(box)) {
-            out.add(box);
+        // area.intersects(local.offset(x, y, z)), without making the box unless it is kept.
+        if (area.minX < local.maxX + (double) x && area.maxX > local.minX + (double) x
+                && area.minY < local.maxY + (double) y && area.maxY > local.minY + (double) y
+                && area.minZ < local.maxZ + (double) z && area.maxZ > local.minZ + (double) z) {
+            out.add(local.offset(x, y, z));
         }
     }
 

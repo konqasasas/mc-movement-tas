@@ -126,13 +126,28 @@ public final class WorldDelta {
         if (size == 0) {
             return base;
         }
+        final boolean liquid = base.mayContainLiquid() || placedLiquid();
         return new BlockWorld() {
             @Override
             public BlockType getBlock(int bx, int by, int bz) {
                 BlockType t = get(bx, by, bz);
                 return t != null ? t : base.getBlock(bx, by, bz);
             }
+
+            @Override
+            public boolean mayContainLiquid() {
+                return liquid;
+            }
         };
+    }
+
+    private boolean placedLiquid() {
+        for (WorldDelta d = this; d.size > 0; d = d.prev) {
+            if (d.type instanceof VanillaBlocks.Liquid) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static long entryHash(int x, int y, int z, BlockType type) {
