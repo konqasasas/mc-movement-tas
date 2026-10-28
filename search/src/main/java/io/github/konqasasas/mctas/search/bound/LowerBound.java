@@ -291,7 +291,7 @@ public final class LowerBound {
         if (System.getenv("MCTAS_DUMPPRE") != null) {
             for (Map.Entry<Key, Sets> e : sets.entrySet()) {
                 if (e.getKey().v.toString().contains(System.getenv("MCTAS_DUMPPRE"))) {
-                    System.err.println("PRE " + e.getKey().v + " cell " + e.getKey().cell + " " + e.getValue().h + " xv " + e.getValue().h.xv + " zv " + e.getValue().h.zv);
+                    System.err.println("PRE " + e.getKey().v + " cell " + e.getKey().cell + " " + e.getValue().h + " xv " + e.getValue().h.xv + " zv " + e.getValue().h.zv + " XV" + e.getValue().h.xv.vertices());
                 }
             }
         }
@@ -310,8 +310,8 @@ public final class LowerBound {
         Map<Long, HState> out = new LinkedHashMap<Long, HState>();
         Region st = problem.start;
         double margin = 3.0;
-        if (!split || h.pos.maxX() < st.minX - margin || h.pos.minX() > st.maxX + margin
-            || h.pos.maxZ() < st.minZ - margin || h.pos.minZ() > st.maxZ + margin) {
+        if (!split || (System.getenv("MCTAS_FAR") != null && (h.pos.maxX() < st.minX - margin || h.pos.minX() > st.maxX + margin
+            || h.pos.maxZ() < st.minZ - margin || h.pos.minZ() > st.maxZ + margin))) {
             out.put(Long.MIN_VALUE, h);
             return out;
         }

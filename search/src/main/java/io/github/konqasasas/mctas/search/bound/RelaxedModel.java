@@ -1,8 +1,9 @@
 package io.github.konqasasas.mctas.search.bound;
 
 import io.github.konqasasas.mctas.problem.Problem;
-import io.github.konqasasas.mctas.problem.world.BlockType;
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
+import io.github.konqasasas.mctas.physics.Aabb;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -120,16 +121,24 @@ final class RelaxedModel {
 
     RelaxedModel(Problem problem) {
         this.voidY = problem.voidY;
-        final BlockWorld world = problem.world;
-        world.forEach(new BlockWorld.Visitor() {
+        final SparseBlockWorld world = problem.world;
+        world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                if (!type.fullCube) throw new Unsupported("only full cubes are supported: " + type.id);
-                if (type.slipperiness != 0.6F) throw new Unsupported("slippery blocks are not supported yet: " + type.id);
+                if (type.isAir()) return;
+                if (!fullCube(type)) throw new Unsupported("only full cubes are supported: " + type.name());
+                if (type.slipperiness() != 0.6F) throw new Unsupported("slippery blocks are not supported yet: " + type.name());
+                if (type.isExcept(BlockType.UNSTABLE)) throw new Unsupported("changing blocks are not supported: " + type.name());
                 blocks.add(new int[] {x, y, z});
             }
         });
         buildSurfaces();
+    }
+
+    private static boolean fullCube(BlockType type) {
+        if (!type.blocksMovement() || type.localBoxes().size() != 1) return false;
+        Aabb b = type.localBoxes().get(0);
+        return b.minX == 0 && b.minY == 0 && b.minZ == 0 && b.maxX == 1 && b.maxY == 1 && b.maxZ == 1;
     }
 
     /** Merges the tops of blocks at one height into rectangles: runs along z, then equal runs along x. */
@@ -225,7 +234,17 @@ final class RelaxedModel {
                     // Sneaking at an edge shortens the move but keeps the velocity.
                     HState sneak = from.move(ACCEL_SNEAK, friction);
                     if (!sneak.isEmpty() && !supported(v.minY, sneak.pos)) {
-                        out.add(new Next(o.v, o.rect, HState.shortened(from, sneak), "sneak at edge"));
+                        // Entity.move cuts the move until the box lowered by the step height
+                        // touches a block, or down to nothing on both axes: the end is over a
+                        // block or it is the start.
+                        HState box = HState.shortened(from, sneak);
+                        for (Rect r : surfaces) {
+                            if (r.top <= v.minY - 0.6D || r.top - 1 >= v.maxY) continue;
+                            HState piece = box.clipPos(r.x0, r.x1, r.z0, r.z1);
+                            if (!piece.isEmpty()) out.add(new Next(o.v, o.rect, piece, "sneak at edge over " + r));
+                        }
+                        HState stay = HState.stayed(from, sneak);
+                        if (!stay.isEmpty()) out.add(new Next(o.v, o.rect, stay, "sneak at edge, no move"));
                     }
                 }
             }

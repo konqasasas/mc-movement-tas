@@ -2,8 +2,8 @@ package io.github.konqasasas.mctas.search.exact;
 
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
-import io.github.konqasasas.mctas.problem.world.BlockType;
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,16 +93,16 @@ public final class Route {
         return out;
     }
 
-    private static List<Platform> platforms(BlockWorld world) {
+    private static List<Platform> platforms(SparseBlockWorld world) {
         final Map<Long, Integer> tops = new HashMap<Long, Integer>();
         final Set<Long> solid = new HashSet<Long>();
-        world.forEach(new BlockWorld.Visitor() {
+        world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
                 solid.add(key(x, y, z));
             }
         });
-        world.forEach(new BlockWorld.Visitor() {
+        world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
                 if (!solid.contains(key(x, y + 1, z)) && !solid.contains(key(x, y + 2, z))) tops.put(key(x, y, z), y + 1);

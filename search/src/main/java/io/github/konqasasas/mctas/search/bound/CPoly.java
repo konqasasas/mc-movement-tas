@@ -201,7 +201,7 @@ final class CPoly {
         return Arrays.deepEquals(v, o.v);
     }
 
-    private static final int WIDEN_DIRS = 32;
+    private static final int WIDEN_DIRS = System.getenv("MCTAS_WDIRS") != null ? Integer.parseInt(System.getenv("MCTAS_WDIRS")) : 32;
 
     /**
      * Grid offsets when this polygon was made by {@link #widenJoin}, else null. Kept so that the
@@ -350,6 +350,12 @@ final class CPoly {
         if (Math.abs(den) < 1e-15) return null;
         double t = ((c[0] - a[0]) * s1 - (c[1] - a[1]) * s0) / den;
         return new double[] {a[0] + t * r0, a[1] + t * r1};
+    }
+
+    String vertices() {
+        StringBuilder b = new StringBuilder();
+        for (double[] p : v) b.append(String.format(" (%.3f,%.3f)", p[0], p[1]));
+        return b.toString();
     }
 
     @Override

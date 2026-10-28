@@ -1,17 +1,14 @@
 package io.github.konqasasas.mctas.search.exact;
 
-import io.github.konqasasas.mctas.physics.BlockType;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
-import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Vec3;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.judge.MovementModel;
-import io.github.konqasasas.mctas.problem.world.BlockWorld;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -19,17 +16,10 @@ import java.util.Set;
 /** The problem's world and spawn on the bit-exact {@code physics} engine. */
 public final class ExactModel implements MovementModel<PlayerState> {
 
-    final SparseBlockWorld world = new SparseBlockWorld();
+    final SparseBlockWorld world;
 
     public ExactModel(Problem problem) {
-        problem.world.forEach(new BlockWorld.Visitor() {
-            @Override
-            public void visit(int x, int y, int z, io.github.konqasasas.mctas.problem.world.BlockType type) {
-                BlockType b = VanillaBlocks.get(type.id);
-                if (b == null) throw new IllegalArgumentException("block not in the physics engine: " + type.id);
-                world.setBlock(x, y, z, b);
-            }
-        });
+        this.world = problem.world;
     }
 
     @Override

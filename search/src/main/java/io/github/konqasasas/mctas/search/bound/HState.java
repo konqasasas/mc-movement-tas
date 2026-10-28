@@ -168,6 +168,14 @@ final class HState {
         return of(box, to.vel, cx, cz);
     }
 
+    /** States after a move that sneaking at an edge cut down to nothing: start positions, velocities after {@code to}. */
+    static HState stayed(HState from, HState to) {
+        if (from.isEmpty() || to.isEmpty()) return EMPTY;
+        CPoly cx = CPoly.rect(from.pos.minX(), from.pos.maxX(), to.xv.minW(), to.xv.maxW());
+        CPoly cz = CPoly.rect(from.pos.minZ(), from.pos.maxZ(), to.zv.minW(), to.zv.maxW());
+        return of(from.pos, to.vel, cx, cz);
+    }
+
     /** The join of {@code old} and {@code in}, rounded outward onto grids so repeated joins terminate. */
     static HState widenJoin(HState old, HState in) {
         if (old.isEmpty()) return in;
