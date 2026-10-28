@@ -107,7 +107,8 @@ final class Pilot {
                 stage = next;
                 if (stage >= stopStage) return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
-            if (s.posY < problem.voidY || fallen(s, stage)) {
+            // Caught in a cobweb: the policy has no way out worth taking.
+            if (s.posY < problem.voidY || fallen(s, stage) || s.inWeb) {
                 r.failed = true;
                 if (r.miss <= 0) r.miss = route.missDistance(stage, s.posX, s.posZ);
                 return finish(r, s, k, stage, entry, inStart, lastToggle);

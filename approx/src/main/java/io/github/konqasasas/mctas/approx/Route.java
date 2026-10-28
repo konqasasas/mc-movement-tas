@@ -432,6 +432,10 @@ public final class Route {
         return out;
     }
 
+    static boolean isWeb(BlockType type) {
+        return type.name().startsWith("minecraft:web");
+    }
+
     static boolean isClimbable(BlockType type) {
         String n = type.name();
         return n.startsWith("minecraft:ladder") || n.startsWith("minecraft:vine");
@@ -476,7 +480,10 @@ public final class Route {
             Aabb probe = new Aabb(px - PROBE, feet + 0.1, pz - PROBE, px + PROBE, feet + 1.7, pz + PROBE);
             int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
             for (int yy = (int) Math.floor(feet + 0.1) - 1; yy <= (int) Math.floor(feet + 1.7); yy++) {
-                problem.world.getBlock(bxI, yy, bzI).addCollisionBoxes(problem.world, bxI, yy, bzI, probe, hit);
+                BlockType bt = problem.world.getBlock(bxI, yy, bzI);
+                bt.addCollisionBoxes(problem.world, bxI, yy, bzI, probe, hit);
+                // A cobweb the body passes through catches the jump.
+                if (isWeb(bt) && yy + 1 > feet && yy < feet + 1.8) return true;
             }
             if (!hit.isEmpty()) return true;
         }
@@ -746,6 +753,10 @@ public final class Route {
                     room = hasRoom(world, x, y, z, px, top, pz);
                 }
                 if (!room) return;
+                // Cobwebs at the body hold the player nearly still: the route jumps over them.
+                for (int yy = (int) Math.floor(top); yy <= (int) Math.floor(top + 1.8); yy++) {
+                    if (isWeb(world.getBlock(x, yy, z))) return;
+                }
                 if (clearOfWalls) {
                     double lo = top + 0.6, hi = top + 1.8;
                     if (blocks(world, minX - 0.3, lo, minZ, minX, hi, maxZ)) minX += 0.6;
