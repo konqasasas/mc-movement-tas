@@ -30,3 +30,4 @@
 | E-404 | 2026-10-28 | 壁の梯子の登り | 同じブランチで `mctas-technique ladder 3000` | W 押しより 11〜13 ティック速い | F-404 |
 | E-405 | 2026-10-28 | ネオの区間探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique neo 5000` | 壁の 1/2/3 先で 17/18/20、4 先は見つからない | F-405 |
 | E-406 | 2026-10-28 | 天井の下の連続ジャンプ | ブランチ `claude/project-thread-usu2am` で `mctas-technique ceiling 5000` | 20 ブロックで走り 70、天井 2 で 43、2.5 で 51、3 で 57、なし 58 | F-406 |
+| E-407 | 2026-10-28 | 90 度の角 | ブランチ `claude/project-thread-usu2am` で `mctas-technique corner 5000` | 幅 1/2/3 で 73/66/63 | F-407 |

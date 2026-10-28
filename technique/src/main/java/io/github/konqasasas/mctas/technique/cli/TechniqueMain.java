@@ -38,6 +38,9 @@ public final class TechniqueMain {
             case "ceiling":
                 ceiling(args);
                 break;
+            case "corner":
+                corner(args);
+                break;
             case "window":
                 window(args);
                 break;
@@ -65,6 +68,8 @@ public final class TechniqueMain {
                 + "        the fastest neo around a wall end, landing 1 to 4 blocks past the wall\n"
                 + "  mctas-technique ceiling [width]\n"
                 + "        ticks to cover 20 blocks under ceilings 2, 2.5, 3 high and none: run, jump chain, search\n"
+                + "  mctas-technique corner [width]\n"
+                + "        the fastest 90-degree turn on paths 1 to 3 blocks wide over a drop\n"
                 + "  mctas-technique window\n"
                 + "        prints the clean jump distances for climbing a step");
     }
@@ -148,6 +153,25 @@ public final class TechniqueMain {
                     io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, false),
                     io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, true),
                     io.github.konqasasas.mctas.technique.CeilingBench.search(gap, dist, o));
+        }
+    }
+
+    /** Prints the fastest 90-degree turn on paths 1 to 3 wide, with the path of the first. */
+    private static void corner(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 100;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        for (int width = 1; width <= 3; width++) {
+            SegmentSearch.Result r = io.github.konqasasas.mctas.technique.CornerBench.run(width, o);
+            System.out.println("path " + width + " wide: " + (r == null ? "none" : r.ticks() + " ticks"));
+            if (r == null) continue;
+            PlayerState q = io.github.konqasasas.mctas.technique.CornerBench.entry(width);
+            SparseBlockWorld w = io.github.konqasasas.mctas.technique.CornerBench.world(width);
+            int k = 0;
+            for (PlayerInput x : r.inputs) {
+                q = Physics.tick(w, q, x);
+                System.out.printf("    %3d %-14s pos %.4f %.4f %.4f%s%n", ++k, x, q.posX, q.posY, q.posZ, q.onGround ? " G" : "");
+            }
         }
     }
 
