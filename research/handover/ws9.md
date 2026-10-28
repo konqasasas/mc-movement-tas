@@ -6,7 +6,7 @@
 - **v4 の後**: 時間配分(F-518)、開発用コースの生成器 `tools/devgen` と gen-dev 15 問(F-519、作業版で 11/15)
 - **解の置き場**: realdev と human6 で解けたものは `/mnt/project-files/solutions/ws9/` に置く(WS10 が初期解に使う)
 - **次**: (1) realdev ex2〜ex6 の詰まり(ex2・ex3 はスタート直後で止まる、ex5 は見積もり残り 35、ex6 は z 165 の鉄格子と石の壁の前で後続が動けない。ex6 は辺が壁を越えている疑い)。(2) 区間を `Technique.chain` に途中の着地面ごと渡す(出口から一度遠ざかる区間)。(3) `ClimbStep` の代わりに、はしご・つた・水の区間も局所探索に任せる(WS8 のつたは 75、自前は 121)。(4) 展開が遅い(長いコースで 1 秒に 50〜100 ノード)
-- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、自作の塔コース(`tools/towergen`)だけ。human6 と v1-holdout は報告だけ
+- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、gen-dev、elem-dev、自作の塔コース(`tools/towergen`)だけ。human6、v1-holdout、gen-holdout(種 101〜115)は報告だけ(版の節目ごとに 1 回)
 - **注意**: 台の中は自由に歩けるものとして扱うので、台の分け方が誤ると壁の前で止まる(F-504)。`PLANNER_DEBUG=1` の出力で止まり方を分けてから直す(L-500)
 
 ## 自分の PR をマージするとき
