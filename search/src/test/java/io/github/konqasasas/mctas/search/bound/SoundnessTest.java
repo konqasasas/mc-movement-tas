@@ -62,8 +62,9 @@ public class SoundnessTest {
                 int k = keys;
                 if (rnd.nextDouble() < 0.25) k |= PlayerInput.JUMP;
                 s = model.tick(s, PlayerInput.of(k, yaw));
-                // The run fails when it falls below the void level; the analysis drops those states.
-                if (s.posY < problem.voidY) break;
+                // The run fails when it falls below the void level or below every block top and both
+                // regions; the analysis drops those states.
+                if (s.posY < problem.voidY || lb.hopeless(s.posY, s.motionY, s.onGround)) break;
                 path.add(s);
             }
             if (System.getenv("MCTAS_DEBUG") != null && r < 10) System.err.println("run " + r + " len " + path.size() + " end " + path.get(path.size() - 1));

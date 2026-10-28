@@ -161,6 +161,7 @@ public final class LowerBound {
                 for (Sets s : e.getValue()) {
                     for (RelaxedModel.Next n : model.step(key.v, key.rect, s.h)) {
                         work++;
+                        if (hopeless(n.v.minY, n.v.motionY, n.v.onGround)) continue;
                         if (!ignoreGoal && touchesGoal(n)) {
                             if (trace != null) trace(k, key, s, n);
                             return new Result(k, pre.size(), entryStates, work);
@@ -265,7 +266,7 @@ public final class LowerBound {
                 for (int q = 0; q < 4 && q < es.size(); q++) System.err.println("  " + es.get(q).getKey().v + " cell " + es.get(q).getKey().cell + " upd " + es.get(q).getValue().updates + " " + es.get(q).getValue().h + " xv " + es.get(q).getValue().h.xv + " zv " + es.get(q).getValue().h.zv + " recent " + (es.get(q).getValue().updates - es.get(q).getValue().lastUpdates));
                 for (Sets zz : sets.values()) zz.lastUpdates = zz.updates;
             }
-            if (sets.size() > 200000 || this.work > 20000000) {
+            if (sets.size() > 1000000 || this.work > maxSteps) {
                 StringBuilder sb = new StringBuilder("pre-start fixed point does not converge; sample:");
                 int c = 0;
                 for (Map.Entry<Key, Sets> e : sets.entrySet()) {
@@ -276,6 +277,7 @@ public final class LowerBound {
             }
             for (RelaxedModel.Next n : model.step(key.v, key.rect, s.h)) {
                 this.work++;
+                if (hopeless(n.v.minY, n.v.motionY, n.v.onGround)) continue;
                 for (Map.Entry<Long, HState> piece : cells(n.h).entrySet()) {
                     Key nk = new Key(n.v, n.rect, -2, piece.getKey());
                     Sets old = sets.get(nk);
@@ -292,10 +294,24 @@ public final class LowerBound {
     }
 
     /**
+     * True for a player who can never reach the start box or the goal again: falling, below every
+     * block top (so with nothing left to land on and jump from) and below both regions.
+     */
+    public boolean hopeless(double y, double motionY, boolean onGround) {
+        if (onGround || motionY > 0) return false;
+        if (y >= Math.min(problem.start.minY, problem.goal.minY)) return false;
+        for (RelaxedModel.Rect r : model.surfaces) if (r.top <= y) return false;
+        return true;
+    }
+
+    /**
      * When positive, the cells within two blocks of the start box are cut further into slices at
      * most this wide on each axis. Finer cells give tighter bounds and cost time.
      */
     public double cellStep;
+
+    /** Steps before the fixpoint before the start gives up; finer cells need more. */
+    public long maxSteps = 20000000L;
 
     /** Split sets before the start into position cells around the start box (see {@link #cells}). */
     public boolean split = true;
