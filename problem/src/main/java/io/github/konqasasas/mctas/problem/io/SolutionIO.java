@@ -49,6 +49,7 @@ public final class SolutionIO {
             r.add("keys", keys);
             r.addProperty("yaw", in.yaw);
             r.addProperty("pitch", in.pitch);
+            if (in.slot >= 0) r.addProperty("slot", in.slot);
             rows.add(r);
         }
         root.add("inputs", rows);
@@ -87,7 +88,8 @@ public final class SolutionIO {
             JsonObject r = e.getAsJsonObject();
             Set<Key> keys = EnumSet.noneOf(Key.class);
             for (JsonElement k : r.getAsJsonArray("keys")) keys.add(Key.parse(k.getAsString()));
-            out.add(new TickInput(keys, r.get("yaw").getAsFloat(), r.get("pitch").getAsFloat()));
+            out.add(new TickInput(keys, r.get("yaw").getAsFloat(), r.get("pitch").getAsFloat(),
+                r.has("slot") ? r.get("slot").getAsInt() : -1));
         }
         return out;
     }

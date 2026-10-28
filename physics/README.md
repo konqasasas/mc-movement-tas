@@ -15,6 +15,7 @@ s = Physics.tick(world, s, PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT | P
 - `BlockWorld`: block lookup. `SparseBlockWorld` is a mutable hash map world with `copy()`; `DenseBlockWorld` is an array over a fixed box and is faster for search.
 - `VanillaBlocks`: the block states the engine models, by vanilla state name such as `minecraft:oak_stairs[facing=north,half=bottom]`. Only properties that change collision are part of the name. Shapes that depend on the neighbours (stair shape, fence, wall and pane connections, double chests) are computed from the world on each lookup, as the game does, so placing a block next to a fence changes the fence.
 - `PlayerState.standing(x, y, z, yaw)` is a player that has stood still for at least one tick, which is the start state for a course.
+- Block placement: `PlayerInput.USE` (the use-item button) and `PlayerInput.slot` (a hotbar slot picked this tick, or -1). The state carries the `Hotbar` (nine stacks of full blocks), the selected slot, `Minecraft.rightClickDelayTimer`, whether the button was held last tick, and `placed`, a `WorldDelta` of the blocks placed so far: an immutable list that shares its tail, so branching a search state costs nothing. `state.world(base)` is the base world with them on top. `Physics.step(base, state, input)` runs the client's right-click before the move (`Placement`: the view ray from last tick's eyes along this tick's angles, `processRightClickBlock`, `ItemBlock.onItemUse`, `World.mayPlace` against the player's box), and the move collides with the new block. `equals` and `hashCode` cover every field, `placed` included as a set. Clicking a block that does something of its own (chests, doors, buttons, ...) sets `unsupportedAction` instead. `vanilla-interaction.tsv` (`./gradlew :oracle:writeInteractionTable`) gives each state's selection box and placement flags.
 
 The tick follows the client's call chain: `Entity.onEntityUpdate` (water current and the `inWater` flag, lava halving the fall distance), `EntityPlayerSP.onLivingUpdate` (keys, push out of blocks, sprint), `EntityLivingBase.onLivingUpdate` (velocity cutoff 0.003, jump or swim-up, `travel` with its walking, water and lava branches, `Entity.move` with sneak edge stop and step-up), `EntityPlayer.onLivingUpdate` (air acceleration, one tick behind the sprint flag), and `EntityPlayer.updateSize` (sneaking height 1.65 when there is room).
 
@@ -22,7 +23,7 @@ The tick follows the client's call chain: `Entity.onEntityUpdate` (water current
 
 - `VanillaGoldensTest`: 1,000 random runs of 200 ticks on full-block courses, 1,000 on courses of every stable solid block and 1,000 on those with pools of water or lava, all fields of all ticks, against hashes from the vanilla code. Runs with no Minecraft jar.
 - `:oracle:test` also checks every `VanillaBlocks` entry against the vanilla block state of the same name: collision boxes and face shapes among 20,000 random three-layer neighbour layouts (and 20,000 more of only doors and chorus plants), normal cube, slipperiness, material flags, that a state sent to the client keeps its name, and the current of every liquid among 20,000 random layouts of liquids and blocks.
-- `:oracle:test` and `:oracle:fuzz` run the vanilla code side by side and report the first differing field.
+- `:oracle:test` and `:oracle:fuzz` run the vanilla code side by side and report the first differing field. The `place` course (shape courses with a hotbar, right-clicks, slot changes and mostly downward looks) checks placement, and `:oracle:rayFuzz` compares the view ray with `World.rayTraceBlocks` on random clusters of every block.
 - Deliberately broken variants (sneak height, air acceleration timing, velocity cutoff, push-out direction) are caught by the fuzz.
 
 ## Not modelled yet
@@ -31,7 +32,7 @@ The tick follows the client's call chain: `Entity.onEntityUpdate` (water current
 - Damage of any kind (cactus, magma, fire, lava, falls): in the real game damage lets the server overwrite the client's velocity. The recorder's fuzz makes the player invulnerable.
 - Blocks that change by themselves or by the player (falling sand and gravel, growing crops, decaying leaves, farmland trampled by a fall, pressure plates, tripwires and detector rails that the player powers, and the doors and pistons they move, rails that break or reshape when placed). The engine's world never changes; these blocks carry `BlockType.UNSTABLE`, and the fuzz courses leave them out.
 - Status effects are in the state, but the oracle does not apply them yet, so speed, slowness and jump boost are not verified.
-- Damage and death, flying, elytra, riding, using items, other entities, the world border.
+- Damage and death, flying, elytra, riding, using items other than placing full blocks, breaking blocks, other entities, the world border.
 - The client layer assumptions: auto-jump off, food above 6, no blindness. The `EntityPlayerSP` part and any server-to-client sprint flag updates need a recording from the real client.
 
 ## Speed

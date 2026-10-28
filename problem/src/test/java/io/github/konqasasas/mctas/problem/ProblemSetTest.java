@@ -22,8 +22,17 @@ public class ProblemSetTest {
 
     @Test
     public void everyV0WitnessReachesItsTargetExactly() throws IOException {
+        assertEquals(10, checkWitnesses(V0));
+    }
+
+    @Test
+    public void everyPlacingWitnessReachesItsTargetExactly() throws IOException {
+        assertEquals(1, checkWitnesses(Paths.get("..", "problems", "place")));
+    }
+
+    private static int checkWitnesses(Path dir) throws IOException {
         int checked = 0;
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(V0, "*.problem.json")) {
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.problem.json")) {
             for (Path f : ds) {
                 Problem p = ProblemIO.read(f);
                 assertNotNull(p.id + " has no target", p.target);
@@ -34,6 +43,6 @@ public class ProblemSetTest {
                 checked++;
             }
         }
-        assertEquals(10, checked);
+        return checked;
     }
 }

@@ -20,3 +20,11 @@
 | 10-three-jumps-zigzag | 足場を左右に振った3連続 | 35 |
 
 目標はすべて `upper_bound` です。簡単なビームサーチ(`mctas-problem search`)で見つけた入力列 `NN-*.tas` が、このティック数でゴールすることを `ProblemSetTest` で確かめています。最適かどうかは未証明で、探索エンジン(M2)が縮めるか、最適と証明するのを待ちます。
+
+## place: ブロック設置
+
+`version: 2` の問題で、`player.inventory` にフルブロックを持ってスタートします。設置の仕様は [../docs/problem-format.md](../docs/problem-format.md) の「プレイヤーの持ち物(v2)」にあります。
+
+| 問題 | 内容 | 目標ティック |
+| --- | --- | --- |
+| 01-pillar-2 | 真下にブロックを置いて2段上がる(実機の確認用) | 21 |
