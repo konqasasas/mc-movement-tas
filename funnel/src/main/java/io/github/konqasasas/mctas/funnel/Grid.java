@@ -35,7 +35,10 @@ final class Grid {
     static final double DROP_REACH = 0.6, MAX_REACH = 6.0;
     static final double JUMP_RISE = 1.25;
 
-    static final byte PASS = 1, STAND = 2, CLIMB = 4, WATER = 8, AIR = 16;
+    /** How high a stand on slime may send the player, optimistically (a bounce, or a jump off one). */
+    static final double SLIME_RISE = 4.0;
+
+    static final byte PASS = 1, STAND = 2, CLIMB = 4, WATER = 8, AIR = 16, SLIME = 32;
 
     final Problem problem;
     final BlockWorld world;
@@ -72,7 +75,17 @@ final class Grid {
         top = new float[nx * nz * ny];
         Arrays.fill(top, Float.NaN);
         build();
+        slimes();
         airReach();
+    }
+
+    /** Marks the stands on slime: the block under the middle of the feet. */
+    private void slimes() {
+        for (int id = 0; id < flags.length; id++) {
+            if ((flags[id] & STAND) == 0) continue;
+            int bx = (int) Math.floor(cx(ix(id))), bz = (int) Math.floor(cz(iz(id))), by = (int) Math.floor(top[id] - 1e-3);
+            if (slime(world.getBlock(bx, by, bz))) flags[id] |= SLIME;
+        }
     }
 
     int id(int l, int ix, int iz) {
@@ -143,6 +156,15 @@ final class Grid {
 
     static boolean magma(BlockType t) {
         return is(t, "minecraft:magma");
+    }
+
+    static boolean slime(BlockType t) {
+        return is(t, "minecraft:slime");
+    }
+
+    /** The rise a stand allows: a jump, or a bounce off slime. */
+    double rise(int id) {
+        return (flags[id] & SLIME) != 0 ? SLIME_RISE : JUMP_RISE;
     }
 
     static boolean climbable(BlockType t) {
@@ -284,14 +306,13 @@ final class Grid {
         int[] dist = new int[nx * nz];
         for (int l = 0; l < ny; l++) {
             Arrays.fill(dist, Integer.MAX_VALUE / 2);
-            double need = y0 + l - JUMP_RISE;
-            for (int lv = Math.max(0, l - 2); lv < ny; lv++) {
+            for (int lv = Math.max(0, l - (int) Math.ceil(SLIME_RISE) - 1); lv < ny; lv++) {
                 for (int ix = 0; ix < nx; ix++) {
                     for (int iz = 0; iz < nz; iz++) {
                         int id = id(lv, ix, iz);
                         if ((flags[id] & (STAND | CLIMB | WATER)) == 0) continue;
                         double t = (flags[id] & STAND) != 0 ? top[id] : y0 + lv + 1;
-                        if (t < need - 1e-9) continue;
+                        if (t + rise(id) < y0 + l - 1e-9) continue;
                         double bonus = Math.min(MAX_REACH - AIR_REACH, DROP_REACH * Math.max(0, t - (y0 + l)));
                         int seed = -(int) Math.round(bonus * unit);
                         int k = ix * nz + iz;

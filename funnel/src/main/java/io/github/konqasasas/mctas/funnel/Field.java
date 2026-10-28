@@ -20,6 +20,8 @@ final class Field {
     static final double SPEED = 0.33;
     static final float RISE = 3.0F, DROP = 1.5F, LADDER = 8.5F, SWIM = 6.0F;
     static final float INF = Float.POSITIVE_INFINITY;
+    /** Levels a rise from a stand may cover (a bounce off slime: {@link Grid#SLIME_RISE}). */
+    private static final int SLIME_LEVELS = (int) Math.ceil(Grid.SLIME_RISE) + 1;
     private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
     private static final int[] DZ = {0, 0, 1, -1, 1, -1, 1, -1};
     private static final float STRAIGHT = (float) (Grid.RES / SPEED), DIAGONAL = (float) (Grid.RES * Math.sqrt(2) / SPEED);
@@ -122,11 +124,11 @@ final class Field {
             int u = g.id(l + 1, ix, iz);
             if (movable(u)) offer(u, dv + DROP, v);
         }
-        // A jump from a stand below, a climb or a swim up.
-        for (int k = 1; k <= 2 && l - k >= 0; k++) {
+        // A jump (or a bounce off slime) from a stand below, a climb or a swim up.
+        for (int k = 1; k <= SLIME_LEVELS && l - k >= 0; k++) {
             int u = g.id(l - k, ix, iz);
             if ((f[u] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(u, dv + RISE * k, v);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + g.rise(u) + 1e-6) offer(u, dv + RISE * k, v);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(u, dv + LADDER, v);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(u, dv + SWIM, v);
         }
@@ -159,10 +161,10 @@ final class Field {
                 if (movable(v)) offer(v, du + DROP, u);
             }
         }
-        for (int k = 1; k <= 2 && l + k < g.ny; k++) {
+        for (int k = 1; k <= SLIME_LEVELS && l + k < g.ny; k++) {
             int v = g.id(l + k, ix, iz);
             if ((f[v] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(v, du + RISE * k, u);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + g.rise(u) + 1e-6) offer(v, du + RISE * k, u);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(v, du + LADDER, u);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(v, du + SWIM, u);
         }
@@ -204,8 +206,17 @@ final class Field {
      * moves; NaN when the point has no value.
      */
     float heading(double x, double y, double z) {
+        double[] t = aim(x, y, z, 1.2);
+        if (t == null) return Float.NaN;
+        double dx = t[0] - x, dz = t[1] - z;
+        if (dx * dx + dz * dz < 1e-6) return Float.NaN;
+        return (float) Math.toDegrees(Math.atan2(-dx, dz));
+    }
+
+    /** The centre of the cell about {@code reach} blocks along the moves towards the seeds, or null. */
+    double[] aim(double x, double y, double z, double reach) {
         int id = g.cellOf(x, y, z);
-        if (id < 0 || next == null) return Float.NaN;
+        if (id < 0 || next == null) return null;
         if (d[id] == INF) {
             int l = g.level(id), ix = g.ix(id), iz = g.iz(id);
             float best = INF;
@@ -220,7 +231,7 @@ final class Field {
                     }
                 }
             }
-            if (bi < 0) return Float.NaN;
+            if (bi < 0) return null;
             id = bi;
         }
         double tx = g.cx(g.ix(id)), tz = g.cz(g.iz(id));
@@ -231,11 +242,9 @@ final class Field {
             cur = n;
             tx = g.cx(g.ix(cur));
             tz = g.cz(g.iz(cur));
-            if ((tx - x) * (tx - x) + (tz - z) * (tz - z) >= 1.2 * 1.2) break;
+            if ((tx - x) * (tx - x) + (tz - z) * (tz - z) >= reach * reach) break;
         }
-        double dx = tx - x, dz = tz - z;
-        if (dx * dx + dz * dz < 1e-6) return Float.NaN;
-        return (float) Math.toDegrees(Math.atan2(-dx, dz));
+        return new double[] {tx, tz};
     }
 
     private void push(float v, int id) {

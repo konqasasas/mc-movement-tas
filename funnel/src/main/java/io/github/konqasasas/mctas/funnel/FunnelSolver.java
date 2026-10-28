@@ -120,9 +120,10 @@ public final class FunnelSolver {
             int verified = 0, tried = 0, lastAssembly = -1;
             float nearest = Field.INF;
             while (System.currentTimeMillis() < deadline) {
-                List<Anchors.Anchor> batch = pick(threads, false);
-                // Stalled: the failed anchors try again with a wider, longer beam.
-                if (batch.isEmpty()) batch = pick(threads, true);
+                List<Anchors.Anchor> batch = pick(threads, false, GAP);
+                // Stalled: the failed anchors try again with a wider, longer beam, and anchors further
+                // from the verified ones get tried (past a long ladder, which has no anchors).
+                for (float gap = 2 * GAP; batch.isEmpty() && gap <= 8 * GAP; gap *= 2) batch = pick(threads, true, gap);
                 if (batch.isEmpty()) break;
                 List<Future<Beam.Hit>> fs = new ArrayList<Future<Beam.Hit>>();
                 for (final Anchors.Anchor a : batch) {
@@ -236,7 +237,7 @@ public final class FunnelSolver {
     }
 
     /** The unverified anchors most likely on a run from the start to the verified set. */
-    private List<Anchors.Anchor> pick(int n, boolean stalled) {
+    private List<Anchors.Anchor> pick(int n, boolean stalled, float maxGap) {
         List<Anchors.Anchor> cands = new ArrayList<Anchors.Anchor>();
         final List<Float> prio = new ArrayList<Float>();
         for (Anchors.Anchor a : anchors.list) {
@@ -248,7 +249,7 @@ public final class FunnelSolver {
             // Only near the verified set: a beam has to get there.
             float gap = Field.INF;
             for (int c : a.cells) gap = Math.min(gap, near.value(c));
-            if (gap > (stalled ? 2 * GAP : GAP)) continue;
+            if (gap > maxGap) continue;
             cands.add(a);
             prio.add(g[0] + g[1]);
         }
@@ -275,8 +276,11 @@ public final class FunnelSolver {
                 roots.addAll(a.arrivals());
             }
             Beam.Options o = new Beam.Options();
+            float gap = Field.INF;
+            for (int c : a.cells) gap = Math.min(gap, near.value(c));
             o.width = a.attempts <= 1 ? 150 : 400;
-            o.maxTicks = a.attempts <= 1 ? 60 : 120;
+            // The beam has to cover the moves to the verified set, which the field underrates.
+            o.maxTicks = (int) Math.max(a.attempts <= 1 ? 60 : 120, Math.min(400, 2 * gap + 20));
             o.collect = true;
             o.self = a;
             o.deadlineNanos = System.nanoTime() + Math.min(20_000L, Math.max(0, deadline - System.currentTimeMillis())) * 1_000_000L;

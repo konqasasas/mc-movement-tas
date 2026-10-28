@@ -213,6 +213,44 @@ final class Beam {
     }
 
     /**
+     * Sprinting along the line through the cell centres ahead: the yaw whose tick puts the player's
+     * side coordinate (across the way to the cell) exactly on the cell's, so that the beam can thread
+     * slots barely wider than the player (an open trapdoor in each side of a doorway leaves 0.025).
+     * One for the cell about 0.6 blocks ahead, one for 1.2; only when the player is already within half
+     * a block of the line.
+     */
+    private void lines(Node n, Field f, List<PlayerInput> out) {
+        for (double reach : LINE_REACH) {
+            double[] t = f.aim(n.s.posX, n.s.posY, n.s.posZ, reach);
+            if (t == null) continue;
+            double dx = t[0] - n.s.posX, dz = t[1] - n.s.posZ;
+            boolean alongZ = Math.abs(dz) >= Math.abs(dx);
+            double off = alongZ ? dx : dz;
+            if (Math.abs(off) > 0.5 || Math.abs(off) < 1e-4) continue;
+            float base = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            // Secant on the yaw for the side coordinate after one tick.
+            float y0 = base - 20, y1 = base + 20;
+            double e0 = side(n, y0, alongZ, t), e1 = side(n, y1, alongZ, t);
+            for (int k = 0; k < 4 && Math.abs(e1) > 1e-5 && Math.abs(e1 - e0) > 1e-9; k++) {
+                float y2 = (float) (y1 - e1 * (y1 - y0) / (e1 - e0));
+                if (Math.abs(y2 - base) > 60) break;
+                y0 = y1;
+                e0 = e1;
+                y1 = y2;
+                e1 = side(n, y1, alongZ, t);
+            }
+            if (Math.abs(e1) < 0.005) out.add(PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT, y1));
+        }
+    }
+
+    private static final double[] LINE_REACH = {0.6, 1.2};
+
+    private double side(Node n, float yaw, boolean alongZ, double[] t) {
+        PlayerState s = Physics.tick(grid.world, n.s, PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT, yaw));
+        return alongZ ? s.posX - t[0] : s.posZ - t[1];
+    }
+
+    /**
      * Ticks to go by the field: on the ground (or on a ladder, in water) the field a little ahead; in
      * the air the best landing of the flight ({@link Landing}), or the field plus a penalty when the
      * flight comes down nowhere (it may yet hit a wall or be steered).
@@ -263,7 +301,9 @@ final class Beam {
                 Node n = cur.nodes[i];
                 float heading = before(n, o) ? toStart.heading(n.s.posX, n.s.posY, n.s.posZ) : field.heading(n.s.posX, n.s.posY, n.s.posZ);
                 if (Float.isNaN(heading)) heading = lastHeading;
-                for (PlayerInput a : actions(heading, o.offsets)) {
+                List<PlayerInput> acts = actions(heading, o.offsets);
+                lines(n, before(n, o) ? toStart : field, acts);
+                for (PlayerInput a : acts) {
                     Node m = step(n, a, o.judgeStart);
                     expanded++;
                     if (m == null) continue;
