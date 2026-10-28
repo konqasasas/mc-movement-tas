@@ -55,6 +55,12 @@ public final class SegmentSearch {
         public boolean cells = true;
         /** {@code System.nanoTime()} after which the search stops and returns what it has; 0 for none. */
         public long deadlineNanos;
+        /**
+         * Inputs tried every tick on top of the {@link Actions} around the heading, or null. A caller that
+         * rebuilds part of a known run passes that part's own inputs (sneaking, walking, turning), so the
+         * beam can do what the run did even where the default actions cannot.
+         */
+        public List<PlayerInput> extraActions;
 
         /**
          * A light setting for planners that call many segments: 5 directions (0, +-10, +-45 degrees), a
@@ -151,6 +157,10 @@ public final class SegmentSearch {
     public List<Result> search(BlockWorld world, PlayerState start, int lastToggle, Exit exit, float headingYaw,
                                Options o) {
         List<PlayerInput> actions = Actions.around(headingYaw, o.offsets, o.sneak);
+        if (o.extraActions != null) {
+            Set<PlayerInput> seen = new HashSet<PlayerInput>(actions);
+            for (PlayerInput a : o.extraActions) if (seen.add(a)) actions.add(a);
+        }
         double r = Math.toRadians(headingYaw);
         double dx = -Math.sin(r), dz = Math.cos(r);
         double ox = start.posX, oz = start.posZ;
