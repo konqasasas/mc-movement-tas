@@ -733,7 +733,7 @@ public final class RecorderController {
         course = pr.world;
         originX = 0;
         originZ = 0;
-        runHotbar = pr.inventory.equals(Hotbar.EMPTY) && pr.selectedSlot == 0 ? null : pr.inventory;
+        runHotbar = pr.inventory.equals(Hotbar.EMPTY) && pr.selectedSlot == 0 && !rightClicks(in) ? null : pr.inventory;
         settleInput = new PlayerInput(0, pr.spawn.yaw, pr.spawn.pitch, runHotbar == null ? -1 : pr.selectedSlot);
         driver.install(mc.player);
         chat("Replaying " + in.size() + " ticks of " + solutionFile.getName() + " on " + pr.id
@@ -865,7 +865,7 @@ public final class RecorderController {
         }
         inputs = scenario.inputs;
         course = scenario.world;
-        runHotbar = scenario.start.hotbar.equals(Hotbar.EMPTY) ? null : scenario.start.hotbar;
+        runHotbar = scenario.start.hotbar.equals(Hotbar.EMPTY) && !rightClicks(inputs) ? null : scenario.start.hotbar;
         settleInput = new PlayerInput(0, scenario.start.rotationYaw, 0.0F,
                 runHotbar == null ? -1 : scenario.start.selectedSlot);
         PlayerState st = scenario.start;
@@ -942,6 +942,19 @@ public final class RecorderController {
             mp.fallDistance = 0.0F;
             mp.connection.setPlayerLocation(px, py, pz, yaw, pitch);
         }
+    }
+
+    /**
+     * True if the inputs right-click. Such a run gets its own hotbar even when it is empty: with the
+     * player's own blocks in hand, a click on a button or the floor places one of them instead.
+     */
+    private static boolean rightClicks(List<PlayerInput> inputs) {
+        for (PlayerInput in : inputs) {
+            if (in.has(PlayerInput.USE)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Puts {@code hotbar} into the player's hotbar on the server, keeping the player's own for later. */
