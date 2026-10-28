@@ -68,10 +68,29 @@ public final class PlayerState implements Cloneable {
     public boolean prevUse;
     /**
      * Set for good once the player did something the engine does not model, such as right-clicking a
-     * door or a chest, or looking through a block whose selection box is not modelled. Later ticks
+     * door or a chest, looking through a block whose selection box is not modelled, or placing a block
+     * the server may refuse ({@link Placement}). Later ticks
      * are not to be trusted; a search should drop such a state.
      */
     public boolean unsupportedAction;
+
+    /**
+     * {@code EntityPlayerSP.lastReportedPosX/Y/Z}: the position last sent to the server, Y being the box's
+     * minY. The server rebuilds its copy of the player's box from it ({@code Entity.setPosition}), and
+     * that box, not the client's, decides whether a block may be placed.
+     */
+    public double lastReportedPosX;
+    public double lastReportedPosY;
+    public double lastReportedPosZ;
+    /** {@code EntityPlayerSP.positionUpdateTicks}: ticks since the position was last sent; it is sent again at 20. */
+    public int positionUpdateTicks;
+    /** {@code EntityPlayerSP.serverSneakState}: the sneak state last sent to the server. */
+    public boolean serverSneakState;
+    /**
+     * Ticks since {@link #serverSneakState} last changed, up to {@link Placement#SNEAK_SETTLE}. Until then
+     * the server may not have resized its player yet.
+     */
+    public int sneakReportedTicks = Placement.SNEAK_SETTLE;
 
     public PlayerState() {
     }
@@ -87,7 +106,19 @@ public final class PlayerState implements Cloneable {
         s.rotationYaw = yaw;
         s.onGround = true;
         s.collidedVertically = true;
+        s.reportPosition();
         return s;
+    }
+
+    /**
+     * Marks the current position as the one the server has, with the periodic resend just done: how a
+     * player that has stood still for a while starts.
+     */
+    public void reportPosition() {
+        this.lastReportedPosX = this.posX;
+        this.lastReportedPosY = this.box.minY;
+        this.lastReportedPosZ = this.posZ;
+        this.positionUpdateTicks = 0;
     }
 
     /** {@code Entity.setPosition}: moves the player and rebuilds the box around the new position. */
@@ -157,6 +188,14 @@ public final class PlayerState implements Cloneable {
         if (rightClickDelay != o.rightClickDelay) return "rightClickDelay";
         if (prevUse != o.prevUse) return "prevUse";
         if (unsupportedAction != o.unsupportedAction) return "unsupportedAction";
+        // What the server knows matters only for placing blocks, so it is left out once there are none.
+        if (hotbar.isEmpty()) return null;
+        if (!same(lastReportedPosX, o.lastReportedPosX)) return "lastReportedPosX";
+        if (!same(lastReportedPosY, o.lastReportedPosY)) return "lastReportedPosY";
+        if (!same(lastReportedPosZ, o.lastReportedPosZ)) return "lastReportedPosZ";
+        if (positionUpdateTicks != o.positionUpdateTicks) return "positionUpdateTicks";
+        if (serverSneakState != o.serverSneakState) return "serverSneakState";
+        if (sneakReportedTicks != o.sneakReportedTicks) return "sneakReportedTicks";
         return null;
     }
 
@@ -218,6 +257,12 @@ public final class PlayerState implements Cloneable {
         h = mix(h, selectedSlot);
         h = mix(h, rightClickDelay);
         h = mix(h, placed.contentHash());
+        if (!hotbar.isEmpty()) {
+            h = mix(h, Double.doubleToLongBits(lastReportedPosX));
+            h = mix(h, Double.doubleToLongBits(lastReportedPosY));
+            h = mix(h, Double.doubleToLongBits(lastReportedPosZ));
+            h = mix(h, positionUpdateTicks | (serverSneakState ? 32 : 0) | sneakReportedTicks << 6);
+        }
         return h;
     }
 

@@ -161,6 +161,9 @@ public final class Physics {
             s.setPosition(cx, s.posY, cz);
         }
         updateSize(world, s);
+
+        // EntityPlayerSP.onUpdate, after super.onUpdate: what the server is told.
+        Placement.afterMove(s);
     }
 
     /** {@code EntityLivingBase.jump}. */

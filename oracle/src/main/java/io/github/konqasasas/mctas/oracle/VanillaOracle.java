@@ -59,9 +59,19 @@ public final class VanillaOracle {
     private boolean prevUse;
     private boolean unsupportedAction;
 
+    // EntityPlayerSP's record of what the server was told, and the server's copy of the player.
+    private double lastReportedPosX;
+    private double lastReportedPosY;
+    private double lastReportedPosZ;
+    private int positionUpdateTicks;
+    private boolean serverSneakState;
+    private int sneakReportedTicks;
+    private final OraclePlayer serverPlayer;
+
     public VanillaOracle(SparseBlockWorld blocks) {
         this.world = new OracleWorld(blocks);
         this.player = new OraclePlayer(world);
+        this.serverPlayer = new OraclePlayer(world);
         this.world.player = player;
     }
 
@@ -113,6 +123,12 @@ public final class VanillaOracle {
         rightClickDelay = s.rightClickDelay;
         prevUse = s.prevUse;
         unsupportedAction = s.unsupportedAction;
+        lastReportedPosX = s.lastReportedPosX;
+        lastReportedPosY = s.lastReportedPosY;
+        lastReportedPosZ = s.lastReportedPosZ;
+        positionUpdateTicks = s.positionUpdateTicks;
+        serverSneakState = s.serverSneakState;
+        sneakReportedTicks = s.sneakReportedTicks;
     }
 
     /** The vanilla player's current state. */
@@ -163,6 +179,12 @@ public final class VanillaOracle {
         s.rightClickDelay = rightClickDelay;
         s.prevUse = prevUse;
         s.unsupportedAction = unsupportedAction;
+        s.lastReportedPosX = lastReportedPosX;
+        s.lastReportedPosY = lastReportedPosY;
+        s.lastReportedPosZ = lastReportedPosZ;
+        s.positionUpdateTicks = positionUpdateTicks;
+        s.serverSneakState = serverSneakState;
+        s.sneakReportedTicks = sneakReportedTicks;
         return s;
     }
 
@@ -248,7 +270,70 @@ public final class VanillaOracle {
         if (!world.mayPlace(item.getBlock(), at, false, side, null)) {
             return;
         }
+        // ItemBlock.onItemUse's own position and check, then the same on the server.
+        BlockPos q = st.getBlock().isReplaceable(world, pos) ? pos : pos.offset(r.sideHit);
+        if (world.mayPlace(item.getBlock(), q, false, r.sideHit, null) && q.getY() >= 0 && q.getY() < 256
+                && !serverPlaces(item.getBlock(), pos, r.sideHit, q)) {
+            unsupportedAction = true;
+            return;
+        }
         stack.onItemUse(player, world, pos, EnumHand.MAIN_HAND, r.sideHit, f, f1, f2);
+    }
+
+    /**
+     * {@code NetHandlerPlayServer.processTryUseItemOnBlock} and the server's {@code ItemBlock.onItemUse}
+     * check, on a player put where the client last said it was ({@code Entity.setPosition}); with either
+     * height while the server may not have caught up with a sneak change.
+     */
+    private boolean serverPlaces(Block block, BlockPos pos, EnumFacing facing, BlockPos q) {
+        if (!(pos.getY() < 255 || facing != EnumFacing.UP && pos.getY() < 256)) {
+            return false;
+        }
+        float[] heights = sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE
+                ? new float[] {1.65F, 1.8F} : new float[] {serverSneakState ? 1.65F : 1.8F};
+        try {
+            for (float h : heights) {
+                serverPlayer.width = 0.6F;
+                serverPlayer.height = h;
+                serverPlayer.setPosition(lastReportedPosX, lastReportedPosY, lastReportedPosZ);
+                if (!(serverPlayer.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D)) {
+                    return false;
+                }
+                world.player = serverPlayer;
+                if (!world.mayPlace(block, q, false, facing, null)) {
+                    return false;
+                }
+            }
+            return true;
+        } finally {
+            world.player = player;
+        }
+    }
+
+    /**
+     * {@code EntityPlayerSP.onUpdateWalkingPlayer}, which the server jar does not have: the sneak state
+     * and the position the client sends at the end of its tick.
+     */
+    private void onUpdateWalkingPlayer() {
+        boolean sneaking = player.isSneaking();
+        if (sneaking != serverSneakState) {
+            serverSneakState = sneaking;
+            sneakReportedTicks = 0;
+        } else if (sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE) {
+            ++sneakReportedTicks;
+        }
+        AxisAlignedBB axisalignedbb = player.getEntityBoundingBox();
+        double d0 = player.posX - lastReportedPosX;
+        double d1 = axisalignedbb.minY - lastReportedPosY;
+        double d2 = player.posZ - lastReportedPosZ;
+        ++positionUpdateTicks;
+        boolean flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || positionUpdateTicks >= 20;
+        if (flag2) {
+            lastReportedPosX = player.posX;
+            lastReportedPosY = axisalignedbb.minY;
+            lastReportedPosZ = player.posZ;
+            positionUpdateTicks = 0;
+        }
     }
 
     /** One client tick: the view turns to the input's angles, then the player updates. */
@@ -259,6 +344,7 @@ public final class VanillaOracle {
         beforeUpdate(input);
         syncEquipment();
         player.onUpdate();
+        onUpdateWalkingPlayer();
         return snapshot();
     }
 

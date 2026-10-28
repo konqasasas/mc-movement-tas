@@ -14,6 +14,12 @@ public final class Placement {
     static final double REACH = 4.5F;
     /** {@code Minecraft.rightClickDelayTimer} after a right-click. */
     static final int RIGHT_CLICK_DELAY = 4;
+    /**
+     * Ticks after a sneak change is sent by which the server is taken to have resized its player. It does
+     * so in its own tick ({@code NetHandlerPlayServer.update -> EntityPlayer.updateSize}), which is not in
+     * step with the client's, so until then either height counts.
+     */
+    public static final int SNEAK_SETTLE = 3;
 
     private Placement() {
     }
@@ -111,6 +117,12 @@ public final class Placement {
                 // World.setBlockState refuses; onItemUse still succeeds without using the item.
                 return;
             }
+            if (!serverPlaces(world, s, hit, qx, qy, qz)) {
+                // The client shows the block and uses the item, the server takes the block back a tick or
+                // two later and the hotbar count stays wrong: neither is modelled.
+                s.unsupportedAction = true;
+                return;
+            }
             s.placed = s.placed.with(qx, qy, qz, item);
             s.hotbar = s.hotbar.withOneUsed(s.selectedSlot);
         } catch (UnsupportedBlockException e) {
@@ -119,13 +131,74 @@ public final class Placement {
     }
 
     /**
+     * Whether the server surely places the block too. The click reaches it after the position the client
+     * last sent ({@code NetHandlerPlayServer.processTryUseItemOnBlock}), and its {@code ItemBlock.onItemUse}
+     * checks the block against its own copy of the player's box, which {@code Entity.setPosition} rebuilt
+     * from that position, so it can differ from the client's box in the last bit or by a move too small
+     * to have been sent. The world is the same on both sides.
+     */
+    private static boolean serverPlaces(BlockWorld world, PlayerState s, Hit hit, int x, int y, int z) {
+        if (!(hit.y < 255 || hit.side != Facing.UP && hit.y < 256)) {
+            return false;
+        }
+        double dx = s.lastReportedPosX - ((double) hit.x + 0.5D);
+        double dy = s.lastReportedPosY - ((double) hit.y + 0.5D);
+        double dz = s.lastReportedPosZ - ((double) hit.z + 0.5D);
+        if (!(dx * dx + dy * dy + dz * dz < 64.0D)) {
+            return false;
+        }
+        float height = s.serverSneakState ? 1.65F : 1.8F;
+        if (intersects(serverBox(s, height), x, y, z)) {
+            return false;
+        }
+        if (s.sneakReportedTicks < SNEAK_SETTLE && intersects(serverBox(s, s.serverSneakState ? 1.8F : 1.65F), x, y, z)) {
+            return false;
+        }
+        return true;
+    }
+
+    /** {@code Entity.setPosition} at the last sent position, for a player of this height. */
+    static Aabb serverBox(PlayerState s, float height) {
+        float f = 0.6F / 2.0F;
+        double x = s.lastReportedPosX;
+        double y = s.lastReportedPosY;
+        double z = s.lastReportedPosZ;
+        return new Aabb(x - (double) f, y, z - (double) f, x + (double) f, y + (double) height, z + (double) f);
+    }
+
+    /** {@code AxisAlignedBB.intersects} with the block cell at (x, y, z): strict on every axis. */
+    private static boolean intersects(Aabb b, int x, int y, int z) {
+        return b.minX < x + 1.0D && b.maxX > x && b.minY < y + 1.0D && b.maxY > y && b.minZ < z + 1.0D && b.maxZ > z;
+    }
+
+    /**
+     * {@code EntityPlayerSP.onUpdateWalkingPlayer}, the parts the server's placement check depends on: the
+     * sneak state and the position sent at the end of each tick.
+     */
+    static void afterMove(PlayerState s) {
+        boolean sneaking = s.isSneaking();
+        if (sneaking != s.serverSneakState) {
+            s.serverSneakState = sneaking;
+            s.sneakReportedTicks = 0;
+        } else if (s.sneakReportedTicks < SNEAK_SETTLE) {
+            ++s.sneakReportedTicks;
+        }
+        double d0 = s.posX - s.lastReportedPosX;
+        double d1 = s.box.minY - s.lastReportedPosY;
+        double d2 = s.posZ - s.lastReportedPosZ;
+        ++s.positionUpdateTicks;
+        if (d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || s.positionUpdateTicks >= 20) {
+            s.reportPosition();
+        }
+    }
+
+    /**
      * {@code World.mayPlace} for a full block: no entity (the player) in the way, and the material there
      * is replaceable.
      */
     private static boolean mayPlace(BlockWorld world, PlayerState s, int x, int y, int z) {
-        Aabb b = s.box;
-        // checkNoEntityCollision: AxisAlignedBB.intersects is strict on every axis.
-        if (b.minX < x + 1.0D && b.maxX > x && b.minY < y + 1.0D && b.maxY > y && b.minZ < z + 1.0D && b.maxZ > z) {
+        // checkNoEntityCollision
+        if (intersects(s.box, x, y, z)) {
             return false;
         }
         // Material.isReplaceable, and Block.canPlaceBlockAt checks the same: a snow layer of any height is
