@@ -40,7 +40,7 @@ public class ProblemSetTest {
         assertEquals(8, checkWitnesses(Paths.get("..", "problems", "v1-dev")));
         // Some held-out courses have no known solution yet.
         assertEquals(9, checkWitnesses(Paths.get("..", "problems", "v1-holdout"), false));
-        assertEquals(7, checkWitnesses(Paths.get("..", "problems", "v1-full"), false));
+        assertEquals(8, checkWitnesses(Paths.get("..", "problems", "v1-full"), false));
         assertEquals(2, checkWitnesses(Paths.get("..", "problems", "real")));
     }
 
