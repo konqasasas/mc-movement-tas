@@ -5,6 +5,8 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 
 import java.io.File;
@@ -12,12 +14,14 @@ import java.io.IOException;
 
 /**
  * {@code /mctas fuzz [shapes] [runs] [ticks] [firstSeed]}, {@code /mctas script <file>}, {@code /mctas record},
- * {@code /mctas replay <problem> <solution> [force]}, {@code /mctas stop}. Script files are read from
+ * {@code /mctas replay <problem> <solution> [force]}, {@code /mctas stop}, {@code /mctas mark ...},
+ * {@code /mctas export <name> [id]}, {@code /mctas checkids}. Script files are read from
  * {@code .minecraft/mctas/scripts}; replay paths are absolute or relative to {@code .minecraft/mctas}.
  */
 final class McTasCommand extends CommandBase {
 
     private final RecorderController controller;
+    private final ProblemExporter exporter = new ProblemExporter();
 
     McTasCommand(RecorderController controller) {
         this.controller = controller;
@@ -30,7 +34,8 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [shapes|fluids|place] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | stop";
+        return "/mctas fuzz [shapes|fluids|place] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | stop"
+                + " | mark from|to [x y z] | mark spawn | mark start x1 y1 z1 x2 y2 z2 | mark goal [x y z | x1 y1 z1 x2 y2 z2] | export <name> [id] | checkids";
     }
 
     @Override
@@ -69,12 +74,55 @@ final class McTasCommand extends CommandBase {
                 controller.startRecord();
             } else if (sub.equals("stop")) {
                 controller.stop("stopped by command");
+            } else if (sub.equals("mark")) {
+                say(sender, mark(sender, args));
+            } else if (sub.equals("export") && args.length > 1) {
+                for (String line : exporter.export(args[1], args.length > 2 ? args[2] : args[1])) {
+                    say(sender, line);
+                }
+            } else if (sub.equals("checkids")) {
+                say(sender, exporter.checkIds());
             } else {
                 sender.sendMessage(new TextComponentString(getUsage(sender)));
             }
         } catch (IOException e) {
             sender.sendMessage(new TextComponentString("[mctas] " + e.getMessage()));
         }
+    }
+
+    private String mark(ICommandSender sender, String[] args) throws CommandException {
+        String what = args.length > 1 ? args[1] : "";
+        int n = args.length - 2;
+        if ((what.equals("from") || what.equals("to")) && (n == 0 || n == 3)) {
+            BlockPos p = n == 0 ? exporter.lookedAt() : parseBlockPos(sender, args, 2, false);
+            return what.equals("from") ? exporter.markFrom(p) : exporter.markTo(p);
+        } else if (what.equals("spawn") && n == 0) {
+            return exporter.markSpawn(Minecraft.getMinecraft().player);
+        } else if (what.equals("start") && n == 6) {
+            return exporter.markStart(doubles(sender, args));
+        } else if (what.equals("goal") && n == 6) {
+            return exporter.markGoal(doubles(sender, args));
+        } else if (what.equals("goal") && (n == 0 || n == 3)) {
+            return exporter.markGoalOn(n == 0 ? exporter.lookedAt() : parseBlockPos(sender, args, 2, false));
+        } else if (what.isEmpty()) {
+            return exporter.status();
+        }
+        return "usage: /mctas mark from|to [x y z] | spawn | start x1 y1 z1 x2 y2 z2 | goal [x y z | x1 y1 z1 x2 y2 z2]";
+    }
+
+    /** Two corners from args[2..7], {@code ~} relative to the player. */
+    private static double[] doubles(ICommandSender sender, String[] args) throws CommandException {
+        Vec3d at = sender.getPositionVector();
+        double[] base = {at.x, at.y, at.z};
+        double[] v = new double[6];
+        for (int i = 0; i < 6; i++) {
+            v[i] = parseDouble(base[i % 3], args[2 + i], false);
+        }
+        return v;
+    }
+
+    private static void say(ICommandSender sender, String msg) {
+        sender.sendMessage(new TextComponentString("[mctas] " + msg));
     }
 
     private static File resolve(File dir, String path) throws IOException {

@@ -83,3 +83,18 @@
   - サーバーが送られた位置のどこかで 1.8 に戻っていたなら、88 の位置では 1/16 縮めた当たり判定が天井にめり込む。すると `setPlayerLocation` で前の位置に戻される。観測と合う
 - 直し方: スニークしていないのに高さが 1.65 のままの状態で `unsupportedAction` を立てる(エンジンとオラクルの両方)。mod の INVALID の文言を、扱わない動作全般を指すように直した。ランダム入力の照合用ゴールデン(各 1,000 本)では、65 本(full)・32 本(shapes)・36 本(fluids)で途中からこの状態になる。実機ファズではこれらのランが早めに INVALID で止まる
 - ゲート: 1 / 実験: E-010
+
+### F-014 セーブの数値 ID の表は、1.13 の変換表と当たり判定に効く値がすべて一致する
+- 日付: 2026-10-28 / 構成: ブランチ `claude/project-thread-w0ze4o`、`problem/.../cli/importer/LegacyBlocks.java`(1.12.2 の `Block.registerBlocks` と各ブロックの `getStateFromMeta` から手で書いた)
+- 測定: (1) ID と名前の対応 256 個を PyMCTranslate 1.2.52 の `java_1_12_2/__numerical_block_map__.json` と比べた。(2) 全 ID・全メタデータで、表が出す当たり判定のプロパティ(facing、half、open、hinge、layers、bites、eye、level、extended、age)を、minecraft-data 3.117.0 の `pc/common/legacy.json`(1.13 のワールド変換が使う id:meta → 状態の表)と比べた。ドアのもう半分から補うプロパティと、床置きの頭の向きは除いた
+- 結論: 名前は 256 個とも一致。プロパティは 969 値とも一致。PyMCTranslate の「ユニバーサル」形式はココアとエンドロッドの向きが逆で、1.13 の表とも食い違うので使わない。どの状態にも当たらないメタデータ(階段の 8 以上など)は `legacy.json` に載らない。チャンクは `Block.BLOCK_STATE_IDS`(`getMetaFromState` が出すメタデータだけを持つ)で読むので、これらは空気になる(F-015)
+- 実際のセーブ: prismarine-provider-anvil 2.13.0 のテスト用 1.12.2 リージョンファイル(`r.0.-1.mca`、105 チャンク)の 32×256×32 を取り込んだ。岩盤 y 0〜4、ダイヤ y 3〜14、レッドストーン y 1〜13、金 y 1〜26、エメラルド y 8〜31 と、バニラの生成の高さどおりに読めた(セクションの並びと添字が正しい)。1.13.2 のリージョンファイルは「1.13+ の形式」として拒否した
+- ゲート: 1(実機での確認は E-012) / 実験: E-012
+
+### F-015 セーブとクライアントでは、メタデータに入らないプロパティが失われる(コードを読んだ結果、実機未確認)
+- 日付: 2026-10-28 / 構成: 1.12.2 の `BlockStateContainer.setDataFromNBT`、`SPacketChunkData`・`SPacketBlockChange` の読み書き
+- 内容: チャンクの読み込みも、サーバーからクライアントへのブロックの送信も、`Block.BLOCK_STATE_IDS` で状態と `id << 4 | meta` を相互に変換する。`getByValue` はそのメタデータを持つ状態のうち最後に登録したものを返し、該当がなければ null(空気)になる。そのため
+  - どの状態にも当たらないメタデータは空気として読まれる(`LegacyBlocks.stored` が false のもの)
+  - ドアの下半分の `hinge`、上半分の `facing` と `open` は、セーブにもクライアントのワールドにも正しく入っていない。ゲームは当たり判定の前に `getActualState` でもう半分から補う。取り込みも同じように補う。mod の `ClientWorldBlocks` は `getBlockState` をそのまま使っていたので、開いたドアや上半分の向きを取り違えうる。`getActualState` を通すように直した(再生の照合に影響しうる)
+  - 階段の形、フェンスのつながりなども同じく失われるが、エンジンが周りから計算するので影響しない
+- ゲート: なし(コード読み)。E-012 の `/mctas checkids` と E-013 の比較で確かめる / 実験: E-012, E-013

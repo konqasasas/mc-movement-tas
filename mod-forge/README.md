@@ -29,6 +29,13 @@ gradlew.bat runClient
 | `/mctas replay <問題> <解> [force]` | 問題ファイルのワールドを問題の座標そのままに作り、スポーン地点にテレポートして解の入力を流す。解は `mctas-solution` の JSON か `.tas` の入力テキスト。パスは絶対パスか `.minecraft/mctas/` からの相対パス。実機でスタートに入ったティックとゴールに入ったティックを、解のファイルに書かれた値・エンジンの予測と並べてチャットと記録に出す。JSON の解の `engineBuild` がこの mod のビルドと違うときは再生しない(mod を解と同じコミットからビルドし直すか、`force` を付ける)。問題に `player.inventory` があるときは、そのホットバーを持たせてから始め、終わると元のホットバーに戻す。このときは、スポーンで位置の定期送信(20 ティックごと)が済んだ瞬間を待ってから始める |
 | `/mctas record` | 自分で操作したプレイを記録して照合する。`/mctas stop` で終了 |
 | `/mctas stop` | 中断 |
+| `/mctas mark from\|to [x y z]` | 問題にする範囲の 2 隅。座標を省くと、照準の先のブロック(届かなければ足元のブロック) |
+| `/mctas mark spawn` | 今の位置と向きをスポーンにする(地面に立ち止まって使う) |
+| `/mctas mark start x1 y1 z1 x2 y2 z2` | スタート直方体の 2 隅(実数、`~` で自分からの相対) |
+| `/mctas mark goal [x y z \| x1 y1 z1 x2 y2 z2]` | ゴール。座標なしか 3 つなら、そのブロック(なしなら照準の先)への着地をゴールにする(問題集の慣習)。6 つなら直方体 |
+| `/mctas mark` | 今の印を表示 |
+| `/mctas export <名前> [id]` | 印をつけた範囲を `.minecraft/mctas/problems/<名前>.problem.json` に書き出す。範囲の外は空気。未対応ブロック(ポータル類など)や読み込まれていないチャンクがあると書かない |
+| `/mctas checkids` | セーブ取り込み(`mctas-problem import`)の数値 ID の表を、このゲームと全 ID・全メタデータで比べ、違いを `.minecraft/mctas/logs/checkids-*.txt` に書く |
 
 ## 記録の見方
 
@@ -52,6 +59,15 @@ real game: FINISHED start 89, goal 93 (4 ticks); solution file: FINISHED start 8
 ```
 
 スタート・ゴールの判定は問題ツールの `Judge` そのもの(ティック終了時の位置で判定)を実機の位置に使います。ずれの原因になりうるもの(スポーンにぴったり立てなかった、ダメージを受けた、ブロックが変わった、画面を開いた、動物が近くにいた、エンジンと違ったティック)は続けて注記として出ます。fuzz と違ってダメージは無効にしません(実際のゲームと同じ条件にするため)。ランダムティックは fuzz と同じく実行中だけ止めます。問題のワールドは問題の座標に作るので、スーパーフラットなら地面(y 0〜3)より上にある問題で使ってください。
+
+## ゲーム内で問題を作る
+
+1. 範囲の隅のブロックを見て `/mctas mark from`、反対の隅を見て `/mctas mark to`。
+2. スポーンに立って `/mctas mark spawn`。
+3. `/mctas mark start ~-1 ~ ~ ~1 ~3 ~1` のようにスタートを、ゴールのブロックを見て `/mctas mark goal`。
+4. `/mctas export mycourse` で `.minecraft/mctas/problems/mycourse.problem.json` ができます。同じ場所をセーブから `mctas-problem import` したものと `mctas-problem diffworld` で比べると、取り込みの確認になります。
+
+再生(`/mctas replay`)は問題の周りを空気で消してから作り直すので、元のマップで再生するとその周りが消えます。マップのコピーで再生してください。
 
 ## 前提
 
