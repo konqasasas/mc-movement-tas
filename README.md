@@ -11,6 +11,7 @@ Minecraft Java Edition 1.12.2 の移動TASを自動で探すエンジンです�
 | `approx` | 大きなコースで速い解答を短時間で探す近似探索(`approx/README.md`) |
 | `technique` | 段差・天井・角などの短い区間を最速で抜ける入力列の局所探索と、踏み切り位置の表。探索のマクロ行動として呼べる(`technique/README.md`) |
 | `mod-forge` | 実機 1.12.2(Forge)で入力を流し込み、毎ティック記録して `physics` と照合する Mod。独立した Gradle ビルド(`mod-forge/README.md`) |
+| `search` | 最速タイムの探索。上界(正確な物理でのビームサーチ)と、証明つきの下界(状態集合の抽象解釈)(`search/README.md`) |
 | `oracle` | 公式 1.12.2 jar のコードを直接動かし、`physics` とビット単位で照合する差分テスト(jar は `./gradlew :oracle:prepareMcpJar` で用意、無ければスキップ) |
 
 ## 研究メモ
