@@ -50,6 +50,8 @@ final class Course {
         boolean nearGoal;
         /** Moves in {@link #next} that only go through ladders, vines or water ({@link ClimbManeuver}). */
         final List<Surface> viaBody = new ArrayList<Surface>();
+        /** The body ({@link #bodies}) each move of {@link #viaBody} goes through. */
+        final List<Integer> viaBodyId = new ArrayList<Integer>();
 
         Surface(int id, int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
@@ -188,18 +190,63 @@ final class Course {
                     maxZ = Math.max(maxZ, b.maxZ);
                 }
                 // Room for the player somewhere on the footprint (a corner or an edge is enough).
-                boolean room = false;
-                for (int i = 0; i < 9 && !room; i++) {
+                int rooms = 0;
+                for (int i = 0; i < 9; i++) {
                     double px = i % 3 == 0 ? minX : i % 3 == 1 ? (minX + maxX) / 2 : maxX;
                     double pz = i / 3 == 0 ? minZ : i / 3 == 1 ? (minZ + maxZ) / 2 : maxZ;
-                    room = hasRoom(x, y, z, px, top, pz);
+                    if (hasRoom(x, y, z, px, top, pz)) rooms++;
                 }
-                if (!room) return;
-                out.add(new Surface(out.size(), x, y, z, top, minX, minZ, maxX, maxZ));
+                if (rooms == 0) return;
+                if (rooms == 9) {
+                    out.add(new Surface(out.size(), x, y, z, top, minX, minZ, maxX, maxZ));
+                    return;
+                }
+                // Room on part of it only (a fence or a wall on the block, a low ceiling over one side):
+                // one foothold for each connected part of the feet area with room, so that the parts
+                // a wall separates are not one platform.
+                int n = ROOM_GRID;
+                boolean[][] ok = new boolean[n][n];
+                double fx0 = minX - 0.3, fz0 = minZ - 0.3, fdx = (maxX - minX + 0.6) / (n - 1), fdz = (maxZ - minZ + 0.6) / (n - 1);
+                for (int i = 0; i < n; i++) {
+                    for (int k = 0; k < n; k++) {
+                        double px = fx0 + i * fdx, pz = fz0 + k * fdz;
+                        ok[i][k] = hasRoom(x, y, z, Math.max(minX - 0.29, Math.min(maxX + 0.29, px)), top, Math.max(minZ - 0.29, Math.min(maxZ + 0.29, pz)));
+                    }
+                }
+                boolean[][] seen = new boolean[n][n];
+                for (int i = 0; i < n; i++) {
+                    for (int k = 0; k < n; k++) {
+                        if (!ok[i][k] || seen[i][k]) continue;
+                        int i0 = i, i1 = i, k0 = k, k1 = k;
+                        Deque<int[]> q = new ArrayDeque<int[]>();
+                        q.add(new int[] {i, k});
+                        seen[i][k] = true;
+                        while (!q.isEmpty()) {
+                            int[] c = q.poll();
+                            i0 = Math.min(i0, c[0]);
+                            i1 = Math.max(i1, c[0]);
+                            k0 = Math.min(k0, c[1]);
+                            k1 = Math.max(k1, c[1]);
+                            int[][] nb = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                            for (int[] d : nb) {
+                                int a = c[0] + d[0], b = c[1] + d[1];
+                                if (a >= 0 && a < n && b >= 0 && b < n && ok[a][b] && !seen[a][b]) {
+                                    seen[a][b] = true;
+                                    q.add(new int[] {a, b});
+                                }
+                            }
+                        }
+                        // Feet rectangle of the part, given to the constructor as a footprint (it grows it by the half width).
+                        out.add(new Surface(out.size(), x, y, z, top, fx0 + i0 * fdx + 0.3, fz0 + k0 * fdz + 0.3, fx0 + i1 * fdx - 0.3, fz0 + k1 * fdz - 0.3));
+                    }
+                }
             }
         });
         return out;
     }
+
+    /** Feet points per side tested on a foothold with room on part of it only. */
+    static final int ROOM_GRID = 9;
 
     /** No collision box in a standing (1.8) player box standing at (px, top, pz). */
     private boolean hasRoom(int x, int y, int z, double px, double top, double pz) {
@@ -323,6 +370,30 @@ final class Course {
         return false;
     }
 
+    /**
+     * Something solid at chest height above {@code base} on the straight line from (x, z) on foothold
+     * a to the centre of cell c, outside both (a thin probe, so a ladder's own box or the wall it hangs
+     * on does not count).
+     */
+    private boolean wallToCell(int[] c, double x, double z, double base, Surface a) {
+        double tx = c[0] + 0.5, tz = c[2] + 0.5;
+        double len = Math.hypot(tx - x, tz - z);
+        int steps = Math.max(1, (int) Math.ceil(len / 0.2));
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int i = 1; i < steps; i++) {
+            double px = x + (tx - x) * i / steps, pz = z + (tz - z) * i / steps;
+            int bx = (int) Math.floor(px), bz = (int) Math.floor(pz);
+            if ((bx == c[0] && bz == c[2]) || a.contains(px, pz)) continue;
+            Aabb probe = new Aabb(px - 0.05, base + 0.6, pz - 0.05, px + 0.05, base + 1.3, pz + 0.05);
+            hit.clear();
+            for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
+            }
+            if (!hit.isEmpty()) return true;
+        }
+        return false;
+    }
+
     private static double clamp(double v, double lo, double hi) {
         return v < lo ? lo : v > hi ? hi : v;
     }
@@ -376,6 +447,7 @@ final class Course {
                     if (cells.containsKey(k) && done.add(k)) q.add(cells.get(k));
                 }
             }
+            bodies.add(body);
             Set<Surface> in = new HashSet<Surface>(), out = new HashSet<Surface>();
             for (int[] c : body) {
                 for (int dx = -r; dx <= r; dx++) {
@@ -383,14 +455,11 @@ final class Course {
                         List<Surface> list = column(c[0] + dx, c[2] + dz);
                         if (list == null) continue;
                         for (Surface a : list) {
-                            double d = squareDist(a, c[0], c[2]);
                             // In: the feet get into the cell, by a jump up to it or by falling into it.
-                            double up = c[1] - a.top;
-                            if (up <= reach.maxRise() + EPS && d <= reach.reach(Math.max(up, -8)) + REACH_MARGIN) in.add(a);
+                            if (canEnter(a, c)) in.add(a);
                             // Out: from the cell onto a foothold at most a little above the cell's top,
                             // stepping off sideways when it is higher than the cell, else as a slow jump.
-                            double rise = a.top - (c[1] + 1);
-                            if (rise <= CLIMB_EXIT + EPS && d <= (rise > 0 ? 1.0 : reach.reach(Math.max(rise, -8)) + REACH_MARGIN)) out.add(a);
+                            if (canLeave(c, a)) out.add(a);
                         }
                     }
                 }
@@ -400,13 +469,38 @@ final class Course {
                     if (h != a && h.platform != a.platform && !a.next.contains(h)) {
                         a.next.add(h);
                         a.viaBody.add(h);
+                        a.viaBodyId.add(bodies.size() - 1);
                     }
                 }
             }
         }
     }
 
-    /** How far above a climbable cell's top the player can still step off onto a foothold. */
+    /** Connected groups of ladder, vine and water cells ({@link #linkClimbs}). */
+    final List<List<int[]>> bodies = new ArrayList<List<int[]>>();
+
+    /**
+     * The player can get into cell c of a body from foothold a (the optimistic test of {@link #linkClimbs}):
+     * in reach, and no wall at chest height on the way (an enclosed shaft is entered from its open side).
+     */
+    boolean canEnter(Surface a, int[] c) {
+        double up = c[1] - a.top;
+        if (up > reach.maxRise() + EPS || squareDist(a, c[0], c[2]) > reach.reach(Math.max(up, -8)) + REACH_MARGIN) return false;
+        return !wallToCell(c, clamp(c[0] + 0.5, a.minX, a.maxX), clamp(c[2] + 0.5, a.minZ, a.maxZ), Math.max(a.top, c[1]), a);
+    }
+
+    /** The player can get out of cell c of a body onto foothold h. */
+    boolean canLeave(int[] c, Surface h) {
+        double rise = h.top - (c[1] + 1), d = squareDist(h, c[0], c[2]);
+        if (rise > CLIMB_EXIT + reach.maxRise() + EPS || d > (rise > 0 ? 1.0 : reach.reach(Math.max(rise, -8)) + REACH_MARGIN)) return false;
+        return !wallToCell(c, clamp(c[0] + 0.5, h.minX, h.maxX), clamp(c[2] + 0.5, h.minZ, h.maxZ), Math.max(h.top, c[1]), h);
+    }
+
+    /**
+     * How far above a climbable cell's top the player can still get onto a foothold, beyond a jump's
+     * rise: climbing out of the top carries the player a little higher, and there may be something to
+     * stand on there and jump from (the top of the ladder's own box).
+     */
     static final double CLIMB_EXIT = 0.6;
 
     private static long key(int x, int y, int z) {

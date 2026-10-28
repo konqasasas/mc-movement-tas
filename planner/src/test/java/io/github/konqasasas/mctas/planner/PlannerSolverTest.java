@@ -15,7 +15,12 @@ import static org.junit.Assert.assertTrue;
 
 public class PlannerSolverTest {
     private static PlannerSolver.Solution solve(String id, long millis) throws Exception {
-        Problem p = ProblemIO.read(Paths.get("../problems/" + id + ".problem.json"));
+        return solve(Paths.get("../problems/" + id + ".problem.json"), millis);
+    }
+
+    private static PlannerSolver.Solution solve(java.nio.file.Path path, long millis) throws Exception {
+        String id = path.toString();
+        Problem p = ProblemIO.read(path);
         PlannerSolver.Solution sol = new PlannerSolver(p, millis).segments(false).solve();
         assertNotNull(id + " unsolved", sol);
         RunResult r = Evaluator.run(p, sol.inputs);
@@ -34,6 +39,17 @@ public class PlannerSolverTest {
     @Test
     public void solvesAZigzagCourse() throws Exception {
         assertTrue(solve("v0/10-three-jumps-zigzag", 5000).ticks <= 35);
+    }
+
+    @Test
+    public void climbsALadderUpAWall() throws Exception {
+        solve(Paths.get("src/test/resources/climb/ladder-wall.problem.json"), 10000);
+    }
+
+    @Test
+    public void crossesAGapAlongVinesSneakingToHoldTheHeight() throws Exception {
+        // Eleven blocks with no floor: only sliding along the vines, sneaking so as not to drop out of them, gets across.
+        solve(Paths.get("src/test/resources/climb/vine-gap.problem.json"), 10000);
     }
 
     @Test

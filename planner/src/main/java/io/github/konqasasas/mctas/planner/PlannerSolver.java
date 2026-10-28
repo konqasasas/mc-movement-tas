@@ -86,7 +86,9 @@ public final class PlannerSolver {
             planner.posCell = 0.2 / (1 + 0.5 * level);
             planner.velCell = 0.04 / (1 + 0.5 * level);
             planner.far = 1.5 + 0.5 * level;
-            long until = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
+            // Until there is a plan, a round keeps the whole budget: restarting a long course from
+            // scratch with a stricter search only throws the frontier away.
+            long until = best == null ? deadline : System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");

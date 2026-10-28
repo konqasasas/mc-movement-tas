@@ -100,8 +100,10 @@ final class Planner {
             Node n = open.poll();
             double hn = h(n.run);
             if (n.g + hn >= bestTime) continue;
+            boolean trace = false;
             if (DEBUG && hn < closest) {
                 closest = hn;
+                trace = true;
                 System.err.printf("  closest h %.1f g %d at (%.2f, %.2f, %.2f) v (%.3f, %.3f) ground %b, %d expanded%n", hn, n.g,
                     n.run.s.posX, n.run.s.posY, n.run.s.posZ, n.run.s.motionX, n.run.s.motionZ, n.run.s.onGround, expanded);
             }
@@ -112,6 +114,7 @@ final class Planner {
             List<double[]> aims = aims(n.run);
             expandParallel(steps, n.run, aims, succ);
             for (Maneuver m : maneuvers) m.expand(n.run, aims, succ);
+            int[] why = new int[4];
             for (Maneuver.Successor x : succ) {
                 generated++;
                 if (x.run.done()) {
@@ -125,11 +128,29 @@ final class Planner {
                 Node c = new Node(x.run, n, x.move, x.inputs, 0);
                 double hc = h(x.run);
                 // A landing much further from the goal than its parent (a fall back down) is dropped.
-                if (hc > hn + backSlack) continue;
-                if (c.g + hc >= bestTime) continue;
+                if (hc > hn + backSlack) {
+                    why[0]++;
+                    continue;
+                }
+                if (c.g + hc >= bestTime) {
+                    why[1]++;
+                    continue;
+                }
                 c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc);
-                if (admit(c, seen, bestOnSurface)) open.add(c);
+                if (admit(c, seen, bestOnSurface)) {
+                    open.add(c);
+                    why[3]++;
+                } else {
+                    why[2]++;
+                    if (trace && why[2] <= 3) {
+                        Course.Surface su = x.run.s.onGround ? course.support(x.run.s.posX, x.run.s.posY, x.run.s.posZ) : null;
+                        System.err.printf("      rejected g %d at (%.2f, %.2f, %.2f) surface %s best %s seen %s%n", c.g, x.run.s.posX, x.run.s.posY, x.run.s.posZ,
+                            su, su == null ? "-" : bestOnSurface.get(su.id), seen.get(key(x.run)));
+                    }
+                }
             }
+            if (trace) System.err.printf("    %d successors: %d fall back, %d over the bound, %d seen or out of the window, %d open (open list %d)%n",
+                succ.size(), why[0], why[1], why[2], why[3], open.size());
         }
         if (best == null) return null;
         List<Node> chain = new ArrayList<Node>();
