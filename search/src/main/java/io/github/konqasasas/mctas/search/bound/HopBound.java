@@ -111,6 +111,12 @@ public final class HopBound {
     static boolean useForward = System.getenv("MCTAS_NOFORWARD") == null;
     /** Ticks from each node to the goal; {@link #INF} when the goal cannot be reached from there. */
     private int[] toGoal;
+    /**
+     * Ticks from the start to each node's first possible anchor tick, from the forward search (null
+     * when it did not run): the tick its first label was settled, or for nodes it never settled the
+     * last tick it got to, which no anchor there can come before.
+     */
+    private int[] fromStart;
     private int bound;
 
     public HopBound(Problem problem) {
@@ -750,6 +756,8 @@ public final class HopBound {
         int[][][] nbrRanges = new int[nodes.size()][][];
         nbrJumps = new int[nodes.size()][][];
         int popped = 0;
+        int[] first = new int[nodes.size()];
+        Arrays.fill(first, INF);
         Map<Long, Long> parent = TRACE ? new HashMap<Long, Long>() : null;
         while (!queue.isEmpty()) {
             long[] e = queue.poll();
@@ -760,11 +768,16 @@ public final class HopBound {
             int ai = (int) ((e[1] >>> 8) & 0xFFFFFF);
             if (ai == g) {
                 if (TRACE) trace(parent, e[1]);
+                finishFromStart(first, t);
                 return t;
             }
             if (covered(settled.get(ai), where, v)) continue;
+            if (first[ai] == INF) first[ai] = t;
             settled.get(ai).add(new Seen(where, v));
-            if (++popped > 3000000) return 0;
+            if (++popped > 3000000) {
+                finishFromStart(first, 0);
+                return 0;
+            }
             if (nbr[ai] == null) neighbours(ai, nbr, nbrRanges, s, step);
             Node a = nodes.get(ai);
             // Between two anchors the player is in free air, so every hop but one from a start in a
@@ -809,6 +822,7 @@ public final class HopBound {
                 }
             }
         }
+        finishFromStart(first, problem.maxTicks + 1);
         return INF;
     }
 
@@ -824,6 +838,13 @@ public final class HopBound {
                 n.yHi, (b + 1) * SPEED_BUCKET * SpeedBound.HOP_GRID));
         }
         for (String l : out) System.err.println("  fwd " + l);
+    }
+
+    private void finishFromStart(int[] first, int last) {
+        fromStart = first;
+        for (int i = 0; i < first.length; i++) {
+            if (first[i] == INF || last == 0) first[i] = Math.min(first[i], last);
+        }
     }
 
     /** The key of a pending label: tick, place and speed bucket. */
@@ -954,6 +975,32 @@ public final class HopBound {
                     if (n.type != SURFACE || Math.abs(n.yLo - feetY) > 1e-6 || !n.contains(x, z)) continue;
                     found = true;
                     best = Math.min(best, toGoal[i]);
+                }
+            }
+        }
+        return found ? best : 0;
+    }
+
+    /**
+     * A lower bound on the ticks from the start (the last tick in the start box) to a later tick on
+     * the ground at this place (feet on a top there): no run is there sooner. From the forward
+     * search, which stops at the goal, so places it had not got to by then get the goal's bound; 0
+     * when it did not run (a bound of 0 or an unreachable goal, placing, or {@code MCTAS_NOFORWARD}).
+     * Positions are the feet.
+     */
+    public int ticksFromStart(double x, double feetY, double z) {
+        if (fromStart == null) return 0;
+        int best = INF;
+        boolean found = false;
+        for (int cx = (int) Math.floor(x) - 1; cx <= (int) Math.floor(x) + 1; cx++) {
+            for (int cz = (int) Math.floor(z) - 1; cz <= (int) Math.floor(z) + 1; cz++) {
+                List<Integer> col = columns.get(key(cx, cz));
+                if (col == null) continue;
+                for (int i : col) {
+                    Node n = nodes.get(i);
+                    if (n.type != SURFACE || Math.abs(n.yLo - feetY) > 1e-6 || !n.contains(x, z)) continue;
+                    found = true;
+                    best = Math.min(best, fromStart[i]);
                 }
             }
         }
