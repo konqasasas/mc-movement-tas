@@ -138,7 +138,7 @@ yaw 0
   "problem": "v0/04-gap-3",
   "mcVersion": "1.12.2",
   "result": {"status": "finished", "ticks": 11, "startTick": 88, "goalTick": 99,
-             "model": "physics-1.12.2"},
+             "model": "physics-1.12.2", "engineBuild": "3e71a53434154af2"},
   "inputs": [
     {"keys": ["W", "SPRINT"], "yaw": 0.0, "pitch": 0.0}
   ]
@@ -146,6 +146,12 @@ yaw 0
 ```
 
 `status` は `finished`、`not_finished`、`fell_into_void`、`too_long` のどれかです。`model` は時間を計算した物理の名前です。
+
+`engineBuild` は解答を作ったエンジンのビルド ID です。`physics` のソースと表、`problem` のソース(`cli` と `baseline` を除く)から計算したハッシュで、`physics/src/main/resources/.../engine-build.txt` に入っています。同じ入力列でも、物理や入力の読み方が変わると結果が変わるので、ID の違う解答は次のように扱います。
+
+- `mctas-problem time` は警告を出して、今のビルドで計算し直します。`--strict` を付けると拒否します(終了コード 3)。
+- `/mctas replay` は拒否します。末尾に `force` を付けると再生します。
+- `engineBuild` のない古い解答と `.tas` は、警告だけ出して受け付けます。
 
 ### PKC の保存形式への変換
 

@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.recorder;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.EngineBuild;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -398,9 +399,10 @@ public final class RecorderController {
     /**
      * Plays a solution of a problem on the real player: an {@code mctas-solution} JSON file or a text
      * inputs file. The problem's world is built at its own coordinates, so the area it covers (plus a
-     * margin) is overwritten.
+     * margin) is overwritten. A solution file made by another engine build is refused unless
+     * {@code force}, since its inputs may not do here what they did when it was found.
      */
-    public void startReplay(File problemFile, File solutionFile) throws IOException {
+    public void startReplay(File problemFile, File solutionFile, boolean force) throws IOException {
         if (!checkPlayer()) {
             return;
         }
@@ -411,11 +413,19 @@ public final class RecorderController {
         Problem pr;
         List<TickInput> solution;
         JsonObject expected;
+        String buildWarning = null;
         try {
             pr = ProblemIO.read(problemFile.toPath());
             String json = new String(java.nio.file.Files.readAllBytes(solutionFile.toPath()), StandardCharsets.UTF_8);
             if (json.trim().startsWith("{")) {
                 solution = SolutionIO.readInputs(json);
+                String recorded = SolutionIO.readEngineBuild(json);
+                buildWarning = SolutionIO.buildMismatch(recorded);
+                if (recorded != null && buildWarning != null && !force) {
+                    chat("refused: " + buildWarning + ". Rebuild the mod from the same commit as the solution,"
+                            + " or add 'force' to replay anyway.");
+                    return;
+                }
                 JsonObject root = new JsonParser().parse(json).getAsJsonObject();
                 expected = root.has("result") ? root.getAsJsonObject("result") : new JsonObject();
             } else {
@@ -445,6 +455,10 @@ public final class RecorderController {
         log.println("# replay of " + solutionFile.getAbsolutePath() + " (" + in.size() + " ticks) on problem "
                 + pr.id + " from " + problemFile.getAbsolutePath());
         log.println("# solution file says: " + replayExpected);
+        if (buildWarning != null) {
+            log.println("# warning: " + buildWarning);
+            chat("warning: " + buildWarning);
+        }
         log.println("# engine predicts:    " + describe(enginePrediction));
         log.println("# cleared and built: " + box[0] + " " + box[1] + " " + box[2] + " .. " + box[3] + " " + box[4] + " " + box[5]);
         mode = Mode.REPLAY;
@@ -722,7 +736,7 @@ public final class RecorderController {
         String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
         logFile = new File(dir, name + "-" + stamp + ".txt");
         log = new PrintWriter(new OutputStreamWriter(new FileOutputStream(logFile), StandardCharsets.UTF_8));
-        log.println("# mctas recorder, Minecraft 1.12.2");
+        log.println("# mctas recorder, Minecraft 1.12.2, engine build " + EngineBuild.ID);
     }
 
     private void chat(String msg) {

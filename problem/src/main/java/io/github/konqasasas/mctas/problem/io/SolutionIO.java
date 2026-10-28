@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.konqasasas.mctas.physics.EngineBuild;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
@@ -36,6 +37,7 @@ public final class SolutionIO {
             res.addProperty("goalTick", result.goalTick);
         }
         res.addProperty("model", model);
+        res.addProperty("engineBuild", EngineBuild.ID);
         root.add("result", res);
         JsonArray rows = new JsonArray();
         int n = result.finished() ? result.goalTick : inputs.size();
@@ -51,6 +53,28 @@ public final class SolutionIO {
         }
         root.add("inputs", rows);
         return new GsonBuilder().setPrettyPrinting().create().toJson(root);
+    }
+
+    /** The {@code result.engineBuild} of a solution file, or null when it has none (files from before it existed). */
+    public static String readEngineBuild(String json) {
+        JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+        JsonObject res = root.has("result") ? root.getAsJsonObject("result") : null;
+        return res != null && res.has("engineBuild") ? res.get("engineBuild").getAsString() : null;
+    }
+
+    /**
+     * Null when a solution recorded by build {@code recorded} is safe to replay or judge with this build,
+     * otherwise a warning that names both builds.
+     */
+    public static String buildMismatch(String recorded) {
+        if (recorded == null) {
+            return "the solution does not say which engine build made it (this is " + EngineBuild.ID + ")";
+        }
+        if (!recorded.equals(EngineBuild.ID)) {
+            return "the solution was made by engine build " + recorded + " but this is " + EngineBuild.ID
+                    + "; the inputs may not do what they did when it was found";
+        }
+        return null;
     }
 
     public static List<TickInput> readInputs(String json) {
