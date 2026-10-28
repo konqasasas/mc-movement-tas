@@ -70,3 +70,12 @@ tasks.register('writeFluidGoldens', JavaExec) {
 }
 
 apply from: 'prepare.gradle'
+
+tasks.register('writeBlockTable', JavaExec) {
+    description = 'Regenerates the block table of every block without a hand-written VanillaBlocks entry.'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.BlockTableWriter'
+    args = [rootProject.file('physics/src/main/resources/io/github/konqasasas/mctas/physics/vanilla-blocks.tsv').path]
+}

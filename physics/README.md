@@ -20,15 +20,16 @@ The tick follows the client's call chain: `Entity.onEntityUpdate` (water current
 
 ## Verified
 
-- `VanillaGoldensTest`: 1,000 random runs of 200 ticks on full-block courses, 1,000 on courses of every modelled solid block and 1,000 on those with pools of water or lava, all fields of all ticks, against hashes from the vanilla code. Runs with no Minecraft jar.
-- `:oracle:test` also checks every `VanillaBlocks` entry against the vanilla block state of the same name: collision boxes and face shapes among 20,000 random neighbour layouts, normal cube, slipperiness, material flags, and the current of every liquid among 20,000 random layouts of liquids and blocks.
+- `VanillaGoldensTest`: 1,000 random runs of 200 ticks on full-block courses, 1,000 on courses of every stable solid block and 1,000 on those with pools of water or lava, all fields of all ticks, against hashes from the vanilla code. Runs with no Minecraft jar.
+- `:oracle:test` also checks every `VanillaBlocks` entry against the vanilla block state of the same name: collision boxes and face shapes among 20,000 random three-layer neighbour layouts (and 20,000 more of only doors and chorus plants), normal cube, slipperiness, material flags, that a state sent to the client keeps its name, and the current of every liquid among 20,000 random layouts of liquids and blocks.
 - `:oracle:test` and `:oracle:fuzz` run the vanilla code side by side and report the first differing field.
 - Deliberately broken variants (sneak height, air acceleration timing, velocity cutoff, push-out direction) are caught by the fuzz.
 
 ## Not modelled yet
 
-- Blocks with their own behaviour still missing: farmland, cactus, magma, doors, and the partial shapes not in `VanillaBlocks` yet (anvils, heads, lily pads, end rods, pistons, ...).
-- Modelled so far: full cubes (stone, glass, glowstone, pumpkin, melon, double slabs), ice and packed ice, slabs, stairs, fences, fence gates, cobblestone walls, glass panes and iron bars, trapdoors, snow layers, carpets, chests and ender chests, enchanting tables, end portal frames, hoppers, cauldrons, brewing stands, daylight sensors, cakes, flower pots; and blocks that act on the player: slime (bounce, walking slowdown, slipperiness 0.8), beds (bounce), soul sand, webs, ladders, vines and open trapdoors over ladders; water and lava, still and flowing, at every level (current, swimming, the hop out at an edge). Fire and damage from lava are not modelled: the recorder's fuzz makes the player invulnerable, and damage would let the server overwrite the client's velocity.
+- Every 1.12.2 block is in `VanillaBlocks` except `portal`, `end_portal`, `end_gateway` and `piston_extension`. Blocks whose shape depends on the neighbours (stairs, fences, walls, panes, chests, doors, chorus plants) and blocks that act on the player (slime, beds, soul sand, webs, ladders, vines, trapdoors over ladders, water and lava) are written by hand; every other block comes from `vanilla-blocks.tsv`, generated from the game by `./gradlew :oracle:writeBlockTable` (boxes, faces, slipperiness, normal cube, material flags). The table only keeps the states a world can hold (a moving piston head's `short` is dropped).
+- Damage of any kind (cactus, magma, fire, lava, falls): in the real game damage lets the server overwrite the client's velocity. The recorder's fuzz makes the player invulnerable.
+- Blocks that change by themselves or by the player (falling sand and gravel, growing crops, decaying leaves, farmland trampled by a fall, pressure plates, tripwires and detector rails that the player powers, and the doors and pistons they move). The engine's world never changes; these blocks carry `BlockType.UNSTABLE`, and the fuzz courses leave them out.
 - Status effects are in the state, but the oracle does not apply them yet, so speed, slowness and jump boost are not verified.
 - Damage and death, flying, elytra, riding, using items, other entities, the world border.
 - The client layer assumptions: auto-jump off, food above 6, no blindness. The `EntityPlayerSP` part and any server-to-client sprint flag updates need a recording from the real client.

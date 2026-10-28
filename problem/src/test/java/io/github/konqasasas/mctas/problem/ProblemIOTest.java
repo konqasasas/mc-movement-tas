@@ -53,7 +53,11 @@ public class ProblemIOTest {
         assertSame(VanillaBlocks.require("minecraft:stone_slab[half=top]"),
             Blocks.byId("minecraft:stone_slab[variant=stone,half=top]"));
         assertSame(VanillaBlocks.require("minecraft:slime"), Blocks.byId("slime"));
-        assertSame(BlockType.STONE, Blocks.byId("minecraft:wool[color=red]"));
+        assertSame(BlockType.STONE, Blocks.byId("minecraft:stone[variant=granite]"));
+        assertSame(VanillaBlocks.require("minecraft:wool"), Blocks.byId("minecraft:wool[color=red]"));
+        assertSame(VanillaBlocks.require("minecraft:cactus"), Blocks.byId("cactus[age=3]"));
+        assertSame(VanillaBlocks.require("minecraft:wooden_door[facing=east,half=lower,hinge=left,open=false]"),
+            Blocks.byId("wooden_door[facing=east,half=lower,hinge=left,open=false,powered=false]"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -63,7 +67,7 @@ public class ProblemIOTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void rejectsBlocksTheEngineCannotModel() {
-        Blocks.byId("minecraft:cactus");
+        Blocks.byId("minecraft:portal[axis=x]");
     }
 
     @Test

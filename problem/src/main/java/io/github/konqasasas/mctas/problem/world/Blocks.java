@@ -3,8 +3,6 @@ package io.github.konqasasas.mctas.problem.world;
 import io.github.konqasasas.mctas.physics.BlockType;
 import io.github.konqasasas.mctas.physics.VanillaBlocks;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,25 +14,10 @@ import java.util.TreeMap;
  * the same form {@link VanillaBlocks} uses. The {@code minecraft:} prefix may be left out, the properties
  * may come in any order, and properties that do not change collision (colour, wood variant, stair shape,
  * fence connections) are accepted and ignored, so a state copied from the F3 screen works as it is.
+ * Every 1.12.2 block is known except {@code portal}, {@code end_portal}, {@code end_gateway} and
+ * {@code piston_extension}.
  */
 public final class Blocks {
-    /** Plain full cubes that are not in {@link VanillaBlocks} under their own id. */
-    private static final Map<String, BlockType> FULL_CUBES;
-
-    static {
-        Map<String, BlockType> m = new LinkedHashMap<String, BlockType>();
-        String[] fullCubes = {
-            "minecraft:stone", "minecraft:grass", "minecraft:dirt", "minecraft:cobblestone", "minecraft:planks",
-            "minecraft:bedrock", "minecraft:sand", "minecraft:gravel", "minecraft:log", "minecraft:wool",
-            "minecraft:gold_block", "minecraft:iron_block", "minecraft:diamond_block", "minecraft:emerald_block",
-            "minecraft:quartz_block", "minecraft:stonebrick", "minecraft:sandstone", "minecraft:obsidian",
-            "minecraft:stained_hardened_clay", "minecraft:hardened_clay", "minecraft:concrete",
-            "minecraft:brick_block", "minecraft:netherrack", "minecraft:end_stone"
-        };
-        for (String id : fullCubes) m.put(id, BlockType.STONE);
-        FULL_CUBES = Collections.unmodifiableMap(m);
-    }
-
     private Blocks() {
     }
 
@@ -46,10 +29,6 @@ public final class Blocks {
         String id = VanillaBlocks.blockId(full);
         if (full.indexOf('[') >= 0 && !full.endsWith("]")) {
             throw new IllegalArgumentException("malformed block state: " + name);
-        }
-        BlockType cube = FULL_CUBES.get(id);
-        if (cube != null) {
-            return cube;
         }
         Map<String, String> given;
         try {
@@ -70,7 +49,7 @@ public final class Blocks {
         BlockType t = VanillaBlocks.get(VanillaBlocks.name(id, kept));
         if (t == null) {
             throw new IllegalArgumentException("unsupported block: " + name
-                + " (full cubes: " + FULL_CUBES.keySet() + "; other blocks: see VanillaBlocks)");
+                + " (every 1.12.2 block is supported except portals, end gateways and moving pistons)");
         }
         return t;
     }

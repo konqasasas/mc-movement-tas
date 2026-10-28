@@ -27,11 +27,18 @@ public class BlockType {
     public static final int EXCEPT_PANE = 2;
     /** {@code Block.isExceptBlockForAttachWithPiston} itself, which liquids use for their downward current. */
     public static final int EXCEPT_PISTON = 4;
+    /** {@code Material.ICE} (ice and frosted ice, not packed ice): liquids next to it have no downward current. */
+    public static final int ICE_MATERIAL = 8;
+    /**
+     * Changes by itself in a live world: falls, decays, grows, melts or is trampled. It moves the player
+     * like any other block; the random test courses leave it out so the real game keeps the course as built.
+     */
+    public static final int UNSTABLE = 16;
 
     public static final BlockType AIR = new BlockType("minecraft:air", Collections.<Aabb>emptyList(), 0.6F, false, true, ALL_UNDEFINED, 0);
     public static final BlockType STONE = new BlockType("minecraft:stone", Collections.singletonList(FULL_BLOCK), 0.6F, true, false);
     public static final BlockType ICE = new BlockType("minecraft:ice", Collections.singletonList(FULL_BLOCK), 0.98F, false, false,
-            ALL_SOLID, EXCEPT_FENCE_WALL | EXCEPT_PANE | EXCEPT_PISTON);
+            ALL_SOLID, EXCEPT_FENCE_WALL | EXCEPT_PANE | EXCEPT_PISTON | ICE_MATERIAL);
     public static final BlockType PACKED_ICE = new BlockType("minecraft:packed_ice", Collections.singletonList(FULL_BLOCK), 0.98F, true, false);
 
     private final String name;
@@ -55,7 +62,8 @@ public class BlockType {
      * @param air          {@code Material.AIR}, used for the block-below lookup after a move
      * @param faces        {@code getBlockFaceShape} by {@link Facing#ordinal()}, for blocks whose faces do not
      *                     depend on the neighbours
-     * @param except       {@link #EXCEPT_FENCE_WALL}, {@link #EXCEPT_PANE} and {@link #EXCEPT_PISTON} flags
+     * @param except       {@link #EXCEPT_FENCE_WALL}, {@link #EXCEPT_PANE}, {@link #EXCEPT_PISTON}, {@link #ICE_MATERIAL}
+     *                     and {@link #UNSTABLE} flags
      */
     public BlockType(String name, List<Aabb> boxes, float slipperiness, boolean normalCube, boolean air,
                      FaceShape[] faces, int except) {
@@ -99,6 +107,10 @@ public class BlockType {
     /** {@code Material.blocksMovement()}, which decides where liquids flow towards. */
     public boolean blocksMovement() {
         return blocksMovement;
+    }
+
+    public boolean isIceMaterial() {
+        return (except & ICE_MATERIAL) != 0;
     }
 
     public boolean isExcept(int flag) {
