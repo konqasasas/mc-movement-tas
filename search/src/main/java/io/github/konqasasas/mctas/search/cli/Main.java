@@ -19,13 +19,16 @@ public final class Main {
         "usage:",
         "  mctas-search bound [--cell S] [--zcell S] [--cap N] [--max-steps N] [--trace] <problem.json>...",
         "  mctas-search beam <problem.json> [--width N] [--out file.tas]",
-        "  mctas-search speed <problem.json>...");
+        "  mctas-search speed <problem.json>...",
+        "  mctas-search gap <problem.json> <run.tas>");
 
     public static void main(String[] args) throws IOException {
         if (args.length >= 2 && args[0].equals("bound")) {
             bound(args);
         } else if (args.length >= 2 && args[0].equals("speed")) {
             for (int i = 1; i < args.length; i++) speed(args[i]);
+        } else if (args.length == 3 && args[0].equals("gap")) {
+            gap(args[1], args[2]);
         } else if (args.length >= 2 && args[0].equals("beam")) {
             beam(args);
         } else {
@@ -47,6 +50,46 @@ public final class Main {
         String hopText = hops >= HopBound.INF ? "unreachable" : Integer.toString(hops);
         System.out.println(problem.id + ": >= " + Math.max(speed, Math.min(hops, problem.maxTicks + 1)) + " ticks" + target
             + "  [speed " + speed + " (" + sb + ", " + ms0 + " ms); hops " + hopText + " (" + hb + ", " + ms1 + " ms)]");
+    }
+
+    /**
+     * Replays a run and prints, at each landing, the ticks it still took against the lower bound from
+     * there; a bound above the run would be a soundness bug and is flagged.
+     */
+    private static void gap(String problemFile, String tasFile) throws IOException {
+        Problem problem = ProblemIO.read(Paths.get(problemFile));
+        String text = new String(Files.readAllBytes(Paths.get(tasFile)), StandardCharsets.UTF_8);
+        java.util.List<io.github.konqasasas.mctas.problem.input.TickInput> in = InputText.parse(text, problem.spawn);
+        io.github.konqasasas.mctas.problem.judge.RunResult res = io.github.konqasasas.mctas.problem.judge.Evaluator.run(problem, in);
+        if (!res.finished()) {
+            System.out.println(problem.id + ": the run does not finish (" + res.status + ")");
+            return;
+        }
+        SpeedBound sb = new SpeedBound(problem);
+        HopBound hb = new HopBound(problem);
+        int whole = Math.max(sb.ticks(problem.maxTicks), hb.ticks());
+        System.out.println(problem.id + ": run " + res.ticks() + " ticks, lower bound " + whole + ", gap " + (res.ticks() - whole));
+        if (System.getenv("MCTAS_PATH") != null) {
+            for (String line : hb.path()) System.out.println("  hop " + line);
+        }
+        io.github.konqasasas.mctas.search.exact.ExactModel model = new io.github.konqasasas.mctas.search.exact.ExactModel(problem);
+        io.github.konqasasas.mctas.physics.PlayerState s = model.spawn(problem);
+        int last = -1, lastGap = res.ticks() - whole;
+        for (int t = 0; t < res.goalTick; t++) {
+            if (t >= res.startTick && s.onGround) {
+                int left = res.goalTick - t;
+                int lb = Math.max(sb.ticksFrom(s.posX, s.box.minY, s.posZ, s.motionX, s.motionZ),
+                    hb.ticksFromGround(s.posX, s.box.minY, s.posZ));
+                int gap = left - lb;
+                if (lb > left) System.out.println("  UNSOUND at tick " + t + ": bound " + lb + " > " + left + " left");
+                if (last < 0 || t - last >= 20 || Math.abs(gap - lastGap) >= 10) {
+                    System.out.printf("  tick %4d at (%.1f, %.1f, %.1f): %4d left, bound %4d, gap %4d%n", t - res.startTick, s.posX, s.box.minY, s.posZ, left, lb, gap);
+                    last = t;
+                    lastGap = gap;
+                }
+            }
+            s = model.tick(s, in.get(t));
+        }
     }
 
     private static void beam(String[] args) throws IOException {

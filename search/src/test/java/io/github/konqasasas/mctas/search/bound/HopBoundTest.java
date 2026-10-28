@@ -3,6 +3,8 @@ package io.github.konqasasas.mctas.search.bound;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.Spawn;
@@ -38,6 +40,7 @@ public class HopBoundTest {
     private static final String[] SETS = {"v0", "v1-dev", "fall", "place"};
 
     @Test
+    @Category(Slow.class)
     public void neverAboveTheKnownRuns() throws IOException {
         int checked = 0;
         for (String set : SETS) {
@@ -78,6 +81,7 @@ public class HopBoundTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void randomSegmentsTakeNoLessThanTheBound() {
         int checked = 0;
         for (String course : new String[] {"full", "shapes", "fluids"}) {
