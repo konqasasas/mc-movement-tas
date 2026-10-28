@@ -306,9 +306,11 @@ public final class LowerBound {
 
     /**
      * When positive, the cells within two blocks of the start box are cut further into slices at
-     * most this wide on each axis. Finer cells give tighter bounds and cost time.
+     * most this wide along x ({@link #cellStep}) or z ({@link #zCellStep}). Finer cells give
+     * tighter bounds and cost time.
      */
     public double cellStep;
+    public double zCellStep;
 
     /** Steps before the fixpoint before the start gives up; finer cells need more. */
     public long maxSteps = 20000000L;
@@ -367,8 +369,8 @@ public final class LowerBound {
             }
         }
         xCuts = toArray(xs);
-        if (cellStep > 0) {
-            double step = cellStep;
+        if (zCellStep > 0) {
+            double step = zCellStep;
             double[] base = toArray(zs);
             for (int i = 0; i + 1 < base.length; i++) {
                 double a = Math.max(base[i], st.minZ - 2), b = Math.min(base[i + 1], st.maxZ + 2);

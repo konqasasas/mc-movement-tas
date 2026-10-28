@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 public final class Main {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-search bound [--cell S] [--cap N] [--max-steps N] [--trace] <problem.json>...",
+        "  mctas-search bound [--cell S] [--zcell S] [--cap N] [--max-steps N] [--trace] <problem.json>...",
         "  mctas-search beam <problem.json> [--width N] [--out file.tas]");
 
     public static void main(String[] args) throws IOException {
@@ -56,26 +56,28 @@ public final class Main {
     }
 
     private static void bound(String[] args) throws IOException {
-        double cell = 0;
+        double cell = 0, zcell = 0;
         int cap = 16;
         boolean trace = false;
         long maxSteps = 20000000L;
         for (int i = 1; i < args.length; i++) {
             if (args[i].equals("--cell")) cell = Double.parseDouble(args[++i]);
+            else if (args[i].equals("--zcell")) zcell = Double.parseDouble(args[++i]);
             else if (args[i].equals("--cap")) cap = Integer.parseInt(args[++i]);
             else if (args[i].equals("--max-steps")) maxSteps = Long.parseLong(args[++i]);
             else if (args[i].equals("--trace")) trace = true;
-            else bound(args[i], cell, cap, maxSteps, trace);
+            else bound(args[i], cell, zcell, cap, maxSteps, trace);
         }
     }
 
-    private static void bound(String file, double cell, int cap, long maxSteps, boolean trace) throws IOException {
+    private static void bound(String file, double cell, double zcell, int cap, long maxSteps, boolean trace) throws IOException {
         Problem problem = ProblemIO.read(Paths.get(file));
         long t0 = System.nanoTime();
         LowerBound lb = new LowerBound(problem);
         if (trace) lb.trace = new StringBuilder();
         lb.cap = cap;
         lb.cellStep = cell;
+        lb.zCellStep = zcell;
         lb.maxSteps = maxSteps;
         LowerBound.Result r = lb.run(problem.maxTicks);
         if (lb.trace != null) System.out.print(lb.trace);
