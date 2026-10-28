@@ -145,10 +145,11 @@ public class BlockType {
     private boolean replaceableFromNeighbours;
     private boolean selectionFromNeighbours;
     private boolean selectionOffsetXZ;
+    private boolean fragile;
 
     void setInteraction(boolean rayHittable, boolean materialReplaceable, boolean activates, boolean placeable,
                         boolean replaceable, boolean replaceableFromNeighbours, Aabb selection,
-                        boolean selectionFromNeighbours, boolean selectionOffsetXZ) {
+                        boolean selectionFromNeighbours, boolean selectionOffsetXZ, boolean fragile) {
         this.rayHittable = rayHittable;
         this.materialReplaceable = materialReplaceable;
         this.activates = activates;
@@ -158,6 +159,7 @@ public class BlockType {
         this.selection = selection;
         this.selectionFromNeighbours = selectionFromNeighbours;
         this.selectionOffsetXZ = selectionOffsetXZ;
+        this.fragile = fragile;
     }
 
     /** {@code Block.canCollideCheck(state, false)}: the view ray can stop on this block (not air, liquids or fire). */
@@ -189,6 +191,15 @@ public class BlockType {
      */
     public boolean activates() {
         return activates;
+    }
+
+    /**
+     * True if the block breaks or changes in the real game when a neighbour changes (doors, ladders,
+     * beds, signs, flower pots, ...). The engine's world does not change, so placing a block next to one
+     * leaves the engine and the game apart.
+     */
+    public boolean isFragile() {
+        return fragile;
     }
 
     /** True if this is a plain full block that the engine can place from the hotbar. */

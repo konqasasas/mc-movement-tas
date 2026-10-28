@@ -232,7 +232,9 @@ public final class RandomScenario {
             // would not stay as built.
             if (t instanceof VanillaBlocks.Liquid || t.isExcept(BlockType.UNSTABLE)) {
                 it.remove();
-            } else if (placing && UNMODELLED_CLICKS.contains(VanillaBlocks.blockId(t.name()))) {
+            } else if (placing && (UNMODELLED_CLICKS.contains(VanillaBlocks.blockId(t.name())) || t.activates()
+                    || t.isFragile())) {
+                // Placing next to these changes them in the real game, and clicking them opens or toggles them.
                 it.remove();
             }
         }
