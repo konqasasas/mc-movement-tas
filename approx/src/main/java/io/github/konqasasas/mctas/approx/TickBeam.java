@@ -121,7 +121,7 @@ public final class TickBeam {
         return timed(in ? Collections.singletonList(root) : runUp(root), bestKnown);
     }
 
-    /** Searches onward from the state the given prefix of inputs reaches, which must be past the start entry. */
+    /** Searches onward from the state the given prefix of inputs reaches; before the start entry, the run-up is searched again too. */
     public Result runFrom(List<PlayerInput> prefix, int bestKnown) {
         PlayerState s = Rollout.spawn(problem);
         boolean in = problem.start.contains(s.posX, s.posY, s.posZ);
@@ -130,9 +130,8 @@ public final class TickBeam {
             n = child(n, a, n.tick + 1);
             if (n == null) return null;
         }
-        if (n.entry < 0) return null;
         n.score = estimate(n);
-        return timed(Collections.singletonList(n), bestKnown);
+        return timed(n.entry < 0 ? runUp(n) : Collections.singletonList(n), bestKnown);
     }
 
     Node childForDebug(Node n, PlayerInput a, int t) {

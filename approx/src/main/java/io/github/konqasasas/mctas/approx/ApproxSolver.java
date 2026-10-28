@@ -15,7 +15,7 @@ import java.util.Set;
  * best with {@link Refiner}, until the time budget runs out or a wider beam stops paying off.
  */
 public final class ApproxSolver {
-    public static final String ENGINE = "approx-beam";
+    public static final String ENGINE = "approx-beam-v2";
     /** Reach to spare on route jumps, one route per value. */
     static final double[] SLACKS = {0, 0.5, 1.0};
 
@@ -107,7 +107,9 @@ public final class ApproxSolver {
                     foundAt = now;
                     stale[i] = 0;
                     say("route " + i + " beam " + width + ": " + bestTicks + " ticks at " + now + " ms");
-                    Refiner.Outcome o = new Refiner(problem, route).deadline(deadline).improve(best, bestTicks);
+                    // Polishing gets a quarter of what is left; wider beams get the rest.
+                    long left = deadline - System.currentTimeMillis();
+                    Refiner.Outcome o = new Refiner(problem, route).deadline(System.currentTimeMillis() + left / 4).improve(best, bestTicks);
                     if (o.ticks < bestTicks) {
                         best = o.inputs;
                         bestTicks = o.ticks;
