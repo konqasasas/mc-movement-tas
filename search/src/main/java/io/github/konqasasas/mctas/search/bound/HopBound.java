@@ -97,6 +97,8 @@ public final class HopBound {
     private int radius;
     /** {@link SpeedBound#hops}: reach and end speed of a hop from the ground, by ticks and start speed. */
     private final double[][] hopFar, hopFast, hopLast;
+    /** The same for hops that do not start with a jump (walking off, or one tick on the ground). */
+    private final double[][] walkFar, walkFast, walkLast;
     /** The start's horizontal speed on the ground, or -1 for any state in the start box. */
     private final double startSpeed;
     private double lowestTop;
@@ -132,6 +134,10 @@ public final class HopBound {
         this.hopFar = h[0];
         this.hopFast = h[1];
         this.hopLast = h[2];
+        double[][][] w = speed.hops(far.length - 1, false);
+        this.walkFar = w[0];
+        this.walkFast = w[1];
+        this.walkLast = w[2];
         final double[] top = {Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
         final List<double[]> boxes = new ArrayList<double[]>();
         final List<double[]> specials = new ArrayList<double[]>();
@@ -463,27 +469,10 @@ public final class HopBound {
                 out[k++] = first;
                 out[k++] = last;
             }
-            // A jump, under any ceiling near the take-off that the flight can be under when it gets there.
-            double[] free = jumpArc(Double.POSITIVE_INFINITY);
-            int last = latest(free, a, b);
-            int firstJump = earliest(free, a, b);
-            double lowest = lands ? b.stepFrom[0] - a.yHi : lo - STEP;
-            for (double[] c : a.ceilingBoxes) {
-                if (c[0] < lowest - EPS) continue;
-                double[] y = jumpArc(c[0]);
-                int n = earliest(y, a, b);
-                if (n >= firstJump) continue;
-                int t = 1;
-                while (t < y.length - 1 && y[t] < c[0] - EPS) t++;
-                double dx0 = Math.max(0, Math.max(c[1] - a.x1, a.x0 - c[2])), dz0 = Math.max(0, Math.max(c[3] - a.z1, a.z0 - c[4]));
-                double dx1 = Math.max(0, Math.max(c[1] - b.x1, b.x0 - c[2])), dz1 = Math.max(0, Math.max(c[3] - b.z1, b.z0 - c[4]));
-                if (Math.hypot(dx0, dz0) > far[Math.min(far.length - 1, t + 1)]) continue;
-                if (Math.hypot(dx1, dz1) > far[Math.min(far.length - 1, Math.max(0, n - t + 1))]) continue;
-                firstJump = n;
-            }
-            if (firstJump < INF && Math.max(2, firstJump) <= last) {
-                out[k++] = Math.max(2, firstJump);
-                out[k++] = last;
+            int[] jump = jumpRange(a, b);
+            if (jump.length > 0) {
+                out[k++] = jump[0];
+                out[k++] = jump[1];
             }
             return Arrays.copyOf(out, k);
         }
@@ -507,6 +496,36 @@ public final class HopBound {
         int latest = Math.min(far.length - 2, Math.max(1, latestLanding(a.up, lo - STEP)));
         fewest = Math.max(1, fewest);
         return fewest <= latest ? new int[] {fewest, latest} : new int[0];
+    }
+
+    /**
+     * The tick counts a jump from the top {@code a} can take to the next anchor in {@code b}, as
+     * {lo, hi}, or empty: under any ceiling near the take-off that the flight can be under when it
+     * gets there. A hop whose tick count is outside it did not start with a jump.
+     */
+    int[] jumpRange(Node a, Node b) {
+        boolean lands = b.type == SURFACE;
+        double lo = b.yLo - a.yHi;
+        // A jump, under any ceiling near the take-off that the flight can be under when it gets there.
+        double[] free = jumpArc(Double.POSITIVE_INFINITY);
+        int last = latest(free, a, b);
+        int firstJump = earliest(free, a, b);
+        double lowest = lands ? b.stepFrom[0] - a.yHi : lo - STEP;
+        for (double[] c : a.ceilingBoxes) {
+            if (c[0] < lowest - EPS) continue;
+            double[] y = jumpArc(c[0]);
+            int n = earliest(y, a, b);
+            if (n >= firstJump) continue;
+            int t = 1;
+            while (t < y.length - 1 && y[t] < c[0] - EPS) t++;
+            double dx0 = Math.max(0, Math.max(c[1] - a.x1, a.x0 - c[2])), dz0 = Math.max(0, Math.max(c[3] - a.z1, a.z0 - c[4]));
+            double dx1 = Math.max(0, Math.max(c[1] - b.x1, b.x0 - c[2])), dz1 = Math.max(0, Math.max(c[3] - b.z1, b.z0 - c[4]));
+            if (Math.hypot(dx0, dz0) > far[Math.min(far.length - 1, t + 1)]) continue;
+            if (Math.hypot(dx1, dz1) > far[Math.min(far.length - 1, Math.max(0, n - t + 1))]) continue;
+            firstJump = n;
+        }
+        if (firstJump < INF && Math.max(2, firstJump) <= last) return new int[] {Math.max(2, firstJump), last};
+        return new int[0];
     }
 
     // ---- forward search over end-of-tick positions ----
@@ -689,7 +708,9 @@ public final class HopBound {
         queue.add(new long[] {0, k0});
         int[][] nbr = new int[nodes.size()][];
         int[][][] nbrRanges = new int[nodes.size()][][];
+        nbrJumps = new int[nodes.size()][][];
         int popped = 0;
+        Map<Long, Long> parent = TRACE ? new HashMap<Long, Long>() : null;
         while (!queue.isEmpty()) {
             long[] e = queue.poll();
             int t = (int) e[0];
@@ -697,7 +718,10 @@ public final class HopBound {
             if (where == null) continue;
             int v = pendingSpeed.remove(e[1]);
             int ai = (int) ((e[1] >>> 8) & 0xFFFFFF);
-            if (ai == g) return t;
+            if (ai == g) {
+                if (TRACE) trace(parent, e[1]);
+                return t;
+            }
             if (covered(settled.get(ai), where, v)) continue;
             settled.get(ai).add(new Seen(where, v));
             if (++popped > 3000000) return 0;
@@ -712,20 +736,25 @@ public final class HopBound {
                 boolean exact = b.type == SURFACE && ground;
                 double gap = where.gap(b) - (bi == g ? 0 : step);
                 int[] r = nbrRanges[ai][j];
+                int[] jr = nbrJumps[ai][j];
                 for (int i = 0; i < r.length; i += 2) {
                     for (int n = r[i]; n <= r[i + 1] && t + n <= problem.maxTicks; n++) {
-                        double reach = ground ? Math.min(far[n], hopFar[n][v]) : far[n];
+                        // Only a hop whose length a jump can take may start with one.
+                        boolean jump = jr.length > 0 && n >= jr[0] && n <= jr[1];
+                        double[][] hf = jump ? hopFar : walkFar, hs = jump ? hopFast : walkFast, hl = jump ? hopLast : walkLast;
+                        double reach = ground ? Math.min(far[n], hf[n][v]) : far[n];
                         if (reach < gap) continue;
-                        Oct place = exact ? Oct.rect(b.x0, b.x1, b.z0, b.z1).grow(Math.min(step, hopLast[n][v])) : places[bi];
+                        Oct place = exact ? Oct.rect(b.x0, b.x1, b.z0, b.z1).grow(Math.min(step, hl[n][v])) : places[bi];
                         Oct o = where.grow(reach).and(place);
                         if (o == null) continue;
-                        int w = bi == g ? 0 : ground ? speedIndex(hopFast[n][v], top) : top;
+                        int w = bi == g ? 0 : ground ? speedIndex(hs[n][v], top) : top;
                         if (!covered(settled.get(bi), o, w)) {
                             long k = label(t + n, bi, w);
                             Oct old = pending.get(k);
                             if (old == null) {
                                 pending.put(k, o);
                                 pendingSpeed.put(k, w);
+                                if (TRACE) parent.put(k, e[1]);
                                 queue.add(new long[] {t + n, k});
                             } else {
                                 if (!old.contains(o)) pending.put(k, old.hull(o));
@@ -741,6 +770,20 @@ public final class HopBound {
         return INF;
     }
 
+    /** Prints the forward search's path to the goal (debugging, env MCTAS_FWDPATH). */
+    private static final boolean TRACE = System.getenv("MCTAS_FWDPATH") != null;
+
+    private void trace(Map<Long, Long> parent, long k) {
+        List<String> out = new ArrayList<String>();
+        for (Long c = k; c != null; c = parent.get(c)) {
+            int t = (int) (c >>> 32), ni = (int) ((c >>> 8) & 0xFFFFFF), b = (int) (c & 0xFF);
+            Node n = nodes.get(ni);
+            out.add(0, String.format("t %4d type %d x %.1f..%.1f z %.1f..%.1f y %.2f speed<=%.3f", t, n.type, n.x0, n.x1, n.z0, n.z1,
+                n.yHi, (b + 1) * SPEED_BUCKET * SpeedBound.HOP_GRID));
+        }
+        for (String l : out) System.err.println("  fwd " + l);
+    }
+
     /** The key of a pending label: tick, place and speed bucket. */
     private static long label(int t, int node, int speed) {
         return ((long) t << 32) | ((long) node << 8) | (speed / SPEED_BUCKET);
@@ -749,6 +792,9 @@ public final class HopBound {
     private static int speedIndex(double v, int top) {
         return Math.min(top, (int) Math.ceil(v / SpeedBound.HOP_GRID - 1e-9));
     }
+
+    /** For each neighbour, the tick counts a hop to it can take when it starts with a jump (see {@link #jumpRange}). */
+    private int[][][] nbrJumps;
 
     /** The places a hop from {@code ai} can reach, with the tick counts each can take. */
     private void neighbours(int ai, int[][] nbr, int[][][] nbrRanges, int s, double step) {
@@ -781,9 +827,13 @@ public final class HopBound {
         }
         nbr[ai] = new int[ids.size()];
         nbrRanges[ai] = new int[ids.size()][];
+        nbrJumps[ai] = new int[ids.size()][];
+        boolean jumps = a.type == SURFACE && a.up <= JUMP;
         for (int i = 0; i < ids.size(); i++) {
             nbr[ai][i] = ids.get(i);
             nbrRanges[ai][i] = rs.get(i);
+            // Off slime or from the start, any hop may start with a jump.
+            nbrJumps[ai][i] = jumps ? jumpRange(a, nodes.get(ids.get(i))) : new int[] {1, INF};
         }
     }
 

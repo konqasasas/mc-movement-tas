@@ -241,12 +241,18 @@ public final class SpeedBound {
      * capped at {@link #top()}.
      */
     double[][][] hops(int maxN) {
+        return hops(maxN, true);
+    }
+
+    /** {@link #hops(int)}, for hops that may start with a jump or (false) may not. */
+    double[][][] hops(int maxN, boolean jumps) {
         double top = top();
         int n = (int) Math.ceil(top / HOP_GRID) + 1;
         double[][] far = new double[maxN + 1][n], fast = new double[maxN + 1][n], last = new double[maxN + 1][n];
         for (int i = 0; i < n; i++) {
             double v = i * HOP_GRID;
             for (Regime r : regimes) {
+                if (r.jump && !jumps) continue;
                 double d = v + r.accel, u = Math.min(top, r.friction * d);
                 if (!r.jump && maxN >= 1) {
                     far[1][i] = Math.max(far[1][i], d);
