@@ -72,6 +72,7 @@ final class Planner {
 
     Planner(Course course) {
         this.course = course;
+        maneuvers.add(new ClimbManeuver());
     }
 
     Planner add(Maneuver m) {

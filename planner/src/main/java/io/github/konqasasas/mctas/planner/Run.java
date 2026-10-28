@@ -79,8 +79,12 @@ final class Run {
      * too soon after the last toggle (a wall may have just stopped the sprint).
      */
     PlayerInput legal(PlayerInput a) {
-        if (!a.has(PlayerInput.SPRINT) || s.sprinting || ToggleRule.allowed(lastToggle, tick + 1)) return a;
-        return new PlayerInput(a.keys & ~PlayerInput.SPRINT, a.yaw, a.pitch, a.slot);
+        if (ToggleRule.allowed(lastToggle, tick + 1)) return a;
+        int keys = a.keys;
+        // Too soon to change sneaking: keep it as it is (sneaking also keeps the sprint off).
+        if (a.has(PlayerInput.SNEAK) != s.isSneaking()) keys = s.isSneaking() ? keys | PlayerInput.SNEAK : keys & ~PlayerInput.SNEAK;
+        if ((keys & PlayerInput.SPRINT) != 0 && !s.sprinting) keys &= ~PlayerInput.SPRINT;
+        return keys == a.keys ? a : new PlayerInput(keys, a.yaw, a.pitch, a.slot);
     }
 
     /** Plays one tick of {@code a} (made {@link #legal} by the caller) and updates the judge's view. */

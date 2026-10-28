@@ -9,12 +9,16 @@ import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 /**
  * The top level of the plan: the course as a graph of footholds.
@@ -44,6 +48,8 @@ final class Course {
         final List<Surface> next = new ArrayList<Surface>();
         /** The goal is one optimistic move away. */
         boolean nearGoal;
+        /** Moves in {@link #next} that only go through ladders, vines or water ({@link ClimbManeuver}). */
+        final List<Surface> viaBody = new ArrayList<Surface>();
 
         Surface(int id, int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
@@ -332,40 +338,86 @@ final class Course {
         return climbable((int) Math.floor(s.posX), (int) Math.floor(s.posY), (int) Math.floor(s.posZ));
     }
 
+    /** Water, which the player swims up through like a ladder (for the optimistic graph only). */
+    boolean water(int x, int y, int z) {
+        String n = world.getBlock(x, y, z).name();
+        return n.startsWith("minecraft:water") || n.startsWith("minecraft:flowing_water");
+    }
+
     /**
-     * Optimistic moves up ladders and vines: from footholds the player can reach the bottom of a
-     * climbable column from, to footholds next to its top that a jump alone could not reach.
+     * Optimistic moves through ladders, vines and water: the cells are grouped into connected bodies,
+     * and every foothold the player can get into a body from is linked to every foothold the player
+     * can get out of it onto, as if any way through the body were possible (climbing up wherever
+     * there is something to push against, sliding along vines, swimming up). The cost of such a move
+     * is bounded by the rise at the climbing speed ({@link #edgeCost}).
      */
     private void linkClimbs() {
-        final List<int[]> cells = new ArrayList<int[]>();
+        final Map<Long, int[]> cells = new HashMap<Long, int[]>();
         problem.world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                if (climbable(x, y, z) && !climbable(x, y - 1, z)) cells.add(new int[] {x, y, z});
+                if (climbable(x, y, z) || water(x, y, z)) cells.put(key(x, y, z), new int[] {x, y, z});
             }
         });
-        for (int[] b : cells) {
-            int x = b[0], y0 = b[1], z = b[2], y1 = y0;
-            while (climbable(x, y1 + 1, z)) y1++;
-            double cx = x + 0.5, cz = z + 0.5;
-            List<Surface> low = new ArrayList<Surface>(), high = new ArrayList<Surface>();
-            for (int dx = -3; dx <= 3; dx++) {
-                for (int dz = -3; dz <= 3; dz++) {
-                    List<Surface> list = column(x + dx, z + dz);
-                    if (list == null) continue;
-                    for (Surface a : list) {
-                        double d = a.dist(cx, cz);
-                        if (d <= 2.5 && a.top >= y0 - 2 && a.top <= y1 + 0.5) low.add(a);
-                        if (d <= 2.0 && a.top >= y0 + 1 && a.top <= y1 + 2.25) high.add(a);
+        // Bodies: 6-connected groups of cells.
+        Set<Long> done = new HashSet<Long>();
+        int r = (int) Math.ceil(reach.reach(-8) + REACH_MARGIN) + 1;
+        for (Map.Entry<Long, int[]> e0 : cells.entrySet()) {
+            if (!done.add(e0.getKey())) continue;
+            List<int[]> body = new ArrayList<int[]>();
+            Deque<int[]> q = new ArrayDeque<int[]>();
+            q.add(e0.getValue());
+            while (!q.isEmpty()) {
+                int[] c = q.poll();
+                body.add(c);
+                int[][] nb = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+                for (int[] d : nb) {
+                    long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
+                    if (cells.containsKey(k) && done.add(k)) q.add(cells.get(k));
+                }
+            }
+            Set<Surface> in = new HashSet<Surface>(), out = new HashSet<Surface>();
+            for (int[] c : body) {
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dz = -r; dz <= r; dz++) {
+                        List<Surface> list = column(c[0] + dx, c[2] + dz);
+                        if (list == null) continue;
+                        for (Surface a : list) {
+                            double d = squareDist(a, c[0], c[2]);
+                            // In: the feet get into the cell, by a jump up to it or by falling into it.
+                            double up = c[1] - a.top;
+                            if (up <= reach.maxRise() + EPS && d <= reach.reach(Math.max(up, -8)) + REACH_MARGIN) in.add(a);
+                            // Out: from the cell onto a foothold at most a little above the cell's top,
+                            // stepping off sideways when it is higher than the cell, else as a slow jump.
+                            double rise = a.top - (c[1] + 1);
+                            if (rise <= CLIMB_EXIT + EPS && d <= (rise > 0 ? 1.0 : reach.reach(Math.max(rise, -8)) + REACH_MARGIN)) out.add(a);
+                        }
                     }
                 }
             }
-            for (Surface a : low) {
-                for (Surface h : high) {
-                    if (h.top > a.top + reach.maxRise() && !a.next.contains(h)) a.next.add(h);
+            for (Surface a : in) {
+                for (Surface h : out) {
+                    if (h != a && h.platform != a.platform && !a.next.contains(h)) {
+                        a.next.add(h);
+                        a.viaBody.add(h);
+                    }
                 }
             }
         }
+    }
+
+    /** How far above a climbable cell's top the player can still step off onto a foothold. */
+    static final double CLIMB_EXIT = 0.6;
+
+    private static long key(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFF) << 42) | ((long) (y & 0xFFFFF) << 22) | (z & 0x3FFFFF);
+    }
+
+    /** Horizontal distance from a surface's feet area to the block column (x, z). */
+    private static double squareDist(Surface a, int x, int z) {
+        double dx = Math.max(0, Math.max(x - a.maxX, a.minX - (x + 1)));
+        double dz = Math.max(0, Math.max(z - a.maxZ, a.minZ - (z + 1)));
+        return Math.sqrt(dx * dx + dz * dz);
     }
 
     private void link() {
@@ -408,6 +460,9 @@ final class Course {
      * Ticks from each surface's centre to the goal, travelling between centres at the top speed along
      * optimistic moves: a lower bound up to the slack of starting off-centre.
      */
+    /** Blocks per tick climbing a ladder while pushing into it: (0.2 - 0.08) * 0.98. */
+    static final double CLIMB_SPEED = 0.1176;
+
     private void costToGo() {
         double v = reach.maxSpeed();
         PriorityQueue<double[]> pq = new PriorityQueue<double[]>(16, (p, q) -> Double.compare(p[0], q[0]));
@@ -429,7 +484,7 @@ final class Course {
             if (e[0] > dist[u]) continue;
             Surface b = surfaces.get(u);
             for (Surface a : into.get(u)) {
-                double c = dist[u] + Math.hypot(a.cx() - b.cx(), a.cz() - b.cz()) / v;
+                double c = dist[u] + edgeCost(a, b, v);
                 if (c < dist[a.id]) {
                     dist[a.id] = c;
                     pq.add(new double[] {c, a.id});
@@ -437,6 +492,16 @@ final class Course {
             }
         }
         for (Surface a : surfaces) a.toGo = dist[a.id];
+    }
+
+    /**
+     * Ticks for the optimistic move a to b: centre to centre at the best speed, or, up a ladder, the
+     * rise beyond a jump's at the steady climbing speed when that is slower.
+     */
+    private double edgeCost(Surface a, Surface b, double v) {
+        double flat = Math.hypot(a.cx() - b.cx(), a.cz() - b.cz()) / v;
+        double rise = b.top - a.top - reach.maxRise();
+        return rise > 0 ? Math.max(flat, rise / CLIMB_SPEED) : flat;
     }
 
     /**
