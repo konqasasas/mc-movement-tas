@@ -57,6 +57,8 @@ final class Planner {
     /** Footholds to aim for from a node. */
     int targets = 4;
     double posCell = 0.2, velCell = 0.04;
+    /** Jump branching reaches this far past the best jump's reach (see {@link StepManeuver}). */
+    double far = 1.5;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
 
@@ -68,7 +70,6 @@ final class Planner {
 
     Planner(Course course) {
         this.course = course;
-        maneuvers.add(new StepManeuver());
     }
 
     Planner add(Maneuver m) {
@@ -77,6 +78,7 @@ final class Planner {
     }
 
     Plan search(List<Runup.Root> roots, long deadline, int bound) {
+        StepManeuver steps = new StepManeuver(far);
         PriorityQueue<Node> open = new PriorityQueue<Node>(64, (a, b) -> a.f != b.f ? Double.compare(a.f, b.f) : Integer.compare(b.g, a.g));
         Map<Long, Integer> seen = new HashMap<Long, Integer>();
         Map<Integer, Integer> bestOnSurface = new HashMap<Integer, Integer>();
@@ -105,6 +107,7 @@ final class Planner {
             expanded++;
             succ.clear();
             List<double[]> aims = aims(n.run);
+            steps.expand(n.run, aims, succ);
             for (Maneuver m : maneuvers) m.expand(n.run, aims, succ);
             for (Maneuver.Successor x : succ) {
                 generated++;
@@ -145,7 +148,7 @@ final class Planner {
      */
     List<Runup.Root> pickRoots(List<Runup.Root> roots, int keep) {
         final Map<Runup.Root, Double> score = new HashMap<Runup.Root, Double>();
-        StepManeuver probe = new StepManeuver();
+        StepManeuver probe = new StepManeuver(far);
         List<Maneuver.Successor> succ = new ArrayList<Maneuver.Successor>();
         for (Runup.Root r : roots) {
             List<double[]> aims = aims(r.run);

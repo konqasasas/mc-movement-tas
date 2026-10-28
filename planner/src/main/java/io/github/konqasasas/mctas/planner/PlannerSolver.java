@@ -68,26 +68,26 @@ public final class PlannerSolver {
         say(roots.size() + " run-up roots, searching from " + picked.size() + " (" + (System.currentTimeMillis() - t0) + " ms)");
         Planner.Plan best = null;
         long foundAt = -1;
-        double[] weights = {3.0, 1.6, 1.0};
-        for (int round = 0; round < weights.length && System.currentTimeMillis() < deadline; round++) {
+        // Rounds of growing breadth: a greedy first round for a plan soon, then each round bounded by
+        // the best time with a lower weight, more footholds to aim for, finer speed states and wider
+        // jump branching, until the budget runs out. Each new plan is tightened.
+        for (int level = 0; System.currentTimeMillis() < deadline; level++) {
             Planner planner = new Planner(course);
-            planner.weight = weights[round];
-            // Later rounds, bounded by the best time, can afford finer speed states.
-            if (round > 0) {
-                planner.posCell = 0.1;
-                planner.velCell = 0.02;
-                planner.window = 6;
-            }
-            // Each round gets a share of what is left, and leaves time to tighten its plan.
-            long until = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) * 2 / (3 * (weights.length - round));
+            planner.weight = level == 0 ? 3.0 : level == 1 ? 1.6 : 1.0;
+            planner.targets = Math.min(4 + level, 10);
+            planner.window = 4 + 2 * level;
+            planner.posCell = 0.2 / (1 + 0.5 * level);
+            planner.velCell = 0.04 / (1 + 0.5 * level);
+            planner.far = 1.5 + 0.5 * level;
+            long until = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
-            say("A* weight " + weights[round] + ": " + (p == null ? "no plan" : p.time + " ticks, " + p.moves.size() + " moves")
+            say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
             if (p == null) continue;
             best = p;
             foundAt = System.currentTimeMillis() - t0;
             Tightener tight = new Tightener(roots);
-            long tUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / (weights.length - round);
+            long tUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 3;
             Planner.Plan q = tight.tighten(best, tUntil);
             say("tightened: " + q.time + " ticks (" + tight.kept + " of " + tight.tried + " changes kept, " + (System.currentTimeMillis() - t0) + " ms)");
             if (q.time < best.time) {

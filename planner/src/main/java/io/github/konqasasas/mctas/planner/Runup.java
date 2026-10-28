@@ -36,8 +36,21 @@ final class Runup {
         if (spawn.entry == 0) out.add(new Root(spawn, new ArrayList<PlayerInput>(), "spawn"));
         Region s = c.problem.start;
         for (final double[] dir : headings(c)) {
-            // Where to cross: the point of the start box nearest to the first foothold along this heading.
-            double ex = clamp(dir[2], s.minX, s.maxX), ez = clamp(dir[3], s.minZ, s.maxZ);
+            // Where to cross: the point of the start box over solid ground nearest to the first foothold
+            // along this heading.
+            double ex = clamp(dir[2], s.minX, s.maxX), ez = clamp(dir[3], s.minZ, s.maxZ), bestD = Double.POSITIVE_INFINITY;
+            for (Course.Surface a : c.surfaces) {
+                if (a.top < s.minY - 1e-6 || a.top > s.maxY + 1e-6) continue;
+                double x0 = Math.max(a.minX + 0.3, s.minX), x1 = Math.min(a.maxX - 0.3, s.maxX);
+                double z0 = Math.max(a.minZ + 0.3, s.minZ), z1 = Math.min(a.maxZ - 0.3, s.maxZ);
+                if (x0 > x1 || z0 > z1) continue;
+                double qx = clamp(dir[2], x0, x1), qz = clamp(dir[3], z0, z1), d = Math.hypot(qx - dir[2], qz - dir[3]);
+                if (d < bestD) {
+                    bestD = d;
+                    ex = qx;
+                    ez = qz;
+                }
+            }
             List<List<Root>> mine = new ArrayList<List<Root>>();
             for (int style = 0; style < STYLES; style++) {
                 mine.add(new ArrayList<Root>());

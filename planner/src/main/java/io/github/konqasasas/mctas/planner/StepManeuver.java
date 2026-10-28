@@ -20,7 +20,11 @@ final class StepManeuver implements Maneuver {
     static final int[] STRAFES = {1};
     static final int[] ALL_STRAFES = {0, 1, -1};
     /** Beyond this distance past the best jump's reach, only hop at once or jump at the edge. */
-    static final double FAR = 1.5;
+    final double far;
+
+    StepManeuver(double far) {
+        this.far = far;
+    }
 
     @Override
     public void expand(Run from, List<double[]> aims, List<Successor> out) {
@@ -50,7 +54,7 @@ final class StepManeuver implements Maneuver {
         for (int k = 0; ; k++) {
             double reach = c.reach.reach(aim[2] - r.s.posY);
             double d = Math.hypot(aim[0] - r.s.posX, aim[1] - r.s.posZ);
-            boolean branch = k == 0 || d <= reach + FAR || reach < 0;
+            boolean branch = k == 0 || d <= reach + far || reach < 0;
             if (branch) jump(r, in, aim, strafe, k, out);
             jumpedPrev = branch;
             if (k >= Step.MAX_GROUND) return;
