@@ -95,5 +95,8 @@ search/build/install/mctas-search/bin/mctas-search speed problems/v1-full/*.prob
 | human6/remaining | 125 | 119 / 125 | 312(人間)、328(WS9) |
 | human6/tohell | 412 | 120 / 412 | 674(人間)、727(WS10) |
 | human6/verdure | 351 | 55 / 351 | 632(人間) |
+| waza/waza1h1 | 200 | 185 / 200 | |
+| waza/waza1h3 | 154 | 147 / 154 | |
+| waza/waza1h4 | 85 | 82 / 85 | |
 
 足場の列は前向きと逆向きの大きい方です。1 問 28〜280 秒。ex3 はスライムで登れるので縦の制限が無く、弱い値です。v1-full では `bound` の方が強い問題もあります(s2001 は `bound` 58、`speed` 52)。両方出せるときは大きい方を使います。
