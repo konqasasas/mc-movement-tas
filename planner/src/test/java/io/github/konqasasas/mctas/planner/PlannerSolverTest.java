@@ -1,11 +1,13 @@
 package io.github.konqasasas.mctas.planner;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
 import io.github.konqasasas.mctas.problem.judge.Evaluator;
 import io.github.konqasasas.mctas.problem.judge.RunResult;
 import io.github.konqasasas.mctas.problem.judge.ToggleRule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.nio.file.Paths;
 
@@ -13,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+/** The searches run against the clock, so they are slow tests (`slowTest`); only the controller checks run in `test`. */
 public class PlannerSolverTest {
     private static PlannerSolver.Solution solve(String id, long millis) throws Exception {
         return solve(Paths.get("../problems/" + id + ".problem.json"), millis);
@@ -31,22 +34,26 @@ public class PlannerSolverTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void solvesShortJumpsAtTheirTargets() throws Exception {
         assertEquals(4, solve("v0/02-gap-1", 3000).ticks);
         assertEquals(11, solve("v0/04-gap-3", 3000).ticks);
     }
 
     @Test
+    @Category(Slow.class)
     public void solvesAZigzagCourse() throws Exception {
         assertTrue(solve("v0/10-three-jumps-zigzag", 5000).ticks <= 35);
     }
 
     @Test
+    @Category(Slow.class)
     public void climbsALadderUpAWall() throws Exception {
         solve(Paths.get("src/test/resources/climb/ladder-wall.problem.json"), 10000);
     }
 
     @Test
+    @Category(Slow.class)
     public void crossesAGapAlongVinesSneakingToHoldTheHeight() throws Exception {
         // Eleven blocks with no floor: only sliding along the vines, sneaking so as not to drop out of them, gets across.
         solve(Paths.get("src/test/resources/climb/vine-gap.problem.json"), 10000);
