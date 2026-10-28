@@ -28,6 +28,10 @@ final class Bridge {
     static final int EXPLORE_SEGMENTS = 4;
     /** Stretches the explorer backs up over when it cannot go on from the last one. */
     static final int BACK = 2;
+    /** The quick search's budget. */
+    static final long QUICK_MILLIS = 1500;
+    /** The explorer's time with quick searches only. */
+    static final long QUICK_EXPLORE_MILLIS = 8000;
 
     interface PrintStreamLog {
         void say(String s);
@@ -92,15 +96,32 @@ final class Bridge {
             long budget = Math.min(segmentMillis, deadlineMillis - System.currentTimeMillis());
             if (budget <= 0) return null;
             int since = Math.max(0, Math.min(1000, tick - lastToggle));
-            List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, budget / 2, o);
+            // A quick search first (one beam of 200, it stops on its own), the full one only when that fails.
+            SegmentSearch.Options quick = SegmentSearch.Options.fast();
+            quick.maxTicks = 80;
+            quick.voidY = problem.voidY;
+            List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, Math.min(budget / 2, QUICK_MILLIS), quick);
+            java.util.function.Predicate<PlayerState> past = st -> st.onGround && route.after(from, st.posX, st.posY, st.posZ, true) > from;
+            List<PlayerInput> stretch = null;
+            if (segs.isEmpty() && explore != null) {
+                // Then the explorer with quick searches only, before the slow full search.
+                long until = Math.min(deadlineMillis, System.currentTimeMillis() + QUICK_EXPLORE_MILLIS);
+                List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, 0);
+                if (in != null) {
+                    stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
+                    say("bridge: explored past waypoint " + from + " in " + stretch.size() + " ticks, quickly");
+                }
+            }
+            if (segs.isEmpty() && stretch == null) segs = Technique.solve(problem.world, s, since, exit, heading, budget / 2, o);
             // Ranked by the distance still to go, the beam can crowd against an obstacle the
             // route string bends round; then rank by the distance along the heading instead.
-            if (segs.isEmpty()) {
+            if (segs.isEmpty() && stretch == null) {
                 budget = Math.min(budget / 2, deadlineMillis - System.currentTimeMillis());
                 if (budget > 0) segs = Technique.solve(problem.world, s, since, exit(from, s, true), heading, budget, o);
             }
-            List<PlayerInput> stretch = null;
-            if (!segs.isEmpty()) {
+            if (stretch != null) {
+                // found by the quick explorer
+            } else if (!segs.isEmpty()) {
                 stretch = segs.get(0).inputs;
                 say("bridge: towards waypoint " + from + " in " + stretch.size() + " ticks");
             } else if (explore != null) {
@@ -119,8 +140,7 @@ final class Bridge {
                         lastToggle = (Integer) m[5];
                     }
                     long until = Math.min(deadlineMillis, System.currentTimeMillis() + EXPLORE_SEGMENTS * segmentMillis);
-                    List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry,
-                        st -> st.onGround && route.after(from, st.posX, st.posY, st.posZ, true) > from, until, segmentMillis);
+                    List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, segmentMillis);
                     if (in != null) {
                         stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
                         say("bridge: explored past waypoint " + from + " in " + stretch.size() + " ticks" + (back > 0 ? ", " + back + " back" : ""));
@@ -187,8 +207,10 @@ final class Bridge {
         };
     }
 
+    private long started = System.currentTimeMillis();
+
     private void say(String s) {
-        if (log != null) log.say(s);
+        if (log != null) log.say(s + " [" + (System.currentTimeMillis() - started) + " ms]");
     }
 
     private static String fmt(double v) {
