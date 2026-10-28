@@ -66,20 +66,28 @@ final class Rebuild {
                     (c.problem.goal.minZ + c.problem.goal.maxZ) / 2);
         } else {
             heading = heading(entry, cur.states[b]);
-            exit = anchor(cur.states[b], heading);
+            exit = anchor(cur.states[b], heading, SIDES[rnd.nextInt(SIDES.length)]);
         }
         List<SegmentSearch.Result> rs = new SegmentSearch().search(c.world, entry, cur.lastToggle[a] - a, exit, heading, o);
+        if (!toGoal) sortByAnchor(rs, cur.states[b]);
         Run best = null;
         int tried = 0;
+        if (DEBUG) {
+            System.err.printf("rebuild a=%d len=%d deep=%b goal=%b width=%d offsets=%d: %d results%s%n", a, len, deep, toGoal,
+                    o.width, o.offsets.length, rs.size(), rs.isEmpty() ? "" : " fastest " + rs.get(0).ticks());
+        }
         for (SegmentSearch.Result r : rs) {
             if (tried++ >= 12) break;
             PlayerInput[] in = Edits.splice(cur.inputs, a, r.inputs, cur.inputs, toGoal ? cur.inputs.length : b);
             Run run = c.evaluate(cur, a, in);
             if (!run.valid && !toGoal && tried <= 3) run = repair(c, cur, a, b, r, run, rnd);
+            if (DEBUG) System.err.println("  splice " + r.ticks() + " ticks: " + run);
             if (run != null && run.betterThan(best)) best = run;
         }
         return best;
     }
+
+    static final boolean DEBUG = System.getenv("MCTAS_IMPROVE_DEBUG") != null;
 
     /**
      * The spliced run failed after the anchor: rebuild from the new anchor state to a later anchor of
@@ -105,10 +113,11 @@ final class Rebuild {
                     (c.problem.goal.minZ + c.problem.goal.maxZ) / 2);
         } else {
             heading = heading(from, cur.states[c2]);
-            exit = anchor(cur.states[c2], heading);
+            exit = anchor(cur.states[c2], heading, SIDES[rnd.nextInt(SIDES.length)]);
         }
         int lastToggle = failed.lastToggle.length > at ? failed.lastToggle[at] - at : r.lastToggle - r.ticks();
         List<SegmentSearch.Result> rs = new SegmentSearch().search(c.world, from, lastToggle, exit, heading, o);
+        if (!toGoal) sortByAnchor(rs, cur.states[c2]);
         Run best = failed;
         int tried = 0;
         for (SegmentSearch.Result r2 : rs) {
@@ -146,7 +155,32 @@ final class Rebuild {
     }
 
     /** The plane through the anchor's position across the heading, at its height, standing if it stands. */
-    static Exit anchor(PlayerState s, float heading) {
-        return Exit.plane(s.posX, s.posZ, heading, 0, s.posY - (s.onGround ? 1e-6 : 0.25), s.onGround);
+    /**
+     * The plane through the anchor's position across the heading, at its height, standing if it
+     * stands, and within {@code side} blocks of the anchor sideways (and, in the air, with a vertical
+     * speed within 0.1 of it), so the old inputs after the anchor still fit the new state.
+     */
+    static Exit anchor(PlayerState s, float heading, double side) {
+        Exit plane = Exit.plane(s.posX, s.posZ, heading, 0, s.posY - (s.onGround ? 1e-6 : 0.25), s.onGround);
+        double r = Math.toRadians(heading);
+        double dx = -Math.sin(r), dz = Math.cos(r);
+        return (before, after) -> plane.reached(before, after)
+                && Math.abs((after.posX - s.posX) * dz - (after.posZ - s.posZ) * dx) <= side
+                && (s.onGround || Math.abs(after.motionY - s.motionY) < 0.1);
+    }
+
+    private static final double[] SIDES = {0.1, 0.3, 1.0, Double.POSITIVE_INFINITY};
+
+    /** Results of equal ticks ordered by how close their end is to the anchor state. */
+    static void sortByAnchor(List<SegmentSearch.Result> rs, PlayerState anchor) {
+        rs.sort((p, q) -> p.ticks() != q.ticks() ? Integer.compare(p.ticks(), q.ticks())
+                : Double.compare(closeness(p.end, anchor), closeness(q.end, anchor)));
+    }
+
+    private static double closeness(PlayerState p, PlayerState q) {
+        double dx = p.posX - q.posX, dy = p.posY - q.posY, dz = p.posZ - q.posZ;
+        double vx = p.motionX - q.motionX, vy = p.motionY - q.motionY, vz = p.motionZ - q.motionZ;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz) + 5 * Math.sqrt(vx * vx + vy * vy + vz * vz)
+                + (p.onGround != q.onGround || p.sprinting != q.sprinting ? 10 : 0);
     }
 }

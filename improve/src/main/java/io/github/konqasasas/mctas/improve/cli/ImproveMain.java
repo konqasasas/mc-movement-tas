@@ -97,14 +97,18 @@ public final class ImproveMain {
         String stem = p.id.replace('/', '_');
         List<Path> seeds = findSeeds(p, pf, seedPaths);
         Run first = null;
+        // Judge every seed before any of them sets the run-up limit.
+        List<Run> judged = new ArrayList<Run>();
         for (Path s : seeds) {
             List<TickInput> in = readInputs(s, p);
             PlayerInput[] arr = new PlayerInput[in.size()];
             for (int i = 0; i < arr.length; i++) arr[i] = PhysicsModel.toPhysics(in.get(i));
-            Run r = imp.seed(course.evaluate(arr));
+            Run r = course.evaluate(arr);
+            judged.add(r);
             System.out.println(p.id + ": seed " + s + ": " + r);
             if (r.valid() && r.betterThan(first)) first = r;
         }
+        for (Run r : judged) imp.seed(r);
         if (first == null) {
             System.out.println(p.id + ": no valid seed, skipped");
             return false;

@@ -144,7 +144,7 @@ public final class Course {
         return Math.max(0, Math.min(d, Math.min(y - r.minY, r.maxY - y)));
     }
 
-    /** 1 for blocks that hurt inside the box (fire, lava), 2 next to it (cactus), 4 underfoot (magma, farmland). */
+    /** 1 for blocks that hurt inside the box (fire, lava), 2 for cactus (also inside the box), 4 underfoot (magma, farmland). */
     static int hazard(BlockType b) {
         String n = b.name();
         if (n.startsWith("minecraft:fire") || n.startsWith("minecraft:lava") || n.startsWith("minecraft:flowing_lava")) return 1;
@@ -155,19 +155,24 @@ public final class Course {
 
     private boolean touchesHazard(PlayerState s) {
         Aabb b = s.box;
-        // Generous: every cell the box (grown by 0.01) touches, and the layer under the feet.
-        int x0 = floor(b.minX - 0.01), x1 = floor(b.maxX + 0.01);
-        int y0 = floor(b.minY - 0.21), y1 = floor(b.maxY + 0.01);
-        int z0 = floor(b.minZ - 0.01), z1 = floor(b.maxZ + 0.01);
+        // Fire, lava and cactus act on the blocks the box (shrunk by 0.001) overlaps, as
+        // Entity.doBlockCollisions and isFlammableWithin look at them.
+        int x0 = floor(b.minX + 0.001), x1 = floor(b.maxX - 0.001);
+        int y0 = floor(b.minY + 0.001), y1 = floor(b.maxY - 0.001);
+        int z0 = floor(b.minZ + 0.001), z1 = floor(b.maxZ - 0.001);
         for (int x = x0; x <= x1; x++) {
             for (int y = y0; y <= y1; y++) {
                 for (int z = z0; z <= z1; z++) {
                     int h = hazard(world.getBlock(x, y, z));
-                    if (h == 0) continue;
-                    int feet = floor(b.minY + 1e-7);
-                    if (h == 4 ? y <= feet && s.onGround : y >= feet) return true;
+                    if (h == 1 || h == 2) return true;
                 }
             }
+        }
+        // Magma (onEntityWalk) and farmland (onFallenUpon) act on the block under the feet point.
+        if (s.onGround) {
+            int x = floor(s.posX), z = floor(s.posZ);
+            if (hazard(world.getBlock(x, floor(s.posY - 0.2), z)) == 4) return true;
+            if (hazard(world.getBlock(x, floor(s.posY), z)) == 4) return true;
         }
         return false;
     }
