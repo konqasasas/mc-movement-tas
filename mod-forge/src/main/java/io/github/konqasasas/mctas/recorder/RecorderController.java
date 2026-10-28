@@ -293,6 +293,9 @@ public final class RecorderController {
         readPlacement(p, now, lastEnd);
         // The client counts the delay down before this event, so take it from the end of the last tick.
         now.rightClickDelay = lastEnd.rightClickDelay;
+        // The server's events for a shulker box may already have been handled this frame; the lid is
+        // compared at the end of the tick.
+        now.shulker = lastEnd.shulker;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
         String field = difference(now, lastEnd);
@@ -343,6 +346,7 @@ public final class RecorderController {
                     runUnsupportedTick = tick;
                 }
                 readPlacement(p, real, sim);
+                PlayerSnapshot.readShulker(mc, real, sim);
                 if (entityNearby(p)) {
                     runEntityTicks++;
                 }
@@ -391,7 +395,12 @@ public final class RecorderController {
     @SubscribeEvent
     public void onGuiOpen(GuiOpenEvent event) {
         if (phase == Phase.RUN && mode != Mode.RECORD && event.getGui() != null) {
-            runScreenOpened = true;
+            // The screen of a shulker box the engine opened is expected.
+            boolean expected = sim != null && sim.shulker.event == io.github.konqasasas.mctas.physics.Shulker.Event.OPEN
+                    && event.getGui() instanceof net.minecraft.client.gui.inventory.GuiShulkerBox;
+            if (!expected) {
+                runScreenOpened = true;
+            }
         }
     }
 
@@ -626,6 +635,10 @@ public final class RecorderController {
 
     private void endRun() {
         blocks.unfreeze();
+        if (mc.player != null && mc.currentScreen instanceof net.minecraft.client.gui.inventory.GuiShulkerBox) {
+            // A run that stopped with a box open: shut it before the next course is built.
+            mc.player.closeScreen();
+        }
         if (mode == Mode.REPLAY) {
             endReplay();
             return;

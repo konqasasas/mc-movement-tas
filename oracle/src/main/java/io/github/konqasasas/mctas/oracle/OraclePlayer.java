@@ -51,6 +51,14 @@ final class OraclePlayer extends net.minecraft.entity.player.EntityPlayer {
     public void addExhaustion(float exhaustion) {
     }
 
+    /** What the last {@link #displayGUIChest} opened, for the server's side of a click on a shulker box. */
+    net.minecraft.inventory.IInventory displayed;
+
+    @Override
+    public void displayGUIChest(net.minecraft.inventory.IInventory chestInventory) {
+        displayed = chestInventory;
+    }
+
     /**
      * {@code EntityLivingBase.updateFallState} as the client runs it: the server-only landing
      * particles cast the world to {@code WorldServer}, so they are left out.

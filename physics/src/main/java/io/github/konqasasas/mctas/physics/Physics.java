@@ -49,12 +49,42 @@ public final class Physics {
      * go to {@link PlayerState#placed}, never into {@code world}.
      */
     public static void step(BlockWorld base, PlayerState s, PlayerInput input) {
+        // EntityPlayerSP.closeScreen, before the tick; then what the server sent arrives at its start
+        // (PlayerControllerMP.updateController -> processReceivedPackets).
+        if (input.has(PlayerInput.CLOSE)) {
+            if (s.shulker.screen) {
+                s.shulker = s.shulker.closeScreen();
+            } else {
+                s.unsupportedAction = true;
+            }
+        }
+        boolean screen = false;
+        if (!s.shulker.isNone()) {
+            s.shulker = s.shulker.arrive();
+            screen = s.shulker.screen;
+        }
+        if (screen && (input.keys != 0 || input.slot >= 0
+                || Float.floatToIntBits(input.yaw) != Float.floatToIntBits(s.rotationYaw)
+                || Float.floatToIntBits(input.pitch) != Float.floatToIntBits(s.rotationPitch))) {
+            // Opening the screen releases every key (KeyBinding.unPressAllKeys) and the mouse no longer
+            // turns the view, so an input for such a tick holds nothing and keeps the angles.
+            s.unsupportedAction = true;
+        }
+
         // The view turns between ticks (Minecraft.runTick -> mouse), so the tick sees the new angles.
         s.rotationYaw = input.yaw;
         s.rotationPitch = input.pitch;
 
         // Minecraft.runTick: the right-click delay, the hotbar keys and right-clicks, before the player moves.
-        Placement.beforeMove(base, s, input);
+        if (screen) {
+            // With a screen open there is no processKeyBinds, and the keys were released.
+            if (s.rightClickDelay > 0) {
+                --s.rightClickDelay;
+            }
+            s.prevUse = false;
+        } else {
+            Placement.beforeMove(base, s, input);
+        }
         BlockWorld world = s.world(base);
 
         // Entity.onEntityUpdate
@@ -173,6 +203,69 @@ public final class Physics {
         if (!s.pressed.isEmpty()) {
             s.pressed = s.pressed.aged();
         }
+
+        // World.updateEntities: the tile entities after the player.
+        if (!s.shulker.isNone()) {
+            updateShulker(base, s);
+        }
+    }
+
+    /** {@code TileEntityShulkerBox.update}: the lid moves and pushes the player out of its way. */
+    private static void updateShulker(BlockWorld base, PlayerState s) {
+        Shulker b = s.shulker.animated();
+        s.shulker = b;
+        if (b.reachedTop()) {
+            pushByShulker(s.world(base), s, b);
+            s.shulker = b.opened();
+        } else if (b.status == Shulker.Status.OPENING || b.status == Shulker.Status.CLOSING) {
+            pushByShulker(s.world(base), s, b);
+        } else if (b.settled()) {
+            s.shulker = Shulker.NONE;
+            return;
+        }
+        if (s.shulker.screen) {
+            // EntityPlayerMP.onUpdate closes the screen once the box's isUsableByPlayer finds the player more
+            // than 8 blocks from its centre, measured where the server has the player: about where the client
+            // last said, but the server's own lid pushes it too.
+            double cx = (double) b.x + 0.5D;
+            double cy = (double) b.y + 0.5D;
+            double cz = (double) b.z + 0.5D;
+            if (squareDistance(s.lastReportedPosX, s.lastReportedPosY, s.lastReportedPosZ, cx, cy, cz) > SCREEN_RANGE_SQ
+                    || squareDistance(s.posX, s.posY, s.posZ, cx, cy, cz) > SCREEN_RANGE_SQ) {
+                s.unsupportedAction = true;
+            }
+        }
+    }
+
+    /** How far from an open box the player may be taken to be, squared: 8 blocks less a margin for the lid's push. */
+    private static final double SCREEN_RANGE_SQ = 56.0D;
+
+    private static double squareDistance(double x, double y, double z, double x2, double y2, double z2) {
+        double d0 = x - x2;
+        double d1 = y - y2;
+        double d2 = z - z2;
+        return d0 * d0 + d1 * d1 + d2 * d2;
+    }
+
+    /** {@code TileEntityShulkerBox.moveCollidedEntities} for the player. */
+    private static void pushByShulker(BlockWorld world, PlayerState s, Shulker b) {
+        Aabb top = b.topBox().offset(b.x, b.y, b.z);
+        Aabb e = s.box;
+        if (!e.intersects(top)) {
+            return;
+        }
+        Facing f = b.facing;
+        double d7 = 0.0D;
+        double d9 = 0.0D;
+        double d11 = 0.0D;
+        if (f.dx != 0) {
+            d7 = (f.dx > 0 ? top.maxX - e.minX : e.maxX - top.minX) + 0.01D;
+        } else if (f.dy != 0) {
+            d9 = (f.dy > 0 ? top.maxY - e.minY : e.maxY - top.minY) + 0.01D;
+        } else {
+            d11 = (f.dz > 0 ? top.maxZ - e.minZ : e.maxZ - top.minZ) + 0.01D;
+        }
+        move(world, s, d7 * (double) f.dx, d9 * (double) f.dy, d11 * (double) f.dz, false);
     }
 
     /** {@code EntityLivingBase.jump}. */
@@ -300,6 +393,15 @@ public final class Physics {
 
     /** {@code Entity.move} with {@code MoverType.SELF}. */
     static void move(BlockWorld world, PlayerState s, double x, double y, double z) {
+        move(world, s, x, y, z, true);
+    }
+
+    /**
+     * {@code Entity.move}, with {@code MoverType.SELF} if {@code self} and otherwise one that is neither
+     * {@code SELF}, {@code PLAYER} nor {@code PISTON} (a shulker box's lid): only those let a sneaking player
+     * stop at an edge.
+     */
+    static void move(BlockWorld world, PlayerState s, double x, double y, double z, boolean self) {
         if (s.inWeb) {
             s.inWeb = false;
             x *= 0.25D;
@@ -313,7 +415,7 @@ public final class Physics {
         double d3 = y;
         double d4 = z;
 
-        if (s.onGround && s.isSneaking()) {
+        if (self && s.onGround && s.isSneaking()) {
             for (; x != 0.0D && noCollision(world, s.box.offset(x, (double) (-STEP_HEIGHT), 0.0D)); d2 = x) {
                 x = sneakStep(x);
             }

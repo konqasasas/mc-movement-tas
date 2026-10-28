@@ -75,6 +75,9 @@ final class OracleWorld extends World {
 
     /** Replaces one block, for tests that build many small layouts in one world. */
     void set(BlockPos pos, IBlockState state) {
+        if (state != blocks.get(pos.toImmutable())) {
+            shulkers.remove(pos.toImmutable());
+        }
         if (state.getBlock() == Blocks.AIR) {
             blocks.remove(pos.toImmutable());
         } else {
@@ -84,13 +87,26 @@ final class OracleWorld extends World {
 
     void clear() {
         blocks.clear();
+        shulkers.clear();
     }
+
+    /** The shulker boxes' tile entities, made when first asked for and kept while the block stays. */
+    private final Map<BlockPos, net.minecraft.tileentity.TileEntityShulkerBox> shulkers =
+            new HashMap<BlockPos, net.minecraft.tileentity.TileEntityShulkerBox>();
 
     @Override
     public net.minecraft.tileentity.TileEntity getTileEntity(BlockPos pos) {
         // A placed shulker box always has its tile entity, closed unless someone opens it.
         if (getBlockState(pos).getBlock() instanceof net.minecraft.block.BlockShulkerBox) {
-            return new net.minecraft.tileentity.TileEntityShulkerBox();
+            BlockPos p = pos.toImmutable();
+            net.minecraft.tileentity.TileEntityShulkerBox te = shulkers.get(p);
+            if (te == null) {
+                te = new net.minecraft.tileentity.TileEntityShulkerBox();
+                te.setWorld(this);
+                te.setPos(p);
+                shulkers.put(p, te);
+            }
+            return te;
         }
         return null;
     }
