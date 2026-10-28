@@ -58,6 +58,8 @@ public final class PlayerState implements Cloneable {
      * shared between copies; {@link #world} gives the combined view.
      */
     public WorldDelta placed = WorldDelta.EMPTY;
+    /** Buttons the player pressed that may still be on. Immutable and shared between copies. */
+    public Pressed pressed = Pressed.NONE;
     /** The hotbar. Immutable and shared between copies. */
     public Hotbar hotbar = Hotbar.EMPTY;
     /** {@code InventoryPlayer.currentItem}. */
@@ -136,9 +138,9 @@ public final class PlayerState implements Cloneable {
         return prevSneak;
     }
 
-    /** The world as this player sees it: {@code base} with {@link #placed} on top. */
+    /** The world as this player sees it: {@code base} with {@link #placed} and {@link #pressed} on top. */
     public BlockWorld world(BlockWorld base) {
-        return placed.over(base);
+        return placed.over(pressed.over(base));
     }
 
     public PlayerState copy() {
@@ -184,6 +186,7 @@ public final class PlayerState implements Cloneable {
         if (speedAmplifier != o.speedAmplifier) return "speedAmplifier";
         if (slownessAmplifier != o.slownessAmplifier) return "slownessAmplifier";
         if (jumpBoostAmplifier != o.jumpBoostAmplifier) return "jumpBoostAmplifier";
+        if (!pressed.equals(o.pressed)) return "pressed";
         if (!hotbar.equals(o.hotbar)) return "hotbar";
         if (selectedSlot != o.selectedSlot) return "selectedSlot";
         if (rightClickDelay != o.rightClickDelay) return "rightClickDelay";
@@ -254,6 +257,7 @@ public final class PlayerState implements Cloneable {
         h = mix(h, speedAmplifier);
         h = mix(h, slownessAmplifier);
         h = mix(h, jumpBoostAmplifier);
+        h = mix(h, pressed.hashCode());
         h = mix(h, hotbar.hashCode());
         h = mix(h, selectedSlot);
         h = mix(h, rightClickDelay);
@@ -288,6 +292,7 @@ public final class PlayerState implements Cloneable {
                 + " jumpTicks=" + jumpTicks + " " + box
                 + (hotbar == Hotbar.EMPTY ? "" : " hotbar=" + hotbar + " slot=" + selectedSlot)
                 + (placed.isEmpty() ? "" : " placed=" + placed.size())
+                + (pressed.isEmpty() ? "" : " pressed=" + pressed)
                 + (rightClickDelay == 0 ? "" : " useDelay=" + rightClickDelay)
                 + (unsupportedAction ? " UNSUPPORTED" : "");
     }

@@ -69,7 +69,7 @@ public final class Placement {
     /** {@code Minecraft.rightClickMouse} for a survival player with an empty off hand. */
     private static void rightClick(BlockWorld base, PlayerState s) {
         s.rightClickDelay = RIGHT_CLICK_DELAY;
-        BlockWorld world = s.placed.over(base);
+        BlockWorld world = s.world(base);
         try {
             Hit hit = lookingAt(world, s);
             if (hit == null) {
@@ -79,8 +79,7 @@ public final class Placement {
             BlockType item = s.hotbar.item(s.selectedSlot);
             boolean sneaking = s.isSneaking();
             if ((!sneaking || item == null) && target.activates()) {
-                // A door, chest, button, ... does its own thing, which is not modelled.
-                s.unsupportedAction = true;
+                activate(world, s, hit, target, item);
                 return;
             }
             if (item == null) {
@@ -127,6 +126,91 @@ public final class Placement {
             s.hotbar = s.hotbar.withOneUsed(s.selectedSlot);
         } catch (UnsupportedBlockException e) {
             s.unsupportedAction = true;
+        }
+    }
+
+    /**
+     * {@code onBlockActivated} of the block the player right-clicked without sneaking (or with an empty
+     * hand). A button turns on at once on the client; a lever only answers the click there and changes
+     * when the server says so, which does not change its selection box. Both power the block they hang
+     * on, so either is unsupported next to anything that reacts to power or to a neighbour update
+     * ({@link #reacts}). Every other block that does
+     * something of its own (doors, chests, shulker boxes, ...) is unsupported.
+     */
+    private static void activate(BlockWorld world, PlayerState s, Hit hit, BlockType target, BlockType item) {
+        String id = VanillaBlocks.blockId(target.name());
+        boolean button = id.equals("minecraft:stone_button") || id.equals("minecraft:wooden_button");
+        if (!button && !id.equals("minecraft:lever")) {
+            s.unsupportedAction = true;
+            return;
+        }
+        java.util.Map<String, String> props = VanillaBlocks.parseProperties(target.name());
+        String facing = props.get("facing");
+        if (facing == null || button && !props.containsKey("powered")) {
+            // A block from an older problem file, named without its facing: its state is unknown.
+            s.unsupportedAction = true;
+            return;
+        }
+        // The server activates it too only if it does not take the player to be sneaking with a block in
+        // hand ({@code PlayerInteractionManager.processRightClickBlock}).
+        if (item != null && (s.serverSneakState || s.sneakReportedTicks < SNEAK_SETTLE)) {
+            s.unsupportedAction = true;
+            return;
+        }
+        Facing attached = attachedSide(facing);
+        int ax = hit.x + attached.dx;
+        int ay = hit.y + attached.dy;
+        int az = hit.z + attached.dz;
+        // BlockButton.notifyNeighbors and BlockLever's: the neighbours of the block and of the one it
+        // hangs on, when it turns on and again when it turns off.
+        for (Facing f : Facing.values()) {
+            if (reacts(world.getBlock(hit.x + f.dx, hit.y + f.dy, hit.z + f.dz))
+                    || f != attached.opposite() && reacts(world.getBlock(ax + f.dx, ay + f.dy, az + f.dz))) {
+                s.unsupportedAction = true;
+                return;
+            }
+        }
+        if (!button) {
+            return;
+        }
+        if (props.get("powered").equals("true")) {
+            // BlockButton.onBlockActivated: already on, the click does nothing. One that may have turned
+            // off again has no powered property here and was refused above.
+            return;
+        }
+        s.pressed = s.pressed.with(hit.x, hit.y, hit.z, target);
+    }
+
+    /**
+     * Whether a neighbour update or power may change the block: it reacts to power or changes by itself.
+     * Blocks that need support ({@link BlockType#isFragile}) are taken to have it, as in a world built by
+     * playing; one that hangs in the air would break.
+     */
+    private static boolean reacts(BlockType t) {
+        return t.reactsToPower() || t.isExcept(BlockType.UNSTABLE);
+    }
+
+    /** The side of a button or lever that touches the block it hangs on: opposite its facing. */
+    private static Facing attachedSide(String facing) {
+        switch (facing) {
+            case "down":
+            case "down_x":
+            case "down_z":
+                return Facing.UP;
+            case "up":
+            case "up_x":
+            case "up_z":
+                return Facing.DOWN;
+            case "north":
+                return Facing.SOUTH;
+            case "south":
+                return Facing.NORTH;
+            case "west":
+                return Facing.EAST;
+            case "east":
+                return Facing.WEST;
+            default:
+                throw new IllegalArgumentException(facing);
         }
     }
 
