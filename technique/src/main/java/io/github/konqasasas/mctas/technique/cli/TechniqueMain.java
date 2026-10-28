@@ -3,6 +3,7 @@ package io.github.konqasasas.mctas.technique.cli;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.io.InputText;
@@ -31,6 +32,9 @@ public final class TechniqueMain {
             case "ladder":
                 ladder(args);
                 break;
+            case "neo":
+                neo(args);
+                break;
             case "window":
                 window(args);
                 break;
@@ -54,6 +58,8 @@ public final class TechniqueMain {
                 + "        searches the run-up into the start box, then from the best <tries> entries to the goal\n"
                 + "  mctas-technique ladder [width]\n"
                 + "        compares holding W with the search for climbing a ladder onto a wall\n"
+                + "  mctas-technique neo [width]\n"
+                + "        the fastest neo around a wall end, landing 1 to 4 blocks past the wall\n"
                 + "  mctas-technique window\n"
                 + "        prints the clean jump distances for climbing a step");
     }
@@ -102,6 +108,25 @@ public final class TechniqueMain {
             }
         }
         System.out.print(detail);
+    }
+
+    /** Prints the fastest neo around a wall end for landing floors 1 to 4 blocks past the wall. */
+    private static void neo(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 60;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        for (int gap = 1; gap <= 4; gap++) {
+            SegmentSearch.Result r = io.github.konqasasas.mctas.technique.NeoBench.run(gap, o);
+            System.out.println("landing " + gap + " past the wall: " + (r == null ? "none" : r.ticks() + " ticks"));
+            if (r == null) continue;
+            PlayerState q = io.github.konqasasas.mctas.technique.NeoBench.entry();
+            SparseBlockWorld w = io.github.konqasasas.mctas.technique.NeoBench.world(gap);
+            int k = 0;
+            for (PlayerInput x : r.inputs) {
+                q = Physics.tick(w, q, x);
+                System.out.printf("    %3d %-14s pos %.4f %.4f %.4f%s%n", ++k, x, q.posX, q.posY, q.posZ, q.onGround ? " G" : "");
+            }
+        }
     }
 
     private static String ranges(List<StepWindow.Jump> js) {
