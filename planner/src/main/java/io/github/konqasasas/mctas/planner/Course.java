@@ -260,7 +260,112 @@ final class Course {
         double gap = rectGap(a, b);
         if (gap < EPS && dy <= 0.6 + EPS) return true;
         if (dy > reach.maxRise() + EPS) return false;
-        return gap <= reach.reach(dy) + REACH_MARGIN;
+        return gap <= reach.reach(dy) + REACH_MARGIN && !walled(a, b);
+    }
+
+    /**
+     * A wall between two footholds: on every straight line between their footprints (sampled between
+     * the near points and between the centres) something solid stands at chest height above the
+     * higher top, where a jump could not pass. Low obstacles (a fence to hop over) do not count.
+     */
+    private boolean walled(Surface a, Surface b) {
+        double base = Math.max(a.top, b.top);
+        double[][] lines = {
+            {a.cx(), a.cz(), b.cx(), b.cz()},
+            {clamp(b.cx(), a.minX + 0.3, a.maxX - 0.3), clamp(b.cz(), a.minZ + 0.3, a.maxZ - 0.3),
+                clamp(a.cx(), b.minX + 0.3, b.maxX - 0.3), clamp(a.cz(), b.minZ + 0.3, b.maxZ - 0.3)},
+        };
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (double[] l : lines) {
+            double len = Math.hypot(l[2] - l[0], l[3] - l[1]);
+            int steps = Math.max(1, (int) Math.ceil(len / 0.25));
+            boolean blocked = false;
+            for (int i = 1; i < steps && !blocked; i++) {
+                double px = l[0] + (l[2] - l[0]) * i / steps, pz = l[1] + (l[3] - l[1]) * i / steps;
+                if (a.contains(px, pz) || b.contains(px, pz)) continue;
+                Aabb probe = new Aabb(px - 0.05, base + 0.6, pz - 0.05, px + 0.05, base + 1.3, pz + 0.05);
+                int bx = (int) Math.floor(px), bz = (int) Math.floor(pz);
+                hit.clear();
+                for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                    world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
+                }
+                blocked = !hit.isEmpty();
+            }
+            if (!blocked) return false;
+        }
+        return true;
+    }
+
+    /** Something solid at chest height above {@code base} on the straight line (x1,z1)-(x2,z2). */
+    boolean blockedLine(double x1, double z1, double x2, double z2, double base) {
+        double len = Math.hypot(x2 - x1, z2 - z1);
+        int steps = Math.max(1, (int) Math.ceil(len / 0.2));
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int i = 1; i < steps; i++) {
+            double px = x1 + (x2 - x1) * i / steps, pz = z1 + (z2 - z1) * i / steps;
+            Aabb probe = new Aabb(px - 0.3, base + 0.6, pz - 0.3, px + 0.3, base + 1.3, pz + 0.3);
+            hit.clear();
+            for (int bx = (int) Math.floor(px - 0.3); bx <= (int) Math.floor(px + 0.3); bx++) {
+                for (int bz = (int) Math.floor(pz - 0.3); bz <= (int) Math.floor(pz + 0.3); bz++) {
+                    for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                        world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
+                    }
+                }
+            }
+            if (!hit.isEmpty()) return true;
+        }
+        return false;
+    }
+
+    private static double clamp(double v, double lo, double hi) {
+        return v < lo ? lo : v > hi ? hi : v;
+    }
+
+    /** Ladders and vines: the player climbs them by pushing into them. */
+    boolean climbable(int x, int y, int z) {
+        String n = world.getBlock(x, y, z).name();
+        return n.startsWith("minecraft:ladder") || n.equals("minecraft:vine");
+    }
+
+    /** The block at the player's feet is climbable ({@code EntityLivingBase.isOnLadder}, without trapdoors). */
+    boolean onLadder(PlayerState s) {
+        return climbable((int) Math.floor(s.posX), (int) Math.floor(s.posY), (int) Math.floor(s.posZ));
+    }
+
+    /**
+     * Optimistic moves up ladders and vines: from footholds the player can reach the bottom of a
+     * climbable column from, to footholds next to its top that a jump alone could not reach.
+     */
+    private void linkClimbs() {
+        final List<int[]> cells = new ArrayList<int[]>();
+        problem.world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                if (climbable(x, y, z) && !climbable(x, y - 1, z)) cells.add(new int[] {x, y, z});
+            }
+        });
+        for (int[] b : cells) {
+            int x = b[0], y0 = b[1], z = b[2], y1 = y0;
+            while (climbable(x, y1 + 1, z)) y1++;
+            double cx = x + 0.5, cz = z + 0.5;
+            List<Surface> low = new ArrayList<Surface>(), high = new ArrayList<Surface>();
+            for (int dx = -3; dx <= 3; dx++) {
+                for (int dz = -3; dz <= 3; dz++) {
+                    List<Surface> list = column(x + dx, z + dz);
+                    if (list == null) continue;
+                    for (Surface a : list) {
+                        double d = a.dist(cx, cz);
+                        if (d <= 2.5 && a.top >= y0 - 2 && a.top <= y1 + 0.5) low.add(a);
+                        if (d <= 2.0 && a.top >= y0 + 1 && a.top <= y1 + 2.25) high.add(a);
+                    }
+                }
+            }
+            for (Surface a : low) {
+                for (Surface h : high) {
+                    if (h.top > a.top + reach.maxRise() && !a.next.contains(h)) a.next.add(h);
+                }
+            }
+        }
     }
 
     private void link() {
@@ -275,6 +380,7 @@ final class Course {
             }
             a.nearGoal = goalGap(a) >= 0;
         }
+        linkClimbs();
     }
 
     /** Horizontal gap from the surface to the goal box when the goal is one optimistic move away, else -1. */

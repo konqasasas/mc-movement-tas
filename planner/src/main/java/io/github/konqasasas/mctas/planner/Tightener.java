@@ -12,7 +12,8 @@ import java.util.List;
  * goal and is faster. Passes repeat until nothing helps or time runs out. Every root is tried too.
  */
 final class Tightener {
-    private static final double[] NUDGES = {0.3, 0.1, 0.03};
+    private static final double[] NUDGES = {0.8, 0.3, 0.1, 0.03};
+    private static final float[] TURNS = {-45F, -20F, -8F, 8F, 20F, 45F};
 
     private final List<Runup.Root> roots;
     int tried, kept;
@@ -182,6 +183,7 @@ final class Tightener {
         }
         if (s.jumpAt != Step.NO_JUMP) out.add(s.withJump(Step.NO_JUMP));
         for (int st : StepManeuver.ALL_STRAFES) if (st != s.strafe) out.add(s.withStrafe(st));
+        if (s.jumpAt != Step.NO_JUMP) for (float t : TURNS) out.add(s.withJumpTurn(s.jumpTurn + t));
         for (double d : NUDGES) {
             out.add(s.withAim(s.aimX + d, s.aimZ));
             out.add(s.withAim(s.aimX - d, s.aimZ));

@@ -57,6 +57,8 @@ final class Planner {
     /** Footholds to aim for from a node. */
     int targets = 4;
     double posCell = 0.2, velCell = 0.04;
+    /** Successors may land at most this many ticks further from the goal (by the bound) than their node. */
+    double backSlack = 8;
     /** Jump branching reaches this far past the best jump's reach (see {@link StepManeuver}). */
     double far = 1.5;
     /** Also aim along the racing line through each foothold. */
@@ -107,7 +109,7 @@ final class Planner {
             expanded++;
             succ.clear();
             List<double[]> aims = aims(n.run);
-            steps.expand(n.run, aims, succ);
+            expandParallel(steps, n.run, aims, succ);
             for (Maneuver m : maneuvers) m.expand(n.run, aims, succ);
             for (Maneuver.Successor x : succ) {
                 generated++;
@@ -121,6 +123,8 @@ final class Planner {
                 }
                 Node c = new Node(x.run, n, x.move, x.inputs, 0);
                 double hc = h(x.run);
+                // A landing much further from the goal than its parent (a fall back down) is dropped.
+                if (hc > hn + backSlack) continue;
                 if (c.g + hc >= bestTime) continue;
                 c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc);
                 if (admit(c, seen, bestOnSurface)) open.add(c);
@@ -174,6 +178,31 @@ final class Planner {
             }
         }
         return out;
+    }
+
+    /** Worker threads for expanding a node's aims at once (the physics and the course are read-only). */
+    static final int THREADS = Integer.getInteger("planner.threads", Runtime.getRuntime().availableProcessors());
+    private static final java.util.concurrent.ForkJoinPool POOL = new java.util.concurrent.ForkJoinPool(Math.max(1, THREADS));
+
+    /** {@code m.expand} over the aims, one aim per task, successors in aim order. */
+    private static void expandParallel(final Maneuver m, final Run from, List<double[]> aims, List<Maneuver.Successor> out) {
+        if (THREADS <= 1 || aims.size() <= 1) {
+            m.expand(from, aims, out);
+            return;
+        }
+        List<java.util.concurrent.Future<List<Maneuver.Successor>>> fs = new ArrayList<java.util.concurrent.Future<List<Maneuver.Successor>>>();
+        for (final double[] aim : aims) {
+            fs.add(POOL.submit(() -> {
+                List<Maneuver.Successor> part = new ArrayList<Maneuver.Successor>();
+                m.expand(from, Collections.singletonList(aim), part);
+                return part;
+            }));
+        }
+        try {
+            for (java.util.concurrent.Future<List<Maneuver.Successor>> f : fs) out.addAll(f.get());
+        } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private double h(Run r) {
@@ -258,6 +287,7 @@ final class Planner {
             double ix = Math.min(0.25, (bx1 - bx0) / 2), iz = Math.min(0.25, (bz1 - bz0) / 2);
             double nx = clamp(x, bx0 + ix, bx1 - ix), nz = clamp(z, bz0 + iz, bz1 - iz);
             out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ});
+            addVias(x, z, Math.max(y, b.top), new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, out);
             // The racing line: the point of b nearest to the straight line from here towards b's best next foothold.
             Course.Surface after = bestNext(b);
             if (after != null && through) {
@@ -271,6 +301,32 @@ final class Planner {
             out.add(new double[] {clamp(x, g.minX + ix, g.maxX - ix), clamp(z, g.minZ + iz, g.maxZ - iz), g.minY, g.minX, g.maxX, g.minZ, g.maxZ});
         }
         return out;
+    }
+
+    /**
+     * When a wall stands on the straight way to an aim, the same aim with a via point beside the wall:
+     * the middle of the way pushed sideways, the nearest offset that clears both legs, on each side.
+     */
+    private void addVias(double x, double z, double base, double[] aim, List<double[]> out) {
+        if (!course.blockedLine(x, z, aim[0], aim[1], base)) return;
+        double dx = aim[0] - x, dz = aim[1] - z, len = Math.hypot(dx, dz);
+        if (len < 1e-6) return;
+        double nx = -dz / len, nz = dx / len;
+        for (int side = -1; side <= 1; side += 2) {
+            for (double f : new double[] {0.35, 0.5, 0.65}) {
+                boolean found = false;
+                for (double off = 0.6; off <= 2.41 && !found; off += 0.6) {
+                    double vx = x + dx * f + nx * off * side, vz = z + dz * f + nz * off * side;
+                    if (course.blockedLine(x, z, vx, vz, base) || course.blockedLine(vx, vz, aim[0], aim[1], base)) continue;
+                    double[] a = java.util.Arrays.copyOf(aim, 9);
+                    a[7] = vx;
+                    a[8] = vz;
+                    out.add(a);
+                    found = true;
+                }
+                if (found) break;
+            }
+        }
     }
 
     /** The foothold after b on the way to the goal: the lowest bound among b's moves off its platform. */

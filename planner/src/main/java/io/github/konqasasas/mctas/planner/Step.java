@@ -31,8 +31,25 @@ final class Step implements Move {
     /** 0 straight, +1 strafe left (A, yaw turned 45 degrees right of the heading), -1 strafe right (D). */
     final int strafe;
     final int jumpAt;
+    /** Degrees added to the facing on the jump tick: turns the sprint-jump boost away from the aim. */
+    final float jumpTurn;
+    /**
+     * A point to head for first (around a wall, say), or null: the step steers at it while the player
+     * is further from the aim than it is, then at the aim.
+     */
+    final double[] via;
 
     Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt) {
+        this(aimX, aimY, aimZ, region, strafe, jumpAt, 0F);
+    }
+
+    Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt, float jumpTurn) {
+        this(aimX, aimY, aimZ, region, strafe, jumpAt, jumpTurn, null);
+    }
+
+    Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt, float jumpTurn, double[] via) {
+        this.via = via;
+        this.jumpTurn = jumpTurn;
         this.region = region;
         this.aimX = aimX;
         this.aimY = aimY;
@@ -42,15 +59,19 @@ final class Step implements Move {
     }
 
     Step withJump(int j) {
-        return new Step(aimX, aimY, aimZ, region, strafe, j);
+        return new Step(aimX, aimY, aimZ, region, strafe, j, jumpTurn, via);
     }
 
     Step withStrafe(int s) {
-        return new Step(aimX, aimY, aimZ, region, s, jumpAt);
+        return new Step(aimX, aimY, aimZ, region, s, jumpAt, jumpTurn, via);
+    }
+
+    Step withJumpTurn(float t) {
+        return new Step(aimX, aimY, aimZ, region, strafe, jumpAt, t, via);
     }
 
     Step withAim(double x, double z) {
-        return new Step(x, aimY, z, region, strafe, jumpAt);
+        return new Step(x, aimY, z, region, strafe, jumpAt, jumpTurn, via);
     }
 
     static float heading(double fromX, double fromZ, double toX, double toZ) {
@@ -65,7 +86,10 @@ final class Step implements Move {
      */
     PlayerInput move(Run r) {
         double tx = aimX, tz = aimZ;
-        if (!r.s.onGround) {
+        if (viaFirst(r)) {
+            tx = via[0];
+            tz = via[1];
+        } else if (!r.s.onGround && !r.course.onLadder(r.s)) {
             int k = movesBeforeLanding(r.s.posY, r.s.motionY, aimY);
             if (k > 0) {
                 // Coasting landing point, and how far a full push now moves it.
@@ -123,9 +147,17 @@ final class Step implements Move {
         return -1;
     }
 
+    /** Still heading for the via point: further from the aim than the via point is. */
+    private boolean viaFirst(Run r) {
+        if (via == null) return false;
+        double dp = Math.hypot(aimX - r.s.posX, aimZ - r.s.posZ), dv = Math.hypot(aimX - via[0], aimZ - via[1]);
+        return dp > dv + 0.1;
+    }
+
     /** The jump input: facing the aim, so that the sprint-jump boost points there. */
     PlayerInput jump(Run r) {
-        float h = heading(r.s.posX, r.s.posZ, aimX, aimZ);
+        boolean v = viaFirst(r);
+        float h = heading(r.s.posX, r.s.posZ, v ? via[0] : aimX, v ? via[1] : aimZ) + jumpTurn;
         return r.legal(new PlayerInput(PlayerInput.W | PlayerInput.SPRINT | PlayerInput.JUMP, h, r.s.rotationPitch));
     }
 
@@ -175,6 +207,7 @@ final class Step implements Move {
 
     @Override
     public String toString() {
-        return String.format("aim(%.2f,%.2f) strafe %d jump %d", aimX, aimZ, strafe, jumpAt);
+        return String.format("aim(%.2f,%.2f) strafe %d jump %d turn %.1f", aimX, aimZ, strafe, jumpAt, jumpTurn)
+            + (via == null ? "" : String.format(" via(%.2f,%.2f)", via[0], via[1]));
     }
 }
