@@ -3,6 +3,7 @@ package io.github.konqasasas.mctas.search.bound;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.physics.Aabb;
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 
 import java.util.ArrayList;
@@ -121,6 +122,7 @@ final class RelaxedModel {
 
     RelaxedModel(Problem problem) {
         this.voidY = problem.voidY;
+        if (!problem.inventory.equals(Hotbar.EMPTY)) throw new Unsupported("block placement is not supported yet");
         final SparseBlockWorld world = problem.world;
         world.forEach(new SparseBlockWorld.Visitor() {
             @Override

@@ -15,12 +15,12 @@ import java.nio.file.Paths;
 public final class Main {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-search bound <problem.json>...",
+        "  mctas-search bound [--cell S] [--cap N] [--trace] <problem.json>...",
         "  mctas-search beam <problem.json> [--width N] [--out file.tas]");
 
     public static void main(String[] args) throws IOException {
         if (args.length >= 2 && args[0].equals("bound")) {
-            for (int i = 1; i < args.length; i++) bound(args[i]);
+            bound(args);
         } else if (args.length >= 2 && args[0].equals("beam")) {
             beam(args);
         } else {
@@ -55,14 +55,25 @@ public final class Main {
         }
     }
 
-    private static void bound(String file) throws IOException {
+    private static void bound(String[] args) throws IOException {
+        double cell = 0;
+        int cap = 16;
+        boolean trace = false;
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equals("--cell")) cell = Double.parseDouble(args[++i]);
+            else if (args[i].equals("--cap")) cap = Integer.parseInt(args[++i]);
+            else if (args[i].equals("--trace")) trace = true;
+            else bound(args[i], cell, cap, trace);
+        }
+    }
+
+    private static void bound(String file, double cell, int cap, boolean trace) throws IOException {
         Problem problem = ProblemIO.read(Paths.get(file));
         long t0 = System.nanoTime();
         LowerBound lb = new LowerBound(problem);
-        if (System.getenv("MCTAS_TRACE") != null) lb.trace = new StringBuilder();
-        if (System.getenv("MCTAS_NOSPLIT") != null) lb.split = false;
-        if (System.getenv("MCTAS_VERBOSE") != null) lb.verbose = true;
-        if (System.getenv("MCTAS_CAP") != null) lb.cap = Integer.parseInt(System.getenv("MCTAS_CAP"));
+        if (trace) lb.trace = new StringBuilder();
+        lb.cap = cap;
+        lb.cellStep = cell;
         LowerBound.Result r = lb.run(problem.maxTicks);
         if (lb.trace != null) System.out.print(lb.trace);
         long ms = (System.nanoTime() - t0) / 1000000;

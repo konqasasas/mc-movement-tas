@@ -102,6 +102,6 @@
     "ticks": 33,
     "kind": "upper_bound",
     "witness": "09-three-jumps.tas",
-    "note": "baseline beam search"
+    "note": "beam search on the exact physics (mctas-search beam); keeps the 3-tick sprint/sneak toggle gap"
   }
 }

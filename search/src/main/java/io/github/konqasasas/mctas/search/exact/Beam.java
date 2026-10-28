@@ -30,6 +30,26 @@ public final class Beam {
     /** Minimum ticks between two ticks that change the sprint or sneak state. */
     public static final int TOGGLE_GAP = 3;
 
+    /**
+     * The ticks (1-based) of {@code inputs}, run from the spawn, at which the sprint or sneak state
+     * changes less than {@link #TOGGLE_GAP} ticks after the previous change, up to tick {@code last}.
+     */
+    public static List<Integer> toggleViolations(Problem problem, List<TickInput> inputs, int last) {
+        ExactModel model = new ExactModel(problem);
+        PlayerState s = model.spawn(problem);
+        List<Integer> out = new ArrayList<Integer>();
+        int prev = -100;
+        for (int t = 1; t <= Math.min(last, inputs.size()); t++) {
+            PlayerState n = model.tick(s, inputs.get(t - 1));
+            if (n.sprinting != s.sprinting || n.prevSneak != s.prevSneak) {
+                if (t - prev < TOGGLE_GAP) out.add(t);
+                prev = t;
+            }
+            s = n;
+        }
+        return out;
+    }
+
     public static final class Result {
         public final List<TickInput> inputs;
         public final RunResult run;

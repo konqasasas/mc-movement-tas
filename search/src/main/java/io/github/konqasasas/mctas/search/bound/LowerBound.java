@@ -78,7 +78,7 @@ public final class LowerBound {
         }
     }
 
-    static int WIDEN_AFTER = System.getenv("MCTAS_WIDEN") != null ? Integer.parseInt(System.getenv("MCTAS_WIDEN")) : 6;
+    static final int WIDEN_AFTER = 6;
 
     private static final class Sets {
         HState h;
@@ -288,30 +288,26 @@ public final class LowerBound {
                 }
             }
         }
-        if (System.getenv("MCTAS_DUMPPRE") != null) {
-            for (Map.Entry<Key, Sets> e : sets.entrySet()) {
-                if (e.getKey().v.toString().contains(System.getenv("MCTAS_DUMPPRE"))) {
-                    System.err.println("PRE " + e.getKey().v + " cell " + e.getKey().cell + " " + e.getValue().h + " xv " + e.getValue().h.xv + " zv " + e.getValue().h.zv + " XV" + e.getValue().h.xv.vertices());
-                }
-            }
-        }
         return sets;
     }
+
+    /**
+     * When positive, the cells within two blocks of the start box are cut further into slices at
+     * most this wide on each axis. Finer cells give tighter bounds and cost time.
+     */
+    public double cellStep;
 
     /** Split sets before the start into position cells around the start box (see {@link #cells}). */
     public boolean split = true;
 
     /**
      * Splits a set near the start box into cells bounded by the start box faces and the edges of
-     * the blocks under it, so that joins do not mix, say, a player far out to the side with one on
-     * the blocks. Away from the start box the set is kept whole.
+     * the blocks near it (and finer slices, see {@link #cellStep}), so that joins do not mix, say,
+     * a player out to the side with one on the blocks.
      */
     private Map<Long, HState> cells(HState h) {
         Map<Long, HState> out = new LinkedHashMap<Long, HState>();
-        Region st = problem.start;
-        double margin = 3.0;
-        if (!split || (System.getenv("MCTAS_FAR") != null && (h.pos.maxX() < st.minX - margin || h.pos.minX() > st.maxX + margin
-            || h.pos.maxZ() < st.minZ - margin || h.pos.minZ() > st.maxZ + margin))) {
+        if (!split) {
             out.put(Long.MIN_VALUE, h);
             return out;
         }
@@ -346,8 +342,8 @@ public final class LowerBound {
             xs.add(r.x0);
             xs.add(r.x1);
         }
-        if (System.getenv("MCTAS_XSTEP") != null) {
-            double step = Double.parseDouble(System.getenv("MCTAS_XSTEP"));
+        if (cellStep > 0) {
+            double step = cellStep;
             double[] base = toArray(xs);
             for (int i = 0; i + 1 < base.length; i++) {
                 double a = Math.max(base[i], st.minX - 2), b = Math.min(base[i + 1], st.maxX + 2);
@@ -355,8 +351,8 @@ public final class LowerBound {
             }
         }
         xCuts = toArray(xs);
-        if (System.getenv("MCTAS_ZSTEP") != null) {
-            double step = Double.parseDouble(System.getenv("MCTAS_ZSTEP"));
+        if (cellStep > 0) {
+            double step = cellStep;
             double[] base = toArray(zs);
             for (int i = 0; i + 1 < base.length; i++) {
                 double a = Math.max(base[i], st.minZ - 2), b = Math.min(base[i + 1], st.maxZ + 2);
@@ -414,7 +410,6 @@ public final class LowerBound {
             for (int i = 0; i < pieces.size(); i++) {
                 HState piece = pieces.get(i);
                 if (piece.isEmpty()) continue;
-                if (System.getenv("MCTAS_ONLYFACE") != null && faces.get(i) != Integer.parseInt(System.getenv("MCTAS_ONLYFACE"))) continue;
                 for (RelaxedModel.Next n : model.step(key.v, key.rect, piece)) {
                     work++;
                     if (n.v.minY < st.minY || n.v.minY > st.maxY) continue;
