@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockAnvil;
 import net.minecraft.block.BlockBasePressurePlate;
 import net.minecraft.block.BlockObserver;
-import net.minecraft.block.BlockRailDetector;
+import net.minecraft.block.BlockRailBase;
 import net.minecraft.block.BlockRedstoneOre;
 import net.minecraft.block.BlockRedstoneTorch;
 import net.minecraft.block.BlockTripWire;
@@ -225,8 +225,9 @@ public final class BlockTableWriter {
                 || b instanceof BlockReed || b instanceof BlockChorusFlower || b instanceof BlockCocoa
                 || b instanceof BlockBush || b instanceof BlockFire || b instanceof BlockStem || b instanceof BlockSponge
                 || b instanceof BlockPistonBase || b instanceof BlockPistonExtension
-                // The player powers these, or they pulse or notify their neighbours when placed.
-                || b instanceof BlockBasePressurePlate || b instanceof BlockTripWire || b instanceof BlockRailDetector
+                // The player powers these, or they pulse or notify their neighbours when placed; powered
+                // rails also break when placed without support.
+                || b instanceof BlockBasePressurePlate || b instanceof BlockTripWire || b instanceof BlockRailBase
                 || b instanceof BlockObserver || b instanceof BlockRedstoneTorch || b instanceof BlockRedstoneOre) {
             f |= 16;
         }
