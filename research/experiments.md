@@ -25,3 +25,6 @@
 | E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
 | E-020 | 2026-10-28 | 実際のワールドから書き出した問題を解いて実機再生 | ユーザーが `/mctas export test1` で書き出した問題(10 ジャンプほど、石と羊毛)を `mctas-approx solve test1.problem.json out --budget 60`(approx v2)で解き、実機で `/mctas replay problems/test1.problem.json problems/test1.tas` | 86 ティック。実機も 86 ティックで全ティック一致 | F-023 |
 | E-021 | 2026-10-28 | stpt1(低い天井・段差の通路)で人間の記録と比べる | `mctas-approx solve problems/real/stpt1.problem.json out --budget 60`、解を `mctas-problem time --trace` で区間に分ける | 232 ティック(人間は約 187)。遅れは天井の終わりと段差の 3 区間に集中 | F-024 |
+| E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
+| E-023 | 2026-10-28 | stpt1 を人間の解から磨く | `mctas-approx solve problems/real/stpt1.problem.json out --budget 120 --seed stpt1-human187.tas` | 187 のまま、改善なし(98 秒) | F-026 |
+| E-024 | 2026-10-28 | F-024 の対応の悪化確認 | `mctas-approx gen /tmp/dev2 v1-dev2 9 16` を v2(`ce94d4a`)と `c41692a` で `--budget 20` | 14 問ずつ解け、2 問で良く 2 問で 1 ティック悪い | F-027 |

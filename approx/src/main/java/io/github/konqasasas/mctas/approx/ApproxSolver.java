@@ -35,6 +35,7 @@ public final class ApproxSolver {
     private final long budgetMillis;
     private PrintStream log;
     private boolean fixedYawLanes;
+    private List<TickInput> seed;
 
     public ApproxSolver(Problem problem, long budgetMillis) {
         this.problem = problem;
@@ -44,6 +45,12 @@ public final class ApproxSolver {
     /** Also search keys only at a fixed yaw (off by default: it has not paid off yet, F-024). */
     public ApproxSolver fixedYawLanes(boolean on) {
         this.fixedYawLanes = on;
+        return this;
+    }
+
+    /** A known solution to start from (a human run, say): the search polishes it and tries to beat it. */
+    public ApproxSolver seed(List<TickInput> inputs) {
+        this.seed = inputs;
         return this;
     }
 
@@ -108,6 +115,32 @@ public final class ApproxSolver {
                 bestTicks = ticks;
                 foundAt = System.currentTimeMillis() - t0;
                 say("route " + i + " pilot: " + ticks + " ticks");
+            }
+        }
+        if (seed != null) {
+            List<PlayerInput> in = new ArrayList<PlayerInput>();
+            for (TickInput ti : seed) in.add(io.github.konqasasas.mctas.problem.judge.PhysicsModel.toPhysics(ti));
+            int ticks = Rollout.ticks(problem, in, new int[1]);
+            if (ticks < 0) {
+                say("seed: does not finish under the rules; ignored");
+            } else {
+                say("seed: " + ticks + " ticks");
+                if (ticks < bestTicks) {
+                    best = in;
+                    bestTicks = ticks;
+                    foundAt = System.currentTimeMillis() - t0;
+                }
+                // Polish the seed along the route the pilot liked best, with up to half the budget.
+                int r0 = 0;
+                for (int i = 1; i < routes.size(); i++) if (pilotTicks[i] < pilotTicks[r0]) r0 = i;
+                long left = deadline - System.currentTimeMillis();
+                Refiner.Outcome o = new Refiner(problem, routes.get(r0)).deadline(System.currentTimeMillis() + left / 2).improve(in, ticks);
+                if (o.ticks < bestTicks) {
+                    best = o.inputs;
+                    bestTicks = o.ticks;
+                    foundAt = System.currentTimeMillis() - t0;
+                    say("seed refined: " + bestTicks + " ticks at " + foundAt + " ms");
+                }
             }
         }
         List<Integer> order = new ArrayList<Integer>();
