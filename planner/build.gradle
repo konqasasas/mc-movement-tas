@@ -1,0 +1,19 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':physics')
+    implementation project(':problem')
+    implementation project(':technique')
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.planner.cli.PlannerMain'
+    applicationName = 'mctas-planner'
+    applicationDefaultJvmArgs = ['-Xmx6g']
+}
+
+run {
+    workingDir = rootProject.projectDir
+}
