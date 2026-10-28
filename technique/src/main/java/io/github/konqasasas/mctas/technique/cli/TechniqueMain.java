@@ -28,8 +28,14 @@ public final class TechniqueMain {
             return;
         }
         switch (args[0]) {
+            case "ladder":
+                ladder(args);
+                break;
             case "window":
                 window(args);
+                break;
+            case "runup":
+                runup(args);
                 break;
             case "segment":
                 segment(args);
@@ -43,7 +49,13 @@ public final class TechniqueMain {
         System.err.println("usage:\n"
                 + "  mctas-technique segment <problem.json> <inputs.tas> <fromTick> <headingYaw> <px|goal> <pz> <minY> <ground 0|1>\n        [--width N] [--cap N] [--max ticks] [--offsets a,b,c] [--extra N] [--cells 0|1]\n"
                 + "        replays the inputs to fromTick, then searches for the fastest way past the plane through\n"
-                + "        (px, pz) across the heading, feet at or above minY; compares with the inputs' own crossing");
+                + "        (px, pz) across the heading, feet at or above minY; compares with the inputs' own crossing\n"
+                + "  mctas-technique runup <problem.json> <tries> <out.tas> <headingYaw> [width]\n"
+                + "        searches the run-up into the start box, then from the best <tries> entries to the goal\n"
+                + "  mctas-technique ladder [width]\n"
+                + "        compares holding W with the search for climbing a ladder onto a wall\n"
+                + "  mctas-technique window\n"
+                + "        prints the clean jump distances for climbing a step");
     }
 
     /** Prints the clean jump windows for step heights, ceilings, entry speeds and takeoffs as Markdown. */
@@ -68,6 +80,30 @@ public final class TechniqueMain {
         }
     }
 
+    /** Prints ladder climbs (holding W against the search) as Markdown, and the searched inputs. */
+    private static void ladder(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 120;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        System.out.println("| height | entry | hold W | search |");
+        System.out.println("| --- | --- | --- | --- |");
+        StringBuilder detail = new StringBuilder();
+        for (int h : new int[] {2, 3, 4, 6, 8}) {
+            for (boolean running : new boolean[] {false, true}) {
+                io.github.konqasasas.mctas.technique.LadderBench.Row r =
+                        io.github.konqasasas.mctas.technique.LadderBench.run(h, 0.5, running, o);
+                System.out.printf("| %d | %s | %d | %d |%n", h, running ? "running, 0.5 before" : "standing, 0.5 before",
+                        r.holdW, r.search);
+                if (r.inputs != null) {
+                    detail.append("height ").append(h).append(running ? " running" : " standing").append(":");
+                    for (PlayerInput x : r.inputs) detail.append(' ').append(x.keyString()).append('@').append(x.yaw);
+                    detail.append('\n');
+                }
+            }
+        }
+        System.out.print(detail);
+    }
+
     private static String ranges(List<StepWindow.Jump> js) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -88,6 +124,66 @@ public final class TechniqueMain {
             i = j + 1;
         }
         return sb.length() == 0 ? "none" : sb.toString();
+    }
+
+    /**
+     * Searches the run-up from the spawn for ways into the start box (from outside it), ranks the entry
+     * states by how far along and how fast they are, then searches from the best few to the goal and
+     * writes the fastest whole run.
+     */
+    private static void runup(String[] a) throws Exception {
+        Problem p = ProblemIO.read(Paths.get(a[1]));
+        int tries = Integer.parseInt(a[2]);
+        String out = a[3];
+        float heading = Float.parseFloat(a[4]);
+        int width = a.length > 5 ? Integer.parseInt(a[5]) : 20000;
+        PhysicsModel m = new PhysicsModel(p);
+        PlayerState spawn = m.spawn(p);
+        Exit entry = (before, after) -> p.start.contains(after.posX, after.posY, after.posZ)
+                && !p.start.contains(before.posX, before.posY, before.posZ);
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.width = width;
+        o.maxTicks = 60;
+        o.extraTicks = 25;
+        o.results = 100000;
+        o.voidY = p.voidY;
+        List<SegmentSearch.Result> ins = new SegmentSearch().search(p.world, spawn, Integer.MIN_VALUE / 2, entry,
+                heading, o);
+        double r = Math.toRadians(heading);
+        double dx = -Math.sin(r), dz = Math.cos(r);
+        java.util.function.ToDoubleFunction<SegmentSearch.Result> lead =
+                q -> q.end.posX * dx + q.end.posZ * dz + 3 * (q.end.motionX * dx + q.end.motionZ * dz);
+        ins.sort((x, y) -> Double.compare(lead.applyAsDouble(y), lead.applyAsDouble(x)));
+        System.out.println(ins.size() + " ways into the start");
+        Exit goal = Exit.box(p.goal.minX, p.goal.minY, p.goal.minZ, p.goal.maxX, p.goal.maxY, p.goal.maxZ);
+        List<TickInput> best = null;
+        int bestTicks = Integer.MAX_VALUE;
+        for (int k = 0; k < Math.min(tries, ins.size()); k++) {
+            SegmentSearch.Result e = ins.get(k);
+            System.out.printf("entry %d: after %d ticks, %s%n", k, e.ticks(), e.end);
+            SegmentSearch.Options g = new SegmentSearch.Options();
+            g.width = width;
+            g.maxTicks = Math.min(p.maxTicks, bestTicks == Integer.MAX_VALUE ? 300 : bestTicks);
+            g.voidY = p.voidY;
+            List<SegmentSearch.Result> rest = new SegmentSearch().search(p.world, e.end, e.lastToggle - e.ticks(), goal,
+                    io.github.konqasasas.mctas.technique.Technique.headingTo(e.end, (p.goal.minX + p.goal.maxX) / 2,
+                            (p.goal.minZ + p.goal.maxZ) / 2), g);
+            if (rest.isEmpty()) continue;
+            List<TickInput> all = new ArrayList<TickInput>();
+            for (PlayerInput x : e.inputs) all.add(toTick(x));
+            for (PlayerInput x : rest.get(0).inputs) all.add(toTick(x));
+            io.github.konqasasas.mctas.problem.judge.RunResult rr = io.github.konqasasas.mctas.problem.judge.Evaluator.run(p, all);
+            List<Integer> viol = io.github.konqasasas.mctas.problem.judge.ToggleRule.violations(p, all);
+            System.out.println("  -> " + rr.status + " " + rr.ticks() + " ticks, toggle violations " + viol);
+            if (rr.finished() && viol.isEmpty() && rr.ticks() < bestTicks) {
+                bestTicks = rr.ticks();
+                best = all;
+            }
+        }
+        if (best != null) {
+            Files.write(Paths.get(out), InputText.format(best, p.spawn).getBytes(StandardCharsets.UTF_8));
+            System.out.println("wrote " + bestTicks + " ticks to " + out);
+        }
     }
 
     /**

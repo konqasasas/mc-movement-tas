@@ -115,4 +115,17 @@ public class TechniqueTest {
         }
         assertTrue(any);
     }
+
+    @Test
+    public void fastModeAnswersQuickly() {
+        SparseBlockWorld w = StepWindow.world(1.0, 30, 0, 0);
+        PlayerState entry = sprinting(25.0);
+        Target top = new Target(-3, 4, 31, 33, StepWindow.FLOOR + 1);
+        long t0 = System.nanoTime();
+        List<Technique.Segment> segs = Technique.solve(w, entry, 100, Exit.landing(top), 0, 5_000,
+                SegmentSearch.Options.fast());
+        long ms = (System.nanoTime() - t0) / 1_000_000;
+        assertFalse(segs.isEmpty());
+        assertTrue("took " + ms + " ms", ms < 3_000);
+    }
 }

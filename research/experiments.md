@@ -25,3 +25,6 @@
 | E-025 | 2026-10-28 | stpt1 の段差区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique segment <stpt1.problem.json> <stpt1.tas> 103 0 8.5 65 12 0 --width 20000 --max 80`(B は `156 0 8.5 78 12 0`、C は `192 0 goal 0 0 0`。人間の解は 122、159、183) | 近似 36/37/47 → 25/26/39。人間 24/28/38 → 24/27/38 | F-029 |
 | E-026 | 2026-10-28 | 段差の踏み切りの窓 | 同じブランチで `mctas-technique window` | 高さ 1、走りで 0.79〜2.51。天井が 1 ブロック手前までなら後ろ向きのジャンプだけ | F-030 |
 | E-401 | 2026-10-28 | 局所探索で近似の解の途中からゴールまで | ブランチ `claude/project-thread-usu2am` で `MCTAS_SPLICE=out.tas mctas-technique segment <stpt1.problem.json> <stpt1.tas> 7 0 goal 0 0 0 --width 20000 --max 240`(103 からも) | 7 から 191、103 から 196。違反なし | F-401 |
+| E-402 | 2026-10-28 | stpt1 の 191 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-191.tas`(問題は `/mnt/project-files/ws3b/stpt1/`) | 191 ティック、全ティック一致 | F-402 |
+| E-403 | 2026-10-28 | stpt1 をスポーンから全自動で(助走の探索つき) | ブランチ `claude/project-thread-usu2am` で `mctas-technique runup <stpt1.problem.json> 3 out.tas 0 20000` | 187、違反なし | F-403 |
+| E-404 | 2026-10-28 | 壁の梯子の登り | 同じブランチで `mctas-technique ladder 3000` | W 押しより 11〜13 ティック速い | F-404 |
