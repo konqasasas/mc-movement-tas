@@ -100,8 +100,8 @@
   },
   "target": {
     "ticks": 33,
-    "kind": "upper_bound",
+    "kind": "optimal",
     "witness": "09-three-jumps.tas",
-    "note": "beam search on the exact physics (mctas-search beam); keeps the 3-tick sprint/sneak toggle gap"
+    "note": "proven: the witness reaches the goal in 33 ticks and mctas-search bound proves no run is faster"
   }
 }
