@@ -44,11 +44,18 @@ public final class Physics {
         return s;
     }
 
-    /** Advances {@code s} by one tick in place. */
-    public static void step(BlockWorld world, PlayerState s, PlayerInput input) {
+    /**
+     * Advances {@code s} by one tick in place. {@code world} is the base world; blocks the player places
+     * go to {@link PlayerState#placed}, never into {@code world}.
+     */
+    public static void step(BlockWorld base, PlayerState s, PlayerInput input) {
         // The view turns between ticks (Minecraft.runTick -> mouse), so the tick sees the new angles.
         s.rotationYaw = input.yaw;
         s.rotationPitch = input.pitch;
+
+        // Minecraft.runTick: the right-click delay, the hotbar keys and right-clicks, before the player moves.
+        Placement.beforeMove(base, s, input);
+        BlockWorld world = s.world(base);
 
         // Entity.onEntityUpdate
         handleWaterMovement(world, s);
@@ -154,6 +161,15 @@ public final class Physics {
             s.setPosition(cx, s.posY, cz);
         }
         updateSize(world, s);
+        if (!s.isSneaking() && s.height == 1.65F) {
+            // Released sneak under a low ceiling: the client stays short, but the server checks for room
+            // at the position it was last sent and may stand its player up, then pull the client back
+            // when the taller box hits the ceiling (F-013).
+            s.unsupportedAction = true;
+        }
+
+        // EntityPlayerSP.onUpdate, after super.onUpdate: what the server is told.
+        Placement.afterMove(s);
     }
 
     /** {@code EntityLivingBase.jump}. */

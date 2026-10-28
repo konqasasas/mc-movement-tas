@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * {@code /mctas fuzz [shapes] [runs] [ticks] [firstSeed]}, {@code /mctas script <file>}, {@code /mctas record},
- * {@code /mctas replay <problem> <solution>}, {@code /mctas stop}. Script files are read from
+ * {@code /mctas replay <problem> <solution> [force]}, {@code /mctas stop}. Script files are read from
  * {@code .minecraft/mctas/scripts}; replay paths are absolute or relative to {@code .minecraft/mctas}.
  */
 final class McTasCommand extends CommandBase {
@@ -30,7 +30,7 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [shapes|fluids] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> | record | stop";
+        return "/mctas fuzz [shapes|fluids|place] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | stop";
     }
 
     @Override
@@ -48,7 +48,7 @@ final class McTasCommand extends CommandBase {
         String sub = args.length == 0 ? "" : args[0];
         try {
             if (sub.equals("fuzz")) {
-                String course = args.length > 1 && (args[1].equals("shapes") || args[1].equals("fluids")) ? args[1] : "full";
+                String course = args.length > 1 && (args[1].equals("shapes") || args[1].equals("fluids") || args[1].equals("place")) ? args[1] : "full";
                 int i = course.equals("full") ? 1 : 2;
                 int runs = args.length > i ? parseInt(args[i], 1) : 100;
                 int ticks = args.length > i + 1 ? parseInt(args[i + 1], 1) : 200;
@@ -63,7 +63,8 @@ final class McTasCommand extends CommandBase {
                 controller.startScript(f);
             } else if (sub.equals("replay") && args.length > 2) {
                 File dir = new File(Minecraft.getMinecraft().gameDir, "mctas");
-                controller.startReplay(resolve(dir, args[1]), resolve(dir, args[2]));
+                controller.startReplay(resolve(dir, args[1]), resolve(dir, args[2]),
+                        args.length > 3 && args[3].equals("force"));
             } else if (sub.equals("record")) {
                 controller.startRecord();
             } else if (sub.equals("stop")) {

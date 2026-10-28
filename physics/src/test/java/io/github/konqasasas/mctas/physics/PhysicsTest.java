@@ -21,6 +21,33 @@ public class PhysicsTest {
         assertNull(next.firstDifference(s));
     }
 
+    /**
+     * The client's box touches the cell at x = 1.0 exactly, but the server rebuilds its box from the
+     * position (1.3000000119209287 - 0.3F = 0.9999999999999998) and refuses the block (F-012).
+     */
+    @Test
+    public void placingIsDecidedOnTheServersBoxToo() {
+        SparseBlockWorld w = floor();
+        BlockType cobble = VanillaBlocks.require("minecraft:cobblestone");
+        w.setBlock(-1, 65, 3, cobble);
+        PlayerInput click = new PlayerInput(PlayerInput.USE, 90.0F, 17.0F);
+
+        PlayerState s = PlayerState.standing(1.3000000119209287D, 64, 3.5, 90.0F);
+        Aabb b = s.box;
+        s.box = new Aabb(1.0D, b.minY, b.minZ, 1.0D + (double) 0.6F, b.maxY, b.maxZ);
+        s.hotbar = Hotbar.EMPTY.with(0, cobble, 5);
+        Physics.step(w, s, click);
+        assertTrue(s.unsupportedAction);
+        assertTrue(s.placed.isEmpty());
+
+        PlayerState t = PlayerState.standing(1.5, 64, 3.5, 90.0F);
+        t.hotbar = Hotbar.EMPTY.with(0, cobble, 5);
+        Physics.step(w, t, click);
+        assertFalse(t.unsupportedAction);
+        assertEquals(cobble, t.placed.get(0, 65, 3));
+        assertEquals(4, t.hotbar.count(0));
+    }
+
     @Test
     public void tickDoesNotModifyItsArgument() {
         SparseBlockWorld w = floor();

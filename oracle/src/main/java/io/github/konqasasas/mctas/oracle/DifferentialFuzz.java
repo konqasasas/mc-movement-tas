@@ -10,7 +10,7 @@ import java.util.List;
  * Runs {@link RandomScenario}s through both {@link Physics} and {@link VanillaOracle} and compares
  * every field of every tick bitwise.
  *
- * <p>Usage: {@code DifferentialFuzz [runs] [ticks] [firstSeed] [full|shapes|fluids]}, the course kind
+ * <p>Usage: {@code DifferentialFuzz [runs] [ticks] [firstSeed] [full|shapes|fluids|place]}, the course kind
  * of {@link RandomScenario#generate(String, long, int)}.
  */
 public final class DifferentialFuzz {
@@ -26,6 +26,9 @@ public final class DifferentialFuzz {
         for (int t = 0; t < sc.inputs.size(); t++) {
             Physics.step(sc.world, s, sc.inputs.get(t));
             String field = s.firstDifference(expected.get(t));
+            if (field == null && !s.placed.sameBlocks(expected.get(t).placed)) {
+                field = "placed";
+            }
             if (field != null) {
                 return "seed " + sc.seed + " tick " + t + " field " + field + " input " + sc.inputs.get(t)
                         + "\n  physics: " + s + "\n  vanilla: " + expected.get(t)

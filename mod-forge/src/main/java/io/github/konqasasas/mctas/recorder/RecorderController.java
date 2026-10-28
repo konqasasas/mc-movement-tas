@@ -1,6 +1,8 @@
 package io.github.konqasasas.mctas.recorder;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.EngineBuild;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -73,6 +75,10 @@ public final class RecorderController {
     private static final int FUZZ_MAX_Y = 72;
     private static final int SETTLE_TICKS = 15;
     private static final int SETTLE_TIMEOUT = 100;
+    /** What a run that set {@code PlayerState.unsupportedAction} did. */
+    private static final String UNSUPPORTED = "the inputs did something the engine does not model (right-clicked a"
+            + " block that opens or toggles, placed a block the server may refuse, or let go of sneak under a"
+            + " low ceiling)";
     /** Largest area the replay mode clears, in blocks. */
     private static final long REPLAY_MAX_VOLUME = 4000000L;
 
@@ -114,6 +120,14 @@ public final class RecorderController {
     private SparseBlockWorld course;
     /** What the player holds while settling before a run. */
     private PlayerInput settleInput;
+    /** The hotbar the server gives the player for the run, or null to leave the inventory alone. */
+    private Hotbar runHotbar;
+    /** True while the run's hotbar, slot and placed blocks are compared with the engine. */
+    private boolean runPlacing;
+    /** The tick on which the engine reached a right-click it does not model, or -1. */
+    private int runUnsupportedTick;
+    /** The player's own hotbar before the first run that replaced it, put back when the session stops. */
+    private volatile net.minecraft.item.ItemStack[] savedHotbar;
     private volatile boolean serverReady;
     private int settleCount;
     private int runsMatched;
@@ -142,6 +156,7 @@ public final class RecorderController {
         openLog("script-" + file.getName().replaceAll("[^A-Za-z0-9._-]", "_"));
         log.println("# script " + file.getAbsolutePath() + ", " + in.size() + " ticks");
         mode = Mode.SCRIPT;
+        runHotbar = null;
         inputs = in;
         driver.install(mc.player);
         beginRun("script");
@@ -154,6 +169,7 @@ public final class RecorderController {
         }
         openLog("record");
         mode = Mode.RECORD;
+        runHotbar = null;
         inputs = null;
         beginRun("record");
         chat("Recording your play. /mctas stop to finish.");
@@ -239,9 +255,12 @@ public final class RecorderController {
             return;
         }
         PlayerState now = PlayerSnapshot.read(p);
+        readPlacement(p, now, lastEnd);
+        // The client counts the delay down before this event, so take it from the end of the last tick.
+        now.rightClickDelay = lastEnd.rightClickDelay;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
-        String field = now.firstDifference(lastEnd);
+        String field = difference(now, lastEnd);
         if (field != null) {
             runBetween++;
             log.println("# between ticks " + (tick - 1) + " and " + tick + ": " + field + " changed outside the player tick");
@@ -262,7 +281,9 @@ public final class RecorderController {
                 return;
             case SETTLE:
                 settleCount++;
-                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient()) {
+                // A replay that places blocks also waits for the position resend the problem starts on.
+                boolean reported = mode != Mode.REPLAY || runHotbar == null || PlayerSnapshot.reportedAtRest(p);
+                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient() && reported) {
                     if (mode == Mode.REPLAY) {
                         beginReplay(p);
                     } else {
@@ -281,6 +302,10 @@ public final class RecorderController {
                 PlayerState real = PlayerSnapshot.read(p);
                 PlayerInput in = mode == Mode.RECORD ? PlayerSnapshot.lastInput(p) : inputs.get(tick);
                 Physics.step(blocks, sim, in);
+                if (sim.unsupportedAction && runUnsupportedTick < 0) {
+                    runUnsupportedTick = tick;
+                }
+                readPlacement(p, real, sim);
                 if (entityNearby(p)) {
                     runEntityTicks++;
                 }
@@ -293,7 +318,7 @@ public final class RecorderController {
                         runWorldChange = "tick " + tick + " " + changed;
                     }
                 }
-                String field = sim.firstDifference(real);
+                String field = difference(sim, real);
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
                 if (field != null) {
@@ -309,7 +334,8 @@ public final class RecorderController {
                 tick++;
                 boolean judged = mode == Mode.REPLAY
                         && judge.observe(new Vec3(real.posX, real.posY, real.posZ));
-                if (mode != Mode.RECORD && (judged || tick >= inputs.size())) {
+                // After something the engine does not model (a door opened, a refused block) the game and the engine part.
+                if (mode != Mode.RECORD && (judged || tick >= inputs.size() || runUnsupportedTick >= 0)) {
                     endRun();
                     // Leave RUN first, or stop() would close the finished run a second time.
                     phase = Phase.PREPARE;
@@ -331,7 +357,55 @@ public final class RecorderController {
         }
     }
 
-    private boolean entityNearby(EntityPlayerSP p) {
+    /**
+     * Fills in the placement fields of {@code real}. Without a hotbar for the run they are taken from
+     * {@code ref} (the person's own inventory is not part of the comparison). With one, the hotbar, slot
+     * and delay are read from the client, and the placed blocks are those of {@code ref} that the client
+     * world shows: a block the engine placed and the client did not drops out, and one the client placed
+     * and the engine did not shows in the hotbar counts.
+     */
+    private void readPlacement(EntityPlayerSP p, PlayerState real, PlayerState ref) {
+        real.prevUse = ref.prevUse;
+        real.unsupportedAction = ref.unsupportedAction;
+        if (!runPlacing) {
+            real.hotbar = ref.hotbar;
+            real.selectedSlot = ref.selectedSlot;
+            real.rightClickDelay = ref.rightClickDelay;
+            real.placed = ref.placed;
+            real.lastReportedPosX = ref.lastReportedPosX;
+            real.lastReportedPosY = ref.lastReportedPosY;
+            real.lastReportedPosZ = ref.lastReportedPosZ;
+            real.positionUpdateTicks = ref.positionUpdateTicks;
+            real.serverSneakState = ref.serverSneakState;
+            real.sneakReportedTicks = ref.sneakReportedTicks;
+            return;
+        }
+        PlayerSnapshot.readPlacement(p, real);
+        // Not kept by the client; it follows from the sneak states already compared.
+        real.sneakReportedTicks = ref.sneakReportedTicks;
+        ClientWorldBlocks live = new ClientWorldBlocks(mc.world);
+        io.github.konqasasas.mctas.physics.WorldDelta shown = io.github.konqasasas.mctas.physics.WorldDelta.EMPTY;
+        for (io.github.konqasasas.mctas.physics.WorldDelta e : ref.placed.entries()) {
+            if (live.getBlock(e.x, e.y, e.z) == e.type) {
+                shown = shown.with(e.x, e.y, e.z, e.type);
+            }
+        }
+        real.placed = shown;
+    }
+
+    /**
+     * The first field that differs, then the placed blocks: in a run with a hotbar, a block the engine
+     * placed that the client world does not show (or no longer shows, once the server took it back).
+     */
+    private String difference(PlayerState a, PlayerState b) {
+        String field = a.firstDifference(b);
+        if (field == null && runPlacing && !a.placed.sameBlocks(b.placed)) {
+            field = "placed";
+        }
+        return field;
+    }
+
+        private boolean entityNearby(EntityPlayerSP p) {
         for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, p.getEntityBoundingBox().grow(1.0D))) {
             if (e.canBePushed()) {
                 return true;
@@ -343,8 +417,17 @@ public final class RecorderController {
     private void beginRun(String label) {
         EntityPlayerSP p = mc.player;
         sim = PlayerSnapshot.read(p);
+        runPlacing = runHotbar != null;
+        runUnsupportedTick = -1;
+        if (runPlacing) {
+            PlayerSnapshot.readPlacement(p, sim);
+        }
         lastEnd = sim.copy();
         blocks = new ClientWorldBlocks(mc.world);
+        if (runPlacing) {
+            // The engine places its own blocks; the client's placed ones would otherwise be in its way.
+            blocks.freeze();
+        }
         tick = 0;
         runMismatches = 0;
         runBetween = 0;
@@ -361,12 +444,16 @@ public final class RecorderController {
     }
 
     private void endRun() {
+        blocks.unfreeze();
         if (mode == Mode.REPLAY) {
             endReplay();
             return;
         }
         String result;
-        if (!blocks.unsupported().isEmpty()) {
+        if (runUnsupportedTick >= 0) {
+            result = "INVALID: at tick " + runUnsupportedTick + " " + UNSUPPORTED;
+            runsInvalid++;
+        } else if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
             runsInvalid++;
         } else if (runScreenOpened) {
@@ -398,9 +485,10 @@ public final class RecorderController {
     /**
      * Plays a solution of a problem on the real player: an {@code mctas-solution} JSON file or a text
      * inputs file. The problem's world is built at its own coordinates, so the area it covers (plus a
-     * margin) is overwritten.
+     * margin) is overwritten. A solution file made by another engine build is refused unless
+     * {@code force}, since its inputs may not do here what they did when it was found.
      */
-    public void startReplay(File problemFile, File solutionFile) throws IOException {
+    public void startReplay(File problemFile, File solutionFile, boolean force) throws IOException {
         if (!checkPlayer()) {
             return;
         }
@@ -411,11 +499,19 @@ public final class RecorderController {
         Problem pr;
         List<TickInput> solution;
         JsonObject expected;
+        String buildWarning = null;
         try {
             pr = ProblemIO.read(problemFile.toPath());
             String json = new String(java.nio.file.Files.readAllBytes(solutionFile.toPath()), StandardCharsets.UTF_8);
             if (json.trim().startsWith("{")) {
                 solution = SolutionIO.readInputs(json);
+                String recorded = SolutionIO.readEngineBuild(json);
+                buildWarning = SolutionIO.buildMismatch(recorded);
+                if (recorded != null && buildWarning != null && !force) {
+                    chat("refused: " + buildWarning + ". Rebuild the mod from the same commit as the solution,"
+                            + " or add 'force' to replay anyway.");
+                    return;
+                }
                 JsonObject root = new JsonParser().parse(json).getAsJsonObject();
                 expected = root.has("result") ? root.getAsJsonObject("result") : new JsonObject();
             } else {
@@ -445,6 +541,10 @@ public final class RecorderController {
         log.println("# replay of " + solutionFile.getAbsolutePath() + " (" + in.size() + " ticks) on problem "
                 + pr.id + " from " + problemFile.getAbsolutePath());
         log.println("# solution file says: " + replayExpected);
+        if (buildWarning != null) {
+            log.println("# warning: " + buildWarning);
+            chat("warning: " + buildWarning);
+        }
         log.println("# engine predicts:    " + describe(enginePrediction));
         log.println("# cleared and built: " + box[0] + " " + box[1] + " " + box[2] + " .. " + box[3] + " " + box[4] + " " + box[5]);
         mode = Mode.REPLAY;
@@ -452,7 +552,8 @@ public final class RecorderController {
         course = pr.world;
         originX = 0;
         originZ = 0;
-        settleInput = new PlayerInput(0, pr.spawn.yaw, pr.spawn.pitch);
+        runHotbar = pr.inventory.equals(Hotbar.EMPTY) && pr.selectedSlot == 0 ? null : pr.inventory;
+        settleInput = new PlayerInput(0, pr.spawn.yaw, pr.spawn.pitch, runHotbar == null ? -1 : pr.selectedSlot);
         driver.install(mc.player);
         chat("Replaying " + in.size() + " ticks of " + solutionFile.getName() + " on " + pr.id
                 + ". The area " + box[0] + " " + box[1] + " " + box[2] + " .. " + box[3] + " " + box[4] + " " + box[5]
@@ -505,6 +606,9 @@ public final class RecorderController {
         List<String> notes = new java.util.ArrayList<String>();
         if (replayOffSpawn) {
             notes.add("the player did not start exactly at the spawn");
+        }
+        if (runUnsupportedTick >= 0) {
+            notes.add("stopped at tick " + runUnsupportedTick + ": " + UNSUPPORTED);
         }
         if (!blocks.unsupported().isEmpty()) {
             notes.add("touched unsupported blocks " + blocks.unsupported());
@@ -580,7 +684,9 @@ public final class RecorderController {
         }
         inputs = scenario.inputs;
         course = scenario.world;
-        settleInput = PlayerInput.of(0, scenario.start.rotationYaw);
+        runHotbar = scenario.start.hotbar.equals(Hotbar.EMPTY) ? null : scenario.start.hotbar;
+        settleInput = new PlayerInput(0, scenario.start.rotationYaw, 0.0F,
+                runHotbar == null ? -1 : scenario.start.selectedSlot);
         PlayerState st = scenario.start;
         build(new int[] {originX - FUZZ_RADIUS, FUZZ_MIN_Y, originZ - FUZZ_RADIUS,
                 originX + FUZZ_RADIUS, FUZZ_MAX_Y, originZ + FUZZ_RADIUS},
@@ -601,10 +707,14 @@ public final class RecorderController {
         final int oz = originZ;
         final IntegratedServer server = mc.getIntegratedServer();
         final java.util.UUID id = mc.player.getUniqueID();
+        final Hotbar hotbar = runHotbar;
         server.addScheduledTask(new Runnable() {
             @Override
             public void run() {
                 buildOnServer(server, id, world, ox, oz, box, x, y, z, yaw, pitch, invulnerable);
+                if (hotbar != null) {
+                    giveHotbar(server, id, hotbar);
+                }
                 serverReady = true;
             }
         });
@@ -648,7 +758,40 @@ public final class RecorderController {
         }
     }
 
+    /** Puts {@code hotbar} into the player's hotbar on the server, keeping the player's own for later. */
+    private void giveHotbar(IntegratedServer server, java.util.UUID id, Hotbar hotbar) {
+        EntityPlayerMP mp = server.getPlayerList().getPlayerByUUID(id);
+        if (mp == null) {
+            return;
+        }
+        if (savedHotbar == null) {
+            net.minecraft.item.ItemStack[] own = new net.minecraft.item.ItemStack[Hotbar.SLOTS];
+            for (int i = 0; i < Hotbar.SLOTS; i++) {
+                own[i] = mp.inventory.getStackInSlot(i).copy();
+            }
+            savedHotbar = own;
+        }
+        for (int i = 0; i < Hotbar.SLOTS; i++) {
+            BlockType t = hotbar.item(i);
+            net.minecraft.item.ItemStack st = net.minecraft.item.ItemStack.EMPTY;
+            if (t != null) {
+                IBlockState s = vanilla(t);
+                st = new net.minecraft.item.ItemStack(s.getBlock(), hotbar.count(i), s.getBlock().getMetaFromState(s));
+            }
+            mp.inventory.setInventorySlotContents(i, st);
+        }
+        mp.inventoryContainer.detectAndSendChanges();
+    }
+
     private boolean scenarioBuiltOnClient() {
+        if (runHotbar != null && mc.player != null) {
+            // The hotbar reaches the client in its own packets, after the blocks or before them.
+            PlayerState h = new PlayerState();
+            PlayerSnapshot.readPlacement(mc.player, h);
+            if (!h.hotbar.equals(runHotbar)) {
+                return false;
+            }
+        }
         return firstCourseChange() == null;
     }
 
@@ -660,6 +803,10 @@ public final class RecorderController {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
                 if (first[0] == null) {
+                    if (phase == Phase.RUN && sim != null && sim.placed.get(x + originX, y, z + originZ) != null) {
+                        // Placed into a replaceable block (tall grass, snow) on purpose.
+                        return;
+                    }
                     BlockType now = check.getBlock(x + originX, y, z + originZ);
                     if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
                         first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
@@ -690,6 +837,13 @@ public final class RecorderController {
                 EntityPlayerMP mp = server.getPlayerList().getPlayerByUUID(id);
                 if (mp != null) {
                     mp.capabilities.disableDamage = false;
+                    if (savedHotbar != null) {
+                        for (int i = 0; i < Hotbar.SLOTS; i++) {
+                            mp.inventory.setInventorySlotContents(i, savedHotbar[i]);
+                        }
+                        mp.inventoryContainer.detectAndSendChanges();
+                        savedHotbar = null;
+                    }
                 }
                 if (savedRandomTickSpeed != null) {
                     server.getWorld(0).getGameRules().setOrCreateGameRule("randomTickSpeed", savedRandomTickSpeed);
@@ -722,7 +876,7 @@ public final class RecorderController {
         String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
         logFile = new File(dir, name + "-" + stamp + ".txt");
         log = new PrintWriter(new OutputStreamWriter(new FileOutputStream(logFile), StandardCharsets.UTF_8));
-        log.println("# mctas recorder, Minecraft 1.12.2");
+        log.println("# mctas recorder, Minecraft 1.12.2, engine build " + EngineBuild.ID);
     }
 
     private void chat(String msg) {

@@ -134,6 +134,104 @@ public class BlockType {
         return faces[face.ordinal()];
     }
 
+    // ---- right-clicking, from VanillaBlocks.INTERACTION_TABLE ----
+
+    private boolean rayHittable = true;
+    private boolean materialReplaceable;
+    private boolean replaceable;
+    private boolean activates;
+    private boolean placeable;
+    private Aabb selection = FULL_BLOCK;
+    private boolean replaceableFromNeighbours;
+    private boolean selectionFromNeighbours;
+    private boolean selectionOffsetXZ;
+    private boolean fragile;
+
+    void setInteraction(boolean rayHittable, boolean materialReplaceable, boolean activates, boolean placeable,
+                        boolean replaceable, boolean replaceableFromNeighbours, Aabb selection,
+                        boolean selectionFromNeighbours, boolean selectionOffsetXZ, boolean fragile) {
+        this.rayHittable = rayHittable;
+        this.materialReplaceable = materialReplaceable;
+        this.activates = activates;
+        this.placeable = placeable;
+        this.replaceable = replaceable;
+        this.replaceableFromNeighbours = replaceableFromNeighbours;
+        this.selection = selection;
+        this.selectionFromNeighbours = selectionFromNeighbours;
+        this.selectionOffsetXZ = selectionOffsetXZ;
+        this.fragile = fragile;
+    }
+
+    /** {@code Block.canCollideCheck(state, false)}: the view ray can stop on this block (not air, liquids or fire). */
+    public boolean rayHittable() {
+        return rayHittable;
+    }
+
+    /** {@code Material.isReplaceable()}: a block can be placed into this one. */
+    public boolean isMaterialReplaceable() {
+        return materialReplaceable;
+    }
+
+    /**
+     * {@code Block.isReplaceable(world, pos)}: placing against this block puts the new block here instead
+     * of next to it.
+     *
+     * @throws UnsupportedBlockException for blocks whose answer depends on the neighbours and is not modelled
+     */
+    public boolean isReplaceable(BlockWorld world, int x, int y, int z) {
+        if (replaceableFromNeighbours) {
+            throw new UnsupportedBlockException(name + ": replaceable depends on the neighbours");
+        }
+        return replaceable;
+    }
+
+    /**
+     * True if right-clicking this block without sneaking (or with an empty hand) does something of its own
+     * on the client ({@code onBlockActivated} returns true: doors, chests, buttons, ...), so no block is placed.
+     */
+    public boolean activates() {
+        return activates;
+    }
+
+    /**
+     * True if the block breaks or changes in the real game when a neighbour changes (doors, ladders,
+     * beds, signs, flower pots, ...). The engine's world does not change, so placing a block next to one
+     * leaves the engine and the game apart.
+     */
+    public boolean isFragile() {
+        return fragile;
+    }
+
+    /** True if this is a plain full block that the engine can place from the hotbar. */
+    public boolean isPlaceable() {
+        return placeable;
+    }
+
+    /**
+     * {@code getBoundingBox}: the selection box the view ray hits, block-local, or null for none.
+     *
+     * @throws UnsupportedBlockException for blocks whose box depends on the neighbours and is not modelled
+     */
+    public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+        if (selectionFromNeighbours) {
+            throw new UnsupportedBlockException(name + ": selection box depends on the neighbours");
+        }
+        if (selectionOffsetXZ && selection != null) {
+            // BlockFlower.getBoundingBox: Block.getOffset with EnumOffsetType.XZ, from the position alone.
+            long i = (long) (x * 3129871) ^ (long) z * 116129781L;
+            i = i * i * 42317861L + i * 11L;
+            return selection.offset(((double) ((float) (i >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D, 0.0D,
+                    ((double) ((float) (i >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D);
+        }
+        return selection;
+    }
+
+    /** {@code IBlockState.collisionRayTrace}: where the segment from start to end enters this block, or null. */
+    Placement.Hit rayTrace(BlockWorld world, int x, int y, int z, double[] start, double[] end) {
+        Aabb box = selectionBox(world, x, y, z);
+        return box == null ? null : Placement.rayTrace(x, y, z, start, end, box);
+    }
+
     /** {@code Block.onLanded}: the move ended against something vertically while above this block. */
     void onLanded(PlayerState s) {
         s.motionY = 0.0D;

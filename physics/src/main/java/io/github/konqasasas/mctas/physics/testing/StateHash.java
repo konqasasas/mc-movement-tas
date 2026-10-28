@@ -44,6 +44,15 @@ public final class StateHash {
         mix(s.speedAmplifier);
         mix(s.slownessAmplifier);
         mix(s.jumpBoostAmplifier);
+        // Placement fields only when used, so hashes of runs without placing stay as they were.
+        if (!s.placed.isEmpty() || s.hotbar != io.github.konqasasas.mctas.physics.Hotbar.EMPTY || s.selectedSlot != 0
+                || s.rightClickDelay != 0 || s.prevUse || s.unsupportedAction) {
+            mix(s.placed.contentHash());
+            mix(s.hotbar.hashCode());
+            mix(s.selectedSlot);
+            mix(s.rightClickDelay);
+            mix((s.prevUse ? 1 : 0) | (s.unsupportedAction ? 2 : 0));
+        }
         return this;
     }
 

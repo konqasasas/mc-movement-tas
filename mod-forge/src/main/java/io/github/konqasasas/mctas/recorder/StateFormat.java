@@ -19,7 +19,8 @@ final class StateFormat {
         if (in == null) {
             b.append("- - -");
         } else {
-            String k = in.keyString();
+            // A hotbar slot picked this tick follows the keys after a slash, as in "WU/3".
+            String k = in.keyString() + (in.slot >= 0 ? "/" + in.slot : "");
             b.append(k.isEmpty() ? "-" : k).append(' ').append(Float.toHexString(in.yaw)).append(' ')
                     .append(Float.toHexString(in.pitch));
         }

@@ -1,12 +1,18 @@
 package io.github.konqasasas.mctas.recorder;
 
 import io.github.konqasasas.mctas.physics.Aabb;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.VanillaBlocks;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.MobEffects;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.MovementInput;
@@ -22,6 +28,12 @@ public final class PlayerSnapshot {
     private static final Field SPRINT_TOGGLE_TIMER = field(EntityPlayerSP.class, "sprintToggleTimer", "field_71156_d");
     private static final Field IN_WEB = field(net.minecraft.entity.Entity.class, "isInWeb", "field_70134_J");
     private static final Field IN_WATER = field(net.minecraft.entity.Entity.class, "inWater", "field_70171_ac");
+    private static final Field RIGHT_CLICK_DELAY = field(Minecraft.class, "rightClickDelayTimer", "field_71467_ac");
+    private static final Field LAST_REPORTED_X = field(EntityPlayerSP.class, "lastReportedPosX", "field_175172_bI");
+    private static final Field LAST_REPORTED_Y = field(EntityPlayerSP.class, "lastReportedPosY", "field_175166_bJ");
+    private static final Field LAST_REPORTED_Z = field(EntityPlayerSP.class, "lastReportedPosZ", "field_175167_bK");
+    private static final Field POSITION_UPDATE_TICKS = field(EntityPlayerSP.class, "positionUpdateTicks", "field_175168_bP");
+    private static final Field SERVER_SNEAK_STATE = field(EntityPlayerSP.class, "serverSneakState", "field_175170_bN");
 
     private PlayerSnapshot() {
     }
@@ -42,6 +54,14 @@ public final class PlayerSnapshot {
     private static int getInt(Field f, Object o) {
         try {
             return f.getInt(o);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static double getDouble(Field f, Object o) {
+        try {
+            return f.getDouble(o);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(e);
         }
@@ -88,6 +108,45 @@ public final class PlayerSnapshot {
         s.slownessAmplifier = amplifier(p, MobEffects.SLOWNESS);
         s.jumpBoostAmplifier = amplifier(p, MobEffects.JUMP_BOOST);
         return s;
+    }
+
+    /**
+     * Fills in the hotbar, the selected slot, the right-click delay and what the client last told the
+     * server ({@code sneakReportedTicks} is left as it is). A slot holding something that is
+     * not a block the engine places reads as empty, so the run shows a difference there.
+     */
+    public static void readPlacement(EntityPlayerSP p, PlayerState s) {
+        Hotbar h = Hotbar.EMPTY;
+        for (int i = 0; i < Hotbar.SLOTS; i++) {
+            ItemStack st = p.inventory.getStackInSlot(i);
+            if (st.isEmpty() || !(st.getItem() instanceof ItemBlock)) {
+                continue;
+            }
+            Block b = ((ItemBlock) st.getItem()).getBlock();
+            String name = ClientWorldBlocks.catalogName(b.getStateFromMeta(st.getMetadata()));
+            BlockType t = name == null ? null : VanillaBlocks.get(name);
+            if (t != null && t.isPlaceable() && st.getCount() <= 64) {
+                h = h.with(i, t, st.getCount());
+            }
+        }
+        s.hotbar = h;
+        s.selectedSlot = p.inventory.currentItem;
+        s.rightClickDelay = getInt(RIGHT_CLICK_DELAY, Minecraft.getMinecraft());
+        s.lastReportedPosX = getDouble(LAST_REPORTED_X, p);
+        s.lastReportedPosY = getDouble(LAST_REPORTED_Y, p);
+        s.lastReportedPosZ = getDouble(LAST_REPORTED_Z, p);
+        s.positionUpdateTicks = getInt(POSITION_UPDATE_TICKS, p);
+        s.serverSneakState = getBoolean(SERVER_SNEAK_STATE, p);
+    }
+
+    /**
+     * True when the server has the player where it stands, not sneaking, and the periodic resend has just
+     * happened: the state {@code PlayerState.standing} starts a problem in.
+     */
+    public static boolean reportedAtRest(EntityPlayerSP p) {
+        return getInt(POSITION_UPDATE_TICKS, p) == 0 && !getBoolean(SERVER_SNEAK_STATE, p)
+                && getDouble(LAST_REPORTED_X, p) == p.posX && getDouble(LAST_REPORTED_Y, p) == p.getEntityBoundingBox().minY
+                && getDouble(LAST_REPORTED_Z, p) == p.posZ;
     }
 
     private static int amplifier(EntityPlayerSP p, Potion potion) {

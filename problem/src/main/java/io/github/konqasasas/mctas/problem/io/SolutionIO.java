@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.konqasasas.mctas.physics.EngineBuild;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.Key;
 import io.github.konqasasas.mctas.problem.input.TickInput;
@@ -41,6 +42,7 @@ public final class SolutionIO {
             res.addProperty("goalTick", result.goalTick);
         }
         res.addProperty("model", model);
+        res.addProperty("engineBuild", EngineBuild.ID);
         if (search != null) {
             JsonObject se = new JsonObject();
             se.addProperty("engine", search.engine);
@@ -58,6 +60,7 @@ public final class SolutionIO {
             r.add("keys", keys);
             r.addProperty("yaw", in.yaw);
             r.addProperty("pitch", in.pitch);
+            if (in.slot >= 0) r.addProperty("slot", in.slot);
             rows.add(r);
         }
         root.add("inputs", rows);
@@ -77,6 +80,28 @@ public final class SolutionIO {
         return new SearchInfo(se.get("engine").getAsString(), se.has("wallMillis") ? se.get("wallMillis").getAsLong() : -1);
     }
 
+    /** The {@code result.engineBuild} of a solution file, or null when it has none (files from before it existed). */
+    public static String readEngineBuild(String json) {
+        JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+        JsonObject res = root.has("result") ? root.getAsJsonObject("result") : null;
+        return res != null && res.has("engineBuild") ? res.get("engineBuild").getAsString() : null;
+    }
+
+    /**
+     * Null when a solution recorded by build {@code recorded} is safe to replay or judge with this build,
+     * otherwise a warning that names both builds.
+     */
+    public static String buildMismatch(String recorded) {
+        if (recorded == null) {
+            return "the solution does not say which engine build made it (this is " + EngineBuild.ID + ")";
+        }
+        if (!recorded.equals(EngineBuild.ID)) {
+            return "the solution was made by engine build " + recorded + " but this is " + EngineBuild.ID
+                    + "; the inputs may not do what they did when it was found";
+        }
+        return null;
+    }
+
     public static List<TickInput> readInputs(String json) {
         JsonObject root = new JsonParser().parse(json).getAsJsonObject();
         if (!root.has("format") || !FORMAT.equals(root.get("format").getAsString())) {
@@ -87,7 +112,8 @@ public final class SolutionIO {
             JsonObject r = e.getAsJsonObject();
             Set<Key> keys = EnumSet.noneOf(Key.class);
             for (JsonElement k : r.getAsJsonArray("keys")) keys.add(Key.parse(k.getAsString()));
-            out.add(new TickInput(keys, r.get("yaw").getAsFloat(), r.get("pitch").getAsFloat()));
+            out.add(new TickInput(keys, r.get("yaw").getAsFloat(), r.get("pitch").getAsFloat(),
+                r.has("slot") ? r.get("slot").getAsInt() : -1));
         }
         return out;
     }
