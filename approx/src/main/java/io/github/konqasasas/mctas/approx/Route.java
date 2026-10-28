@@ -420,6 +420,10 @@ public final class Route {
     }
 
     private double plainCost(Surface a, Surface b, JumpTable jumps) {
+        if (System.getenv("EDGE_DEBUG") != null && (a + "|" + b).equals(System.getenv("EDGE_DEBUG"))) {
+            System.err.println("edge " + a + " -> " + b + " walk " + walkable(a, b) + " gap " + rectGap(a, b) + " obs " + obstructed(a, b)
+                + " wall " + wallBetween(a, b) + " dy " + (b.top - a.top) + " reach " + jumps.reach(b.top - a.top) + " fp " + a.minX + ".." + a.maxX + "," + a.minZ + ".." + a.maxZ);
+        }
         if (a.climb || b.climb) return climbCost(a, b, jumps);
         double dy = b.top - a.top;
         double d = centreDist(a, b);
@@ -555,9 +559,10 @@ public final class Route {
         // block's footprint leaves only a sliver of it to stand on.
         for (int i = 0; i <= steps; i++) {
             if (i > leave && i < enter) continue;
-            Surface on = i <= leave ? a : b;
+            // Above the higher of the two: the step up itself is no wall.
+            double y0 = Math.max(a.top, b.top);
             double px = ax + (bx - ax) * i / steps, pz = az + (bz - az) * i / steps;
-            if (solidAt(px, on.top + 0.6, pz, on.top + 1.7, PROBE)) return true;
+            if (solidAt(px, y0 + 0.6, pz, y0 + 1.7, PROBE)) return true;
         }
         double[] arc = jumpArc(a.top, b.top);
         List<Aabb> hit = new ArrayList<Aabb>();
@@ -622,8 +627,49 @@ public final class Route {
         return out;
     }
 
-    /** Of the fall onto a slime block (from the feet's highest point), the height the bounce gives back. */
-    static final double BOUNCE = 0.75;
+    /** Debug: the surfaces reachable from the start box that are nearest the goal. */
+    private void frontier(int reach) {
+        Region st = problem.start, g = problem.goal;
+        boolean[] seen = new boolean[graph.size()];
+        java.util.ArrayDeque<Integer> q = new java.util.ArrayDeque<Integer>();
+        for (int i = 0; i < graph.size(); i++) {
+            Surface c = graph.get(i);
+            if (!c.climb && c.top >= st.minY - 1 && c.top <= st.maxY + 1 && c.maxX >= st.minX && c.minX <= st.maxX && c.maxZ >= st.minZ && c.minZ <= st.maxZ) {
+                seen[i] = true;
+                q.add(i);
+            }
+        }
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            Surface a = graph.get(u);
+            for (int dx = -reach; dx <= reach; dx++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    List<Integer> list = graphByColumn.get(col(a.x + dx, a.z + dz));
+                    if (list == null) continue;
+                    for (int v : list) {
+                        if (seen[v] || edgeCost(a, graph.get(v), jumps) < 0) continue;
+                        seen[v] = true;
+                        q.add(v);
+                    }
+                }
+            }
+        }
+        double gx = (g.minX + g.maxX) / 2, gy = g.minY, gz = (g.minZ + g.maxZ) / 2;
+        List<Surface> r = new ArrayList<Surface>();
+        for (int i = 0; i < graph.size(); i++) if (seen[i]) r.add(graph.get(i));
+        r.sort((a, b) -> Double.compare(Math.hypot(Math.hypot(a.cx() - gx, a.cz() - gz), (a.climb ? a.y : a.top) - gy),
+            Math.hypot(Math.hypot(b.cx() - gx, b.cz() - gz), (b.climb ? b.y : b.top) - gy)));
+        if (System.getenv("ROUTE_FRONTIER").equals("high")) r.sort((a, b) -> Double.compare(b.top, a.top));
+        if (System.getenv("ROUTE_FRONTIER").startsWith("above")) {
+            double y = Double.parseDouble(System.getenv("ROUTE_FRONTIER").substring(5));
+            r.removeIf(c -> c.top < y);
+        }
+        System.err.println("frontier: " + r.size() + " reachable");
+        for (int i = 0; i < Math.min(12, r.size()); i++) System.err.println("frontier " + r.get(i));
+    }
+
+    /** Of the fall onto a slime block (from the feet's highest point), the height the bounce gives back (11.25 gave 6.9). */
+    static final double BOUNCE = 0.62;
     /** How far aside a bounce carries the player, from the slime block's edge. */
     static final double BOUNCE_REACH = 3.5;
 
@@ -633,6 +679,7 @@ public final class Route {
 
     private Map<Integer, List<double[]>> bounceIn;
     private Map<Surface, List<Surface>> bounceOut;
+    private Map<Surface, Map<Surface, Surface>> bounceSlime;
 
     /**
      * Jumps off a surface onto a slime block that bounce up to a surface, or into a ladder, vine or
@@ -643,6 +690,7 @@ public final class Route {
         if (bounceIn != null) return bounceIn;
         bounceIn = new HashMap<Integer, List<double[]>>();
         bounceOut = new IdentityHashMap<Surface, List<Surface>>();
+        bounceSlime = new IdentityHashMap<Surface, Map<Surface, Surface>>();
         int reach = (int) Math.ceil(jumps.maxReach()) + 2;
         for (Surface sl : graph) {
             if (sl.climb || !isSlime(problem.world.getBlock(sl.x, sl.y, sl.z))) continue;
@@ -674,11 +722,23 @@ public final class Route {
                     // Up and over: the bounce's airtime, about twice the rise at the slime's top speed.
                     double c = f[1] + 2 * Math.sqrt(2 * rise / 0.08) + centreDist(sl, b) / RUN_SPEED;
                     bounceIn.computeIfAbsent(t[0], k -> new ArrayList<double[]>()).add(new double[] {f[0], c});
-                    bounceOut.computeIfAbsent(a, k -> new ArrayList<Surface>()).add(b);
+                    Map<Surface, Surface> via = bounceSlime.computeIfAbsent(a, k -> new IdentityHashMap<Surface, Surface>());
+                    if (!via.containsKey(b)) bounceOut.computeIfAbsent(a, k -> new ArrayList<Surface>()).add(b);
+                    // The slime block nearest the landing: the bounce barely carries aside.
+                    Surface was = via.get(b);
+                    if (was == null || rectGap(sl, b) < rectGap(was, b)) via.put(b, sl);
                 }
             }
         }
         return bounceIn;
+    }
+
+    /** The slime block a bounce from {@code a} to {@code b} lands on, or null when there is none. */
+    Surface bounceSlime(Surface a, Surface b) {
+        if (!searchEdges) return null;
+        costToGoal();
+        Map<Surface, Surface> via = bounceSlime.get(a);
+        return via == null ? null : via.get(b);
     }
 
     /** How far a sprint jump carries the centre to a surface {@code dy} above the takeoff. */
@@ -747,6 +807,7 @@ public final class Route {
                 }
             }
         }
+        if (System.getenv("ROUTE_FRONTIER") != null) frontier(reach);
         if (System.getenv("ROUTE_COST") != null) {
             toGoal = dist;
             for (int i = 0; i < graph.size(); i++) {
