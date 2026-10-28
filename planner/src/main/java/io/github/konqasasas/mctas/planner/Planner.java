@@ -73,6 +73,7 @@ final class Planner {
     Planner(Course course) {
         this.course = course;
         maneuvers.add(new ClimbManeuver());
+        maneuvers.add(new HoleManeuver());
     }
 
     Planner add(Maneuver m) {
@@ -279,7 +280,9 @@ final class Planner {
         if (here >= 0) {
             for (Course.Surface a : course.platforms.get(here)) {
                 goalNear |= a.nearGoal;
-                for (Course.Surface b : a.next) if (b.platform != here && b.toGo < Double.POSITIVE_INFINITY && !cand.contains(b)) cand.add(b);
+                for (Course.Surface b : a.next) {
+                    if (b.platform != here && b.toGo < Double.POSITIVE_INFINITY && !a.notByStep.contains(b) && !cand.contains(b)) cand.add(b);
+                }
             }
         } else {
             int rad = (int) Math.ceil(course.reach.reach(-8) + Course.REACH_MARGIN) + 1;
@@ -310,6 +313,15 @@ final class Planner {
             double nx = clamp(x, bx0 + ix, bx1 - ix), nz = clamp(z, bz0 + iz, bz1 - iz);
             out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             addVias(x, z, Math.max(y, b.top), new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, out);
+            // A bounce: by way of the slime block's middle.
+            if (here >= 0) {
+                for (Course.Surface a : course.platforms.get(here)) {
+                    Course.Surface sl = a.bounceVia.get(b);
+                    if (sl == null) continue;
+                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sl.cx(), sl.cz()});
+                    break;
+                }
+            }
             // The racing line: the point of b nearest to the straight line from here towards b's best next foothold.
             Course.Surface after = bestNext(b);
             if (after != null && through) {

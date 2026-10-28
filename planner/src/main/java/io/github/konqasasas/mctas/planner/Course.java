@@ -52,6 +52,10 @@ final class Course {
         final List<Surface> viaBody = new ArrayList<Surface>();
         /** The body ({@link #bodies}) each move of {@link #viaBody} goes through. */
         final List<Integer> viaBodyId = new ArrayList<Integer>();
+        /** Moves in {@link #next} that bounce off a slime foothold, with that foothold ({@link Course#linkBounces}). */
+        final Map<Surface, Surface> bounceVia = new HashMap<Surface, Surface>();
+        /** Moves in {@link #next} that only another maneuver makes (through a body, down a hole), not a step. */
+        final Set<Surface> notByStep = new HashSet<Surface>();
 
         Surface(int id, int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
@@ -313,7 +317,23 @@ final class Course {
         double gap = rectGap(a, b);
         if (gap < EPS && dy <= 0.6 + EPS) return true;
         if (dy > reach.maxRise() + EPS) return false;
-        return gap <= reach.reach(dy) + REACH_MARGIN && !walled(a, b);
+        return gap <= reach.reach(dy) + REACH_MARGIN && !walled(a, b) && !roofed(a, b);
+    }
+
+    /**
+     * A drop onto b with a roof over it: above both b's point nearest a and b's centre, something
+     * solid stands between the player's head on b and a's top (a fall would have to pass through it).
+     */
+    private boolean roofed(Surface a, Surface b) {
+        if (b.top > a.top - 1.8) return false;
+        double[][] points = {
+            {clamp(a.cx(), b.minX + 0.3, b.maxX - 0.3), clamp(a.cz(), b.minZ + 0.3, b.maxZ - 0.3)},
+            {b.cx(), b.cz()},
+        };
+        for (double[] p : points) {
+            if (!collides(new Aabb(p[0] - 0.05, b.top + 1.8, p[1] - 0.05, p[0] + 0.05, a.top - EPS, p[1] + 0.05))) return false;
+        }
+        return true;
     }
 
     /**
@@ -404,6 +424,20 @@ final class Course {
         return n.startsWith("minecraft:ladder") || n.equals("minecraft:vine");
     }
 
+    /**
+     * The way to push to climb the ladder in cell c: towards the block it hangs on (a ladder facing
+     * west hangs on the block east of it), or {0, 0} for anything else.
+     */
+    double[] push(int[] c) {
+        String n = world.getBlock(c[0], c[1], c[2]).name();
+        if (!n.startsWith("minecraft:ladder")) return new double[] {0, 0};
+        if (n.contains("facing=north")) return new double[] {0, 1};
+        if (n.contains("facing=south")) return new double[] {0, -1};
+        if (n.contains("facing=west")) return new double[] {1, 0};
+        if (n.contains("facing=east")) return new double[] {-1, 0};
+        return new double[] {0, 0};
+    }
+
     /** The block at the player's feet is climbable ({@code EntityLivingBase.isOnLadder}, without trapdoors). */
     boolean onLadder(PlayerState s) {
         return climbable((int) Math.floor(s.posX), (int) Math.floor(s.posY), (int) Math.floor(s.posZ));
@@ -441,10 +475,10 @@ final class Course {
             while (!q.isEmpty()) {
                 int[] c = q.poll();
                 body.add(c);
-                int[][] nb = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-                for (int[] d : nb) {
+                boolean wet = water(c[0], c[1], c[2]);
+                for (int[] d : wet ? WATER_NEIGHBOURS : NEIGHBOURS) {
                     long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
-                    if (cells.containsKey(k) && done.add(k)) q.add(cells.get(k));
+                    if (cells.containsKey(k) && (!wet || water(c[0] + d[0], c[1] + d[1], c[2] + d[2])) && done.add(k)) q.add(cells.get(k));
                 }
             }
             bodies.add(body);
@@ -466,18 +500,79 @@ final class Course {
             }
             for (Surface a : in) {
                 for (Surface h : out) {
-                    if (h != a && h.platform != a.platform && !a.next.contains(h)) {
+                    if (h == a || h.platform == a.platform) continue;
+                    // Every body that leads there is a way there (the first one may not work).
+                    if (!a.next.contains(h)) {
                         a.next.add(h);
-                        a.viaBody.add(h);
-                        a.viaBodyId.add(bodies.size() - 1);
+                        a.notByStep.add(h);
                     }
+                    a.viaBody.add(h);
+                    a.viaBodyId.add(bodies.size() - 1);
                 }
             }
         }
     }
 
+    private static final int[][] NEIGHBOURS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+    /**
+     * Water cells the player touches both of at once, so swims on from one to the other: the box that
+     * feels water (feet + 0.4 to feet + 1.4, 0.6 wide) spans a block of air between two cells above
+     * each other, and straddles the corner between diagonal ones (a staircase of single water blocks).
+     */
+    private static final int[][] WATER_NEIGHBOURS;
+
+    static {
+        List<int[]> l = new ArrayList<int[]>();
+        for (int dx = -1; dx <= 1; dx++) for (int dy = -2; dy <= 2; dy++) for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) l.add(new int[] {dx, dy, dz});
+        WATER_NEIGHBOURS = l.toArray(new int[0][]);
+    }
+
+    /**
+     * The fewest cells of a body from one cell to another, each touching the next (the adjacency of
+     * {@link #linkClimbs}), both ends included; null when they are not connected.
+     */
+    List<int[]> pathThrough(int body, int[] from, int[] to) {
+        Map<Long, int[]> cells = new HashMap<Long, int[]>();
+        for (int[] c : bodies.get(body)) cells.put(key(c[0], c[1], c[2]), c);
+        Map<Long, int[]> prev = new HashMap<Long, int[]>();
+        Deque<int[]> q = new ArrayDeque<int[]>();
+        q.add(from);
+        prev.put(key(from[0], from[1], from[2]), from);
+        while (!q.isEmpty()) {
+            int[] c = q.poll();
+            if (Arrays.equals(c, to)) {
+                List<int[]> path = new ArrayList<int[]>();
+                for (int[] k = c; ; k = prev.get(key(k[0], k[1], k[2]))) {
+                    path.add(k);
+                    if (Arrays.equals(k, from)) break;
+                }
+                java.util.Collections.reverse(path);
+                return path;
+            }
+            boolean wet = water(c[0], c[1], c[2]);
+            for (int[] d : wet ? WATER_NEIGHBOURS : NEIGHBOURS) {
+                long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
+                int[] n = cells.get(k);
+                if (n == null || prev.containsKey(k) || (wet && !water(n[0], n[1], n[2]))) continue;
+                prev.put(k, c);
+                q.add(n);
+            }
+        }
+        return null;
+    }
+
     /** Connected groups of ladder, vine and water cells ({@link #linkClimbs}). */
     final List<List<int[]>> bodies = new ArrayList<List<int[]>>();
+    private final Map<Integer, Set<Long>> bodyKeys = new java.util.concurrent.ConcurrentHashMap<Integer, Set<Long>>();
+
+    /** The cells of a body as {@link #key}s. */
+    Set<Long> bodyKeys(int body) {
+        return bodyKeys.computeIfAbsent(body, b -> {
+            Set<Long> k = new HashSet<Long>();
+            for (int[] c : bodies.get(b)) k.add(key(c[0], c[1], c[2]));
+            return k;
+        });
+    }
 
     /**
      * The player can get into cell c of a body from foothold a (the optimistic test of {@link #linkClimbs}):
@@ -493,6 +588,10 @@ final class Course {
     boolean canLeave(int[] c, Surface h) {
         double rise = h.top - (c[1] + 1), d = squareDist(h, c[0], c[2]);
         if (rise > CLIMB_EXIT + reach.maxRise() + EPS || d > (rise > 0 ? 1.0 : reach.reach(Math.max(rise, -8)) + REACH_MARGIN)) return false;
+        // Room in the cell's column up to the height the player leaves from (a ceiling right over
+        // the top of a ladder keeps the player below it).
+        double feet = Math.max(c[1], h.top - CLIMB_EXIT - reach.maxRise());
+        if (feet > c[1] && collides(new Aabb(c[0] + 0.2, c[1] + 0.01, c[2] + 0.2, c[0] + 0.8, feet + 1.8, c[2] + 0.8), true)) return false;
         return !wallToCell(c, clamp(c[0] + 0.5, h.minX, h.maxX), clamp(c[2] + 0.5, h.minZ, h.maxZ), Math.max(h.top, c[1]), h);
     }
 
@@ -503,7 +602,7 @@ final class Course {
      */
     static final double CLIMB_EXIT = 0.6;
 
-    private static long key(int x, int y, int z) {
+    static long key(int x, int y, int z) {
         return ((long) (x & 0x3FFFFF) << 42) | ((long) (y & 0xFFFFF) << 22) | (z & 0x3FFFFF);
     }
 
@@ -526,7 +625,155 @@ final class Course {
             }
             a.nearGoal = goalGap(a) >= 0;
         }
+        linkBounces(r);
         linkClimbs();
+        linkHoles();
+    }
+
+    /**
+     * Slime blocks: a player falling onto one (not sneaking) bounces back up with the speed it came
+     * down at, so how high the bounce goes depends on where the fall started. Each foothold a that
+     * falls onto a slime foothold s is linked through it to every foothold no higher above s than a
+     * (as if the bounce lost nothing, plus a jump's rise), within the longest reach of a fall from s,
+     * and not walled off from s ({@link Surface#bounceVia} keeps s for the aims).
+     */
+    private void linkBounces(int r) {
+        double far = reach.reach(-8) + REACH_MARGIN;
+        List<Surface[]> add = new ArrayList<Surface[]>();
+        for (Surface a : surfaces) {
+            for (Surface s : a.next) {
+                if (a.top <= s.top + 1 || !slime(s)) continue;
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dz = -r; dz <= r; dz++) {
+                        List<Surface> list = column(s.x + dx, s.z + dz);
+                        if (list == null) continue;
+                        for (Surface b : list) {
+                            if (b.platform == s.platform || b.platform == a.platform) continue;
+                            if (b.top > a.top + reach.maxRise() + EPS || rectGap(s, b) > far || walled(s, b)) continue;
+                            add.add(new Surface[] {a, b, s});
+                        }
+                    }
+                }
+            }
+        }
+        for (Surface[] e : add) {
+            Surface a = e[0], b = e[1], sl = e[2];
+            if (a.next.contains(b) && !a.bounceVia.containsKey(b)) continue;
+            if (!a.next.contains(b)) a.next.add(b);
+            // By way of the slime foothold nearest the middle of the move.
+            Surface old = a.bounceVia.get(b);
+            double mx = (a.cx() + b.cx()) / 2, mz = (a.cz() + b.cz()) / 2;
+            if (old == null || Math.hypot(sl.cx() - mx, sl.cz() - mz) < Math.hypot(old.cx() - mx, old.cz() - mz)) a.bounceVia.put(b, sl);
+        }
+    }
+
+    boolean slime(Surface a) {
+        return world.getBlock(a.x, a.y, a.z).name().equals("minecraft:slime");
+    }
+
+    /**
+     * A gap in a floor the player can drop through: the middle of a 2x2 group of iron bars, panes or
+     * fences, whose arms leave a hole wider than the player. The player stands around it at
+     * {@code top} and falls onto {@code below}.
+     */
+    static final class Hole {
+        final double x, z, top;
+        final Surface below;
+
+        Hole(double x, double z, double top, Surface below) {
+            this.x = x;
+            this.z = z;
+            this.top = top;
+            this.below = below;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("hole (%.2f, %.2f, %.2f) onto %s", x, top, z, below);
+        }
+    }
+
+    /** The holes ({@link Hole}) each platform has. */
+    final Map<Integer, List<Hole>> holes = new HashMap<Integer, List<Hole>>();
+
+    /**
+     * Holes: block corners and edge midpoints of every block that does not fill its top, where a player
+     * box goes down through the block's layer without touching anything, with something solid half a
+     * block off on every side (an open edge is not a hole: the steps already walk off it). Each is
+     * linked from the platforms at the floor's top around it to the highest foothold below it.
+     */
+    private void linkHoles() {
+        final Set<Long> tested = new HashSet<Long>();
+        final Aabb everything = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
+        problem.world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                List<Aabb> boxes = new ArrayList<Aabb>();
+                type.addCollisionBoxes(world, x, y, z, everything, boxes);
+                if (boxes.isEmpty() || (boxes.size() == 1 && boxes.get(0).minX <= x + EPS && boxes.get(0).maxX >= x + 1 - EPS
+                    && boxes.get(0).minZ <= z + EPS && boxes.get(0).maxZ >= z + 1 - EPS)) return;
+                double top = Double.NEGATIVE_INFINITY;
+                for (Aabb b : boxes) top = Math.max(top, b.maxY);
+                for (int i = 0; i <= 2; i++) {
+                    for (int k = 0; k <= 2; k++) {
+                        double px = x + i * 0.5, pz = z + k * 0.5;
+                        if (!tested.add(key((int) Math.round(px * 2), y, (int) Math.round(pz * 2)))) continue;
+                        hole(px, y, pz, top);
+                    }
+                }
+            }
+        });
+    }
+
+    private void hole(double px, int y, double pz, double top) {
+        if (collides(new Aabb(px - 0.3, y, pz - 0.3, px + 0.3, top + 1.8, pz + 0.3))) return;
+        double[][] off = {{0.5, 0}, {-0.5, 0}, {0, 0.5}, {0, -0.5}};
+        for (double[] o : off) {
+            double qx = px + o[0], qz = pz + o[1];
+            if (!collides(new Aabb(qx - 0.3, y, qz - 0.3, qx + 0.3, top - EPS, qz + 0.3))) return;
+        }
+        // The floor around it, and what the player lands on below.
+        Set<Integer> above = new HashSet<Integer>();
+        Surface below = null;
+        for (int bx = (int) Math.floor(px - 0.3); bx <= (int) Math.floor(px + 0.3); bx++) {
+            for (int bz = (int) Math.floor(pz - 0.3); bz <= (int) Math.floor(pz + 0.3); bz++) {
+                List<Surface> list = column(bx, bz);
+                if (list == null) continue;
+                for (Surface c : list) {
+                    if (Math.abs(c.top - top) < EPS && c.contains(px, pz)) above.add(c.platform);
+                    if (c.top < y + EPS && c.contains(px, pz) && (below == null || c.top > below.top)) below = c;
+                }
+            }
+        }
+        if (above.isEmpty() || below == null || collides(new Aabb(px - 0.3, below.top + EPS, pz - 0.3, px + 0.3, y, pz + 0.3))) return;
+        for (int p : above) {
+            holes.computeIfAbsent(p, k -> new ArrayList<Hole>()).add(new Hole(px, pz, top, below));
+            for (Surface a : platforms.get(p)) {
+                if (a.next.contains(below)) continue;
+                a.next.add(below);
+                a.notByStep.add(below);
+            }
+        }
+    }
+
+    /** Some collision box of the world meets the box. */
+    boolean collides(Aabb box) {
+        return collides(box, false);
+    }
+
+    /** Some collision box of the world meets the box, not counting ladders and vines when asked. */
+    boolean collides(Aabb box, boolean skipClimbable) {
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int x = (int) Math.floor(box.minX); x <= (int) Math.floor(box.maxX - EPS); x++) {
+            for (int y = (int) Math.floor(box.minY) - 1; y <= (int) Math.floor(box.maxY - EPS); y++) {
+                for (int z = (int) Math.floor(box.minZ); z <= (int) Math.floor(box.maxZ - EPS); z++) {
+                    if (skipClimbable && climbable(x, y, z)) continue;
+                    world.getBlock(x, y, z).addCollisionBoxes(world, x, y, z, box, hit);
+                    if (!hit.isEmpty()) return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Horizontal gap from the surface to the goal box when the goal is one optimistic move away, else -1. */
@@ -535,11 +782,21 @@ final class Course {
         double dx = Math.max(0, Math.max(g.minX - a.maxX, a.minX - g.maxX));
         double dz = Math.max(0, Math.max(g.minZ - a.maxZ, a.minZ - g.maxZ));
         double gap = Math.sqrt(dx * dx + dz * dz);
+        // A goal box too flat to pass through in the air: only standing on a top inside it reaches it.
+        if (flatGoal()) return a.top >= g.minY - EPS && a.top <= g.maxY + EPS && gap < EPS ? 0 : -1;
         // The best height inside the goal box to aim for: as low as the box allows, but not below the surface.
         double dy = Math.max(g.minY - a.top, Math.min(0, g.maxY - a.top));
         if (dy > reach.maxRise() + EPS) return -1;
         if (gap < EPS) return 0;
         return gap <= reach.reach(dy) + REACH_MARGIN ? gap : -1;
+    }
+
+    /**
+     * The goal box is lower than a tick's fall or rise at the top of a jump (0.0784 at least), so a
+     * player in the air almost never has its feet inside: the goal is a top to stand on.
+     */
+    boolean flatGoal() {
+        return problem.goal.maxY - problem.goal.minY < 0.05;
     }
 
     /** Horizontal distance from (x, z) to the goal box. */
@@ -609,7 +866,7 @@ final class Course {
         double dz = Math.max(0, Math.max(g.minZ - z, z - g.maxZ));
         double direct = Math.sqrt(dx * dx + dz * dz) / v;
         double best = Double.POSITIVE_INFINITY;
-        if (y >= g.minY - reach.maxRise() && Math.sqrt(dx * dx + dz * dz) <= reach.reach(g.minY - y) + REACH_MARGIN) best = direct;
+        if (!flatGoal() && y >= g.minY - reach.maxRise() && Math.sqrt(dx * dx + dz * dz) <= reach.reach(g.minY - y) + REACH_MARGIN) best = direct;
         int r = (int) Math.ceil(reach.reach(-8) + REACH_MARGIN) + 1;
         int cx = (int) Math.floor(x), cz = (int) Math.floor(z);
         for (int ix = -r; ix <= r; ix++) {

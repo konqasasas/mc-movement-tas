@@ -220,54 +220,6 @@ public final class SpeedBound {
         return a;
     }
 
-    /** The speed step of {@link #hops}. */
-    static final double HOP_GRID = 0.005;
-
-    /** The fastest horizontal speed anywhere (the speed {@link #hops} rounds every start up to). */
-    double top() {
-        double top = 0;
-        for (double v : vmax) top = Math.max(top, v);
-        return top;
-    }
-
-    /**
-     * Tables for a hop from a tick that ended on the ground to the next anchor (a tick that ends on the
-     * ground, on a ladder, in a liquid or a web), which is free flight in between: {@code [0][n][i]} is
-     * the farthest a hop of {@code n} ticks gets from speed {@code i * HOP_GRID}, and {@code [1][n][i]}
-     * the fastest it can be going at the end. The first tick starts on the ground (or in a liquid
-     * there), and is a jump only when the hop is longer than a tick: a jump moves up, so its tick does
-     * not end on the ground. The other ticks start in free air. Speeds are rounded up to the grid and
-     * capped at {@link #top()}.
-     */
-    double[][][] hops(int maxN) {
-        double top = top();
-        int n = (int) Math.ceil(top / HOP_GRID) + 1;
-        double[][] far = new double[maxN + 1][n], fast = new double[maxN + 1][n];
-        for (int i = 0; i < n; i++) {
-            double v = i * HOP_GRID;
-            for (Regime r : regimes) {
-                double d = v + r.accel, u = Math.min(top, r.friction * d);
-                if (!r.jump && maxN >= 1) {
-                    far[1][i] = Math.max(far[1][i], d);
-                    fast[1][i] = Math.max(fast[1][i], u);
-                }
-                double sum = d;
-                for (int k = 2; k <= maxN; k++) {
-                    double m = u + AIR_ACCEL;
-                    sum += m;
-                    u = Math.min(top, AIR_FRICTION * m);
-                    far[k][i] = Math.max(far[k][i], sum);
-                    fast[k][i] = Math.max(fast[k][i], u);
-                }
-            }
-            for (int k = 1; k <= maxN; k++) {
-                far[k][i] *= 1 + 1e-9;
-                fast[k][i] = Math.min(top, fast[k][i] * (1 + 1e-9));
-            }
-        }
-        return new double[][][] {far, fast};
-    }
-
     /** The fewest ticks after the start that can climb to the goal (0 when it is not higher, or with slime). */
     int verticalTicks() {
         double up = rise();

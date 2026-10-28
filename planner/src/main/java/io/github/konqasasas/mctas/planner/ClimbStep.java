@@ -20,8 +20,23 @@ final class ClimbStep implements Move {
     /** The foothold's feet area: minX, maxX, minZ, maxZ. */
     final double[] region;
     final int jumpAt;
+    /** The cells from the entry to the exit, each touching the next, or null to head straight for the exit. */
+    final List<int[]> path;
 
     ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt) {
+        this(entry, exit, top, region, jumpAt, null);
+    }
+
+    ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path) {
+        this(entry, exit, top, region, jumpAt, path, null);
+    }
+
+    /** The body's cells ({@link Course#key}), or null: the climb starts at the first ladder or water touched. */
+    final java.util.Set<Long> body;
+
+    ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path, java.util.Set<Long> body) {
+        this.body = body;
+        this.path = path;
         this.entry = entry;
         this.exit = exit;
         this.top = top;
@@ -36,12 +51,18 @@ final class ClimbStep implements Move {
         int ground = 0;
         boolean left = false;
         int leg = 0;
+        int next = 1;
+        double lastY = r.s.posY;
         for (int t = 0; t < MAX_TICKS; t++) {
             if (r.over()) return;
             boolean in = c.onLadder(r.s) || r.s.inWater;
-            if (leg == 0 && in) leg = 1;
-            if (leg == 1 && (atExit(r) || (!in && left && r.s.posY > exit[1] + 0.5))) leg = 2;
-            PlayerInput a = r.legal(control(r, ground, leg, in));
+            if (leg == 0 && in && (body == null || inBody(r))) leg = 1;
+            // Off at the exit, or where the climb stops near it (a ceiling over the ladder).
+            boolean stuck = in && !r.s.inWater && t > 0 && r.s.posY - lastY < 0.01 && r.s.posY > exit[1] - 1;
+            if (leg == 1 && (atExit(r) || stuck || (!in && left && r.s.posY > exit[1] + 0.5))) leg = 2;
+            lastY = r.s.posY;
+            if (path != null) while (next < path.size() - 1 && touches(r, path.get(next))) next++;
+            PlayerInput a = r.legal(path != null && leg == 1 ? swim(r, path.get(Math.min(next, path.size() - 1)), in) : control(r, ground, leg, in));
             r.step(a);
             out.add(a);
             if (r.dead || r.done()) return;
@@ -52,9 +73,37 @@ final class ClimbStep implements Move {
             ground++;
             int p = c.platformAt(r.s);
             if (left && p >= 0 && p != from) return;
-            if (left && (p == from && leg == 0 || ground > Step.MAX_GROUND)) break;
+            if (left && ground > Step.MAX_GROUND) break;
         }
         r.dead = true;
+    }
+
+    /** In a cell of the body: the feet in one, or the part of the box that feels water touching one. */
+    private boolean inBody(Run r) {
+        if (body.contains(Course.key((int) Math.floor(r.s.posX), (int) Math.floor(r.s.posY), (int) Math.floor(r.s.posZ)))) return true;
+        if (!r.s.inWater) return false;
+        for (int x = (int) Math.floor(r.s.posX - 0.3); x <= (int) Math.floor(r.s.posX + 0.3); x++) {
+            for (int y = (int) Math.floor(r.s.posY + 0.4); y <= (int) Math.floor(r.s.posY + 1.4); y++) {
+                for (int z = (int) Math.floor(r.s.posZ - 0.3); z <= (int) Math.floor(r.s.posZ + 0.3); z++) {
+                    if (body.contains(Course.key(x, y, z))) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The part of the player's box that feels water (feet + 0.4 to feet + 1.4) meets the cell. */
+    static boolean touches(Run r, int[] c) {
+        return r.s.posX + 0.3 > c[0] && r.s.posX - 0.3 < c[0] + 1 && r.s.posZ + 0.3 > c[2] && r.s.posZ - 0.3 < c[2] + 1
+            && r.s.posY + 1.4 > c[1] && r.s.posY + 0.4 < c[1] + 1;
+    }
+
+    /** Along the path: towards the next cell's middle, swimming up unless the cell is below the feet. */
+    private PlayerInput swim(Run r, int[] c, boolean in) {
+        float yaw = (float) Math.toDegrees(Math.atan2(-(c[0] + 0.5 - r.s.posX), c[2] + 0.5 - r.s.posZ));
+        int keys = PlayerInput.W | PlayerInput.SPRINT;
+        if (c[1] + 0.6 > r.s.posY) keys |= PlayerInput.JUMP;
+        return new PlayerInput(keys, yaw, 0F);
     }
 
     private boolean atExit(Run r) {
@@ -67,8 +116,27 @@ final class ClimbStep implements Move {
             tx = entry[0] + 0.5;
             tz = entry[2] + 0.5;
         } else if (leg == 1) {
-            tx = exit[0] + 0.5;
-            tz = exit[2] + 0.5;
+            // Up a ladder: push into the block it hangs on, which is what climbs, and keep in the
+            // ladder's column: when the drift along the ladder would carry the player out, steer back.
+            double[] push = r.course.push(exit);
+            tx = exit[0] + 0.5 + push[0];
+            tz = exit[2] + 0.5 + push[1];
+            if (in && (push[0] != 0 || push[1] != 0)) {
+                double e = push[0] != 0 ? r.s.posZ - tz : r.s.posX - tx, v = push[0] != 0 ? r.s.motionZ : r.s.motionX;
+                double ahead = e + 3 * v;
+                double side = Math.abs(ahead) > 0.15 ? -Math.signum(ahead) : -e;
+                if (push[0] != 0) {
+                    tx = exit[0] + 0.5 + 0.3 * push[0];
+                    tz = r.s.posZ + side;
+                } else {
+                    tz = exit[2] + 0.5 + 0.3 * push[1];
+                    tx = r.s.posX + side;
+                }
+                if (Math.abs(ahead) <= 0.15) {
+                    tx = push[0] != 0 ? exit[0] + 0.5 + push[0] : tx;
+                    tz = push[1] != 0 ? exit[2] + 0.5 + push[1] : tz;
+                }
+            }
         } else {
             tx = Math.max(region[0], Math.min(region[1], exit[0] + 0.5));
             tz = Math.max(region[2], Math.min(region[3], exit[2] + 0.5));
