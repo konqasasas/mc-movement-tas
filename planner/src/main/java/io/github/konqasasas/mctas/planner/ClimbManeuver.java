@@ -128,11 +128,17 @@ final class ClimbManeuver implements Maneuver {
         }
         // The controller missed the best foothold it had a body for (a jump into a ladder set in a
         // slot, say): search the inputs there tick by tick instead (WS8), once.
-        if (missed != null && TECHNIQUE_MILLIS > 0) technique(from, missed, out);
+        if (missed != null && TECHNIQUE_MILLIS > 0 && searched.merge(((long) a.platform << 32) | missed.platform, 1, Integer::sum) <= TECHNIQUE_TRIES) {
+            technique(from, missed, out);
+        }
     }
 
+    /** Local searches per (platform, target platform) and search: one that found nothing mostly finds nothing again. */
+    static final int TECHNIQUE_TRIES = 2;
+    private final java.util.Map<Long, Integer> searched = new java.util.HashMap<Long, Integer>();
+
     /** Time for the local technique search of a missed climb, per call (0: none). */
-    static final long TECHNIQUE_MILLIS = Long.getLong("planner.climbTechnique", 1500);
+    static final long TECHNIQUE_MILLIS = Long.getLong("planner.climbTechnique", 1000);
 
     private static void technique(Run from, Course.Surface h, List<Successor> out) {
         Course c = from.course;

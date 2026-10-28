@@ -78,6 +78,12 @@ public class PlannerSolverTest {
     }
 
     @Test
+    @Category(Slow.class)
+    public void bouncesUpIntoWaterAndSwimsOut() throws Exception {
+        solve(Paths.get("src/test/resources/course/slime-water.problem.json"), 5000);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));

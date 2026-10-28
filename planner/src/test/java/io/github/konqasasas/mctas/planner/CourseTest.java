@@ -65,4 +65,20 @@ public class CourseTest {
         assertEquals(2.55, Course.bounceRise(4, false), 0.02);
         assertEquals(4.3, Course.bounceRise(11, true), 0.15);
     }
+
+    @Test
+    public void bouncesUpIntoWaterOverTheSlime() throws Exception {
+        // The far top is out of a jump's reach and of the bounce's height (73 above 66), but the bounce
+        // gets into the water at 72, which can be left onto it.
+        Course c = course("slime-water");
+        Course.Surface high = c.support(0.5, 74.0, -5.5), far = c.support(0.5, 73.0, 10.5);
+        boolean edge = false;
+        for (Course.Surface a : c.platforms.get(high.platform)) {
+            for (int i = 0; i < a.viaBounceBody.size(); i++) {
+                edge |= a.viaBounceBody.get(i).platform == far.platform && a.viaBounceEntry.get(i).cell[1] == 72 && a.notByStep.contains(a.viaBounceBody.get(i));
+            }
+            for (Course.Surface b : a.bounceVia.keySet()) assertTrue(b.platform != far.platform);
+        }
+        assertTrue(edge);
+    }
 }

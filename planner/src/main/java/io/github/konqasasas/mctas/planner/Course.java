@@ -401,7 +401,7 @@ final class Course {
      * a to the centre of cell c, outside both (a thin probe, so a ladder's own box or the wall it hangs
      * on does not count).
      */
-    static final double WALL_PROBE = 0.25;
+    static final double WALL_PROBE = Double.parseDouble(System.getProperty("planner.wallProbe", "0.25"));
 
     private boolean wallToCell(int[] c, double x, double z, double base, Surface a) {
         double tx = c[0] + 0.5, tz = c[2] + 0.5;
@@ -659,10 +659,13 @@ final class Course {
 
     /**
      * Bounces up into a body: from each foothold a that falls onto a slime foothold s, the bounce
-     * ({@link #bounceRise}) reaches the cells of a body over s (at most a block and a half aside) whose
+     * ({@link #bounceRise}) reaches the cells of a body over s (at most {@link #BOUNCE_ASIDE} aside) whose
      * bottom the part of the box that feels water gets to; a is linked to every foothold the body can
      * be left onto ({@link #canLeave}).
      */
+    /** How far beside the slime a bounce still gets into a body: a few ticks of the run carried on. */
+    static final double BOUNCE_ASIDE = 3.0;
+
     private void linkBounceBodies() {
         Map<Long, Integer> cellBody = new HashMap<Long, Integer>();
         for (int b = 0; b < bodies.size(); b++) for (int[] c : bodies.get(b)) cellBody.put(key(c[0], c[1], c[2]), b);
@@ -671,8 +674,8 @@ final class Course {
                 if (a.top <= s.top + 1 || !slime(s)) continue;
                 double rise = bounceRise(a.top + reach.maxRise() - s.top, water(s.x, s.y + 1, s.z));
                 Map<Integer, int[]> best = new HashMap<Integer, int[]>();
-                for (int x = (int) Math.floor(s.minX - 1.2); x <= (int) Math.floor(s.maxX + 1.2); x++) {
-                    for (int z = (int) Math.floor(s.minZ - 1.2); z <= (int) Math.floor(s.maxZ + 1.2); z++) {
+                for (int x = (int) Math.floor(s.minX - BOUNCE_ASIDE); x <= (int) Math.floor(s.maxX + BOUNCE_ASIDE); x++) {
+                    for (int z = (int) Math.floor(s.minZ - BOUNCE_ASIDE); z <= (int) Math.floor(s.maxZ + BOUNCE_ASIDE); z++) {
                         for (int y = (int) Math.floor(s.top) + 1; y <= (int) Math.floor(s.top + rise + 1.3); y++) {
                             Integer b = cellBody.get(key(x, y, z));
                             if (b == null) continue;
