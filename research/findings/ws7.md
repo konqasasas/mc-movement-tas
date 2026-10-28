@@ -24,3 +24,10 @@
   - 衝突の走査で空気のマスを飛ばす。移動の縦・横の当たりを箱を作らずに計算する。箱が当たるかを作る前に確かめる。`Hotbar` の空かどうかとハッシュを作るときに一度だけ計算する
 - 注意: エンジンのビルド ID が変わった。結果は同じなので、`tools/video-tas/stpt1/stpt1-human187.solution.json` と `technique/stpt1/stpt1-191.solution.json` は `time --strict --solution` で作り直した(187 と 191 ティック、ID 以外は同じ)。プロジェクトの共有フォルダにある古い ID の解答(ws3b、ws6)は `.tas` から作り直せば通る。mod も作り直す(L-008)
 - ゲート: 1、2(解答の ID を更新)。公式 jar との差分ファズ(`:oracle:fuzz`)は、この VM から Mojang に接続できず未実施。代わりに、公式コードに一致済みの main のエンジンと全ティック比べた / 実験: E-301
+
+### F-302 PR の CI の待ちは、ほぼ 1 つの乱択テストだった。遅いテストを分けると PR 分は手元で 19 秒
+- 日付: 2026-10-28 / 構成: main(`e33e8b6`)、4 コアのクラウド VM、`./gradlew build --rerun-tasks`
+- 測定: 全体 6 分 22 秒。テストは `SoundnessTest.randomRunsStayInsideTheSets` 299 秒、`TechniqueTest.segmentsReplayToTheirExitAndKeepTheToggleGap` 12 秒、`SpeedBoundTest.everyWitnessStateNeedsNoMoreThanItTook` 10.5 秒、`TechniqueTest.searchBeatsRunningIntoTheStep` 5 秒、`VanillaGoldensTest` 3 本で計 8 秒、ほかは 1 秒前後以下
+- 直したこと: 上の 4 メソッドに `@Category(Slow.class)`(`physics/.../testing/Slow`、エンジンのビルド ID には入らない)。`test` はこれを除き、`slowTest` はこれだけを走らせる。CI は PR では `build`、main への push・毎日 18:00 UTC・手動・ラベル `full-tests` の PR では別ジョブで `slowTest` も。Gradle の並列ビルドを有効にした。build cache は、`problems/` などを入力として宣言していないテストの結果を古いまま使うおそれがある(L-009)ので入れない
+- 結果: `./gradlew build --rerun-tasks` 6 分 22 秒 → 19 秒。`./gradlew slowTest` は 5 分 10 秒で 4 メソッドとも通る。公式コードとの照合(`VanillaGoldensTest`)と `EngineBuildTest` は PR に残した
+- ゲート: 1 / 実験: E-302

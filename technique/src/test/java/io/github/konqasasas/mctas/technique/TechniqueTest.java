@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.technique;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -28,6 +30,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void segmentsReplayToTheirExitAndKeepTheToggleGap() {
         SparseBlockWorld w = stepUnderCeiling();
         PlayerState entry = sprinting(25.0);
@@ -62,6 +65,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void searchBeatsRunningIntoTheStep() {
         // Holding W+A into the face and jumping on contact (what a naive policy does) versus the search.
         SparseBlockWorld w = stepUnderCeiling();

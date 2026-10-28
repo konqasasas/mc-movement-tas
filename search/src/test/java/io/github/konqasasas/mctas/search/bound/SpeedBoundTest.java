@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.search.bound;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.problem.Problem;
@@ -45,6 +47,7 @@ public class SpeedBoundTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void everyWitnessStateNeedsNoMoreThanItTook() throws IOException {
         int checked = 0;
         for (String set : SETS) {
