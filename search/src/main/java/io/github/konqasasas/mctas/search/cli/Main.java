@@ -3,6 +3,7 @@ package io.github.konqasasas.mctas.search.cli;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
 import io.github.konqasasas.mctas.problem.io.InputText;
+import io.github.konqasasas.mctas.search.bound.HopBound;
 import io.github.konqasasas.mctas.search.bound.LowerBound;
 import io.github.konqasasas.mctas.search.bound.SpeedBound;
 import io.github.konqasasas.mctas.search.exact.Beam;
@@ -37,10 +38,15 @@ public final class Main {
         Problem problem = ProblemIO.read(Paths.get(file));
         long t0 = System.nanoTime();
         SpeedBound sb = new SpeedBound(problem);
-        int ticks = sb.ticks(problem.maxTicks);
-        long ms = (System.nanoTime() - t0) / 1000000;
+        int speed = sb.ticks(problem.maxTicks);
+        long t1 = System.nanoTime();
+        HopBound hb = new HopBound(problem);
+        int hops = hb.ticks();
+        long ms0 = (t1 - t0) / 1000000, ms1 = (System.nanoTime() - t1) / 1000000;
         String target = problem.target == null ? "" : " (target " + problem.target.ticks + ")";
-        System.out.println(problem.id + ": >= " + ticks + " ticks" + target + "  [" + sb + ", " + ms + " ms]");
+        String hopText = hops >= HopBound.INF ? "unreachable" : Integer.toString(hops);
+        System.out.println(problem.id + ": >= " + Math.max(speed, Math.min(hops, problem.maxTicks + 1)) + " ticks" + target
+            + "  [speed " + speed + " (" + sb + ", " + ms0 + " ms); hops " + hopText + " (" + hb + ", " + ms1 + " ms)]");
     }
 
     private static void beam(String[] args) throws IOException {
