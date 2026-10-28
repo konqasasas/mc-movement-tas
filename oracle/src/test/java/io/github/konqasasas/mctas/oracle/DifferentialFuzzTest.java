@@ -28,4 +28,18 @@ public class DifferentialFuzzTest {
             assertNull(DifferentialFuzz.check(RandomScenario.generateFluids(seed, 200)));
         }
     }
+
+    @Test
+    public void thousandRandomRunsWithPlacingMatchVanilla() {
+        for (long seed = 1; seed <= 1000; seed++) {
+            assertNull(DifferentialFuzz.check(RandomScenario.generatePlacing(seed, 200)));
+        }
+    }
+
+    @Test
+    public void viewRayMatchesVanillaOnRandomClusters() {
+        for (long seed = 1; seed <= 500; seed++) {
+            assertNull(RayTraceFuzz.check(seed, 200));
+        }
+    }
 }

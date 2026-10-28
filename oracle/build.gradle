@@ -32,12 +32,21 @@ def fuzzArgs = { ->
 }
 
 tasks.register('fuzz', JavaExec) {
-    description = 'Compares Physics with the vanilla player on random courses and inputs (-Pruns, -Pticks, -PfirstSeed, -Pcourses=shapes|fluids).'
+    description = 'Compares Physics with the vanilla player on random courses and inputs (-Pruns, -Pticks, -PfirstSeed, -Pcourses=shapes|fluids|place).'
     group = 'verification'
     onlyIf { haveJar }
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'io.github.konqasasas.mctas.oracle.DifferentialFuzz'
     args = fuzzArgs()
+}
+
+tasks.register('rayFuzz', JavaExec) {
+    description = 'Compares the engine\'s view ray with World.rayTraceBlocks on random block clusters (-Pruns, -PfirstSeed).'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.RayTraceFuzz'
+    args = [findProperty('runs') ?: '1000', '200', findProperty('firstSeed') ?: '1']
 }
 
 tasks.register('writeGoldens', JavaExec) {
@@ -78,4 +87,13 @@ tasks.register('writeBlockTable', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'io.github.konqasasas.mctas.oracle.BlockTableWriter'
     args = [rootProject.file('physics/src/main/resources/io/github/konqasasas/mctas/physics/vanilla-blocks.tsv').path]
+}
+
+tasks.register('writeInteractionTable', JavaExec) {
+    description = 'Regenerates what right-clicking reads from every block state (selection boxes, replaceable, activation).'
+    group = 'verification'
+    onlyIf { haveJar }
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.oracle.InteractionTableWriter'
+    args = [rootProject.file('physics/src/main/resources/io/github/konqasasas/mctas/physics/vanilla-interaction.tsv').path]
 }
