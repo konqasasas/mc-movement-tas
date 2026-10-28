@@ -164,12 +164,11 @@ final class ProblemExporter {
             return out;
         }
         List<String> warnings = new ArrayList<String>(ProblemWriter.blockWarnings(blocks));
-        warnings.addAll(ProblemWriter.checkSpawn(blocks, spawn));
-        for (String w : warnings) {
-            if (w.startsWith("error:")) {
-                out.add(w);
-                return out;
-            }
+        // In the game the spawn is chosen by standing there, so a spawn the problem cannot stand on means
+        // the box left out the block underneath.
+        for (String w : ProblemWriter.checkSpawn(blocks, spawn)) {
+            out.add(w.startsWith("error:") ? w : w + ". Is the block under the spawn inside the box? Mark a bigger box.");
+            return out;
         }
         String imported = "{\"exportedFrom\": \"mctas-recorder\", \"from\": [" + min[0] + ", " + min[1] + ", " + min[2]
             + "], \"to\": [" + max[0] + ", " + max[1] + ", " + max[2] + "]}";

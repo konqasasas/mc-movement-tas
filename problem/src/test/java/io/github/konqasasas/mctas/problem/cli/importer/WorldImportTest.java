@@ -57,8 +57,9 @@ public class WorldImportTest {
                 }
             }
         }
-        // All 1,682 stored id:meta pairs, but the 16 of the portals, end gateway and moving piston.
-        assertEquals(1666, states);
+        // All 1,681 stored id:meta pairs (as /mctas checkids counts them in the real game), but the 16
+        // of the portals, end gateway and moving piston.
+        assertEquals(1665, states);
     }
 
     @Test
@@ -85,6 +86,11 @@ public class WorldImportTest {
         assertFalse(LegacyBlocks.stored(53, 8));
         assertFalse(LegacyBlocks.stored(65, 0));
         assertFalse(LegacyBlocks.stored(1, 7));
+        // Corrected by /mctas checkids (E-012): a foot of a bed is never occupied, tripwire keeps bit 2.
+        assertFalse(LegacyBlocks.stored(26, 5));
+        assertTrue(LegacyBlocks.stored(26, 13));
+        assertTrue(LegacyBlocks.stored(132, 2));
+        assertFalse(LegacyBlocks.stored(155, 6));
         TestSaves save = new TestSaves().set(0, 64, 0, 1, 0).set(1, 64, 0, 53, 12);
         Path dir = tmp.newFolder("save").toPath();
         save.writeSave(dir);
