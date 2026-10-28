@@ -1,0 +1,451 @@
+package io.github.konqasasas.mctas.approx;
+
+import io.github.konqasasas.mctas.physics.Aabb;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.problem.Problem;
+import io.github.konqasasas.mctas.problem.Region;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+/**
+ * The coarse plan: which surfaces to land on, in which order.
+ *
+ * <p>Every block top the player can stand on becomes a surface. Two surfaces are joined by a walk
+ * edge when the player's centre can pass from one to the other without leaving the ground, and by a
+ * jump edge when a full-momentum sprint jump ({@link JumpTable}) covers the gap. Dijkstra from the
+ * surfaces under the start box to the goal gives a chain of surfaces; consecutive surfaces joined by
+ * walking at the same height form one platform. Each platform after the first is a waypoint that the
+ * tick search must land on in order, and the last waypoint is the goal box itself.
+ *
+ * <p>The route also gives the tick search its distance estimate: a taut string through the chain,
+ * measured from the player's position through the next waypoint.
+ */
+public final class Route {
+    /** Sprint speed on the ground, blocks per tick; turns distances into tick costs. */
+    static final double RUN_SPEED = 0.2806;
+    private static final double EPS = 1e-6;
+
+    /** A standable block top: the footprint where the player's centre stands on it, and its height. */
+    public static final class Surface {
+        public final int x, y, z;
+        public final double top;
+        /** Footprint grown by the player's half width: the centre is supported anywhere inside. */
+        public final double minX, minZ, maxX, maxZ;
+
+        Surface(int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.top = top;
+            this.minX = minX - 0.3;
+            this.minZ = minZ - 0.3;
+            this.maxX = maxX + 0.3;
+            this.maxZ = maxZ + 0.3;
+        }
+
+        double dist(double px, double pz) {
+            double dx = Math.max(0, Math.max(minX - px, px - maxX));
+            double dz = Math.max(0, Math.max(minZ - pz, pz - maxZ));
+            return Math.sqrt(dx * dx + dz * dz);
+        }
+
+        double cx() {
+            return (minX + maxX) / 2;
+        }
+
+        double cz() {
+            return (minZ + maxZ) / 2;
+        }
+
+        @Override
+        public String toString() {
+            return "(" + x + "," + y + "," + z + " top " + top + ")";
+        }
+    }
+
+    /** One platform the player must land on, or the goal box. */
+    public static final class Waypoint {
+        /** The route's surfaces on this platform, in route order. Empty for the goal. */
+        public final List<Surface> cells;
+        /** First index of this waypoint's cells in {@link #chain}. */
+        final int firstChainIndex;
+        public final double top;
+        final boolean goal;
+        /** The route reaches this waypoint with a jump (or a drop), not by walking. */
+        public final boolean needsJump;
+
+        Waypoint(List<Surface> cells, int firstChainIndex, double top, boolean goal, boolean needsJump) {
+            this.needsJump = needsJump;
+            this.cells = cells;
+            this.firstChainIndex = firstChainIndex;
+            this.top = top;
+            this.goal = goal;
+        }
+
+        @Override
+        public String toString() {
+            return goal ? "goal" : cells.get(0) + (cells.size() > 1 ? "+" + (cells.size() - 1) : "");
+        }
+    }
+
+    private final Problem problem;
+    private final Map<Long, List<Surface>> allByColumn = new HashMap<Long, List<Surface>>();
+    public final List<Waypoint> waypoints = new ArrayList<Waypoint>();
+    /** The route's surfaces from the start, then a pseudo-cell for the goal. */
+    final List<Surface> chain = new ArrayList<Surface>();
+    /** Taut-string points, one per chain cell. */
+    private double[] px, pz;
+    /** Remaining string length from each chain point to the goal. */
+    private double[] suffix;
+    /** Lowest top among the start platform and the waypoints, for pruning falls. */
+    public final double floorY;
+    public final double startTop;
+
+    public Route(Problem problem) {
+        this(problem, JumpTable.get());
+    }
+
+    Route(Problem problem, JumpTable jumps) {
+        this.problem = problem;
+        List<Surface> surfaces = surfaces(problem.world);
+        for (Surface c : surfaces) allByColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Surface>()).add(c);
+        Region g = problem.goal;
+        Surface goalCell = new Surface(Integer.MIN_VALUE, 0, 0, g.minY, g.minX + 0.3, g.minZ + 0.3, g.maxX - 0.3, g.maxZ - 0.3);
+        int n = surfaces.size();
+        int goalId = n;
+        double[] dist = new double[n + 1];
+        int[] prev = new int[n + 1];
+        Arrays.fill(dist, Double.POSITIVE_INFINITY);
+        Arrays.fill(prev, -1);
+        PriorityQueue<double[]> pq = new PriorityQueue<double[]>(16, (a, b) -> Double.compare(a[0], b[0]));
+        Region s = problem.start;
+        for (int i = 0; i < n; i++) {
+            Surface c = surfaces.get(i);
+            if (c.top >= s.minY && c.top <= s.maxY && c.maxX >= s.minX && c.minX <= s.maxX && c.maxZ >= s.minZ && c.minZ <= s.maxZ) {
+                dist[i] = 0;
+                pq.add(new double[] {0, i});
+            }
+        }
+        // Index surfaces by block column for neighbour lookups.
+        Map<Long, List<Integer>> byColumn = new HashMap<Long, List<Integer>>();
+        for (int i = 0; i < n; i++) {
+            Surface c = surfaces.get(i);
+            byColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Integer>()).add(i);
+        }
+        int reach = (int) Math.ceil(jumps.maxReach()) + 2;
+        while (!pq.isEmpty()) {
+            double[] e = pq.poll();
+            int u = (int) e[1];
+            if (e[0] > dist[u]) continue;
+            if (u == goalId) break;
+            Surface a = surfaces.get(u);
+            double ga = goalCost(a, jumps);
+            if (dist[u] + ga < dist[goalId]) {
+                dist[goalId] = dist[u] + ga;
+                prev[goalId] = u;
+                pq.add(new double[] {dist[goalId], goalId});
+            }
+            for (int dx = -reach; dx <= reach; dx++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    List<Integer> list = byColumn.get(col(a.x + dx, a.z + dz));
+                    if (list == null) continue;
+                    for (int v : list) {
+                        if (v == u) continue;
+                        double c = edgeCost(a, surfaces.get(v), jumps);
+                        if (c < 0) continue;
+                        if (dist[u] + c < dist[v]) {
+                            dist[v] = dist[u] + c;
+                            prev[v] = u;
+                            pq.add(new double[] {dist[v], v});
+                        }
+                    }
+                }
+            }
+        }
+        List<Surface> path = new ArrayList<Surface>();
+        if (prev[goalId] >= 0) {
+            for (int v = prev[goalId]; v >= 0; v = prev[v]) path.add(surfaces.get(v));
+            Collections.reverse(path);
+        }
+        chain.addAll(path);
+        // Platforms: walk-connected runs at the same height.
+        double low = g.minY;
+        double startTopV = path.isEmpty() ? problem.spawn.pos.y : path.get(0).top;
+        int i = 1;
+        while (i < path.size()) {
+            Surface first = path.get(i);
+            List<Surface> cells = new ArrayList<Surface>();
+            cells.add(first);
+            int j = i + 1;
+            while (j < path.size() && walkable(path.get(j - 1), path.get(j)) && Math.abs(path.get(j).top - first.top) < EPS) {
+                cells.add(path.get(j));
+                j++;
+            }
+            boolean sameAsPrev = walkable(path.get(i - 1), first) && Math.abs(path.get(i - 1).top - first.top) < EPS;
+            if (!sameAsPrev) {
+                waypoints.add(new Waypoint(cells, i, first.top, false, !runnable(path.get(i - 1), first)));
+                low = Math.min(low, first.top);
+            }
+            i = j;
+        }
+        chain.add(goalCell);
+        boolean goalJump = false;
+        if (!path.isEmpty()) {
+            Surface last = path.get(path.size() - 1);
+            double gx = Math.max(0, Math.max(g.minX - last.maxX, last.minX - g.maxX));
+            double gz = Math.max(0, Math.max(g.minZ - last.maxZ, last.minZ - g.maxZ));
+            goalJump = !(Math.hypot(gx, gz) <= 0.45 && g.minY <= last.top + 0.6 && g.maxY >= last.top - 0.6);
+        }
+        waypoints.add(new Waypoint(Collections.<Surface>emptyList(), chain.size() - 1, g.minY, true, goalJump));
+        this.startTop = startTopV;
+        this.floorY = Math.min(low, startTopV);
+        string();
+    }
+
+    public boolean found() {
+        return chain.size() > 1;
+    }
+
+    private static long col(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+    }
+
+    static boolean walkable(Surface a, Surface b) {
+        double dy = b.top - a.top;
+        return rectGap(a, b) < EPS && dy <= 0.6 + EPS;
+    }
+
+    /**
+     * Walkable, or a gap narrow enough to run across: the box is only one tick without support and
+     * steps up onto the far side (02-gap-1 is crossed this way in 4 ticks).
+     */
+    static boolean runnable(Surface a, Surface b) {
+        return rectGap(a, b) <= 0.45 && b.top - a.top <= 0.6 + EPS;
+    }
+
+    static double rectGap(Surface a, Surface b) {
+        double dx = Math.max(0, Math.max(a.minX - b.maxX, b.minX - a.maxX));
+        double dz = Math.max(0, Math.max(a.minZ - b.maxZ, b.minZ - a.maxZ));
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    private static double centreDist(Surface a, Surface b) {
+        double dx = a.cx() - b.cx(), dz = a.cz() - b.cz();
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    /** Ticks to go from surface a to surface b, or -1 when the edge does not exist. */
+    static double edgeCost(Surface a, Surface b, JumpTable jumps) {
+        double dy = b.top - a.top;
+        double d = centreDist(a, b);
+        if (walkable(a, b)) return d / RUN_SPEED;
+        double gap = rectGap(a, b);
+        if (dy > jumps.maxRise() || gap > jumps.reach(dy)) return -1;
+        // A jump costs at least its airtime; a short hop between close surfaces still takes it.
+        return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
+    }
+
+    private double goalCost(Surface a, JumpTable jumps) {
+        Region g = problem.goal;
+        double gx = Math.max(0, Math.max(g.minX - a.maxX, a.minX - g.maxX));
+        double gz = Math.max(0, Math.max(g.minZ - a.maxZ, a.minZ - g.maxZ));
+        double gap = Math.sqrt(gx * gx + gz * gz);
+        double dy = Math.max(g.minY - a.top, Math.min(0, g.maxY - a.top));
+        double cx = Math.max(g.minX, Math.min(g.maxX, a.cx())), cz = Math.max(g.minZ, Math.min(g.maxZ, a.cz()));
+        double d = Math.hypot(cx - a.cx(), cz - a.cz());
+        if (gap < EPS && g.minY <= a.top + 0.6 && g.maxY >= a.top) return d / RUN_SPEED;
+        if (dy > jumps.maxRise() || gap > jumps.reach(dy)) return Double.POSITIVE_INFINITY;
+        return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
+    }
+
+    /** Relaxes one point per chain cell into a taut string from the first cell to the goal. */
+    private void string() {
+        int m = chain.size();
+        px = new double[m];
+        pz = new double[m];
+        for (int k = 0; k < m; k++) {
+            px[k] = chain.get(k).cx();
+            pz[k] = chain.get(k).cz();
+        }
+        for (int it = 0; it < 200; it++) {
+            for (int k = 1; k < m; k++) {
+                double tx, tz;
+                if (k == m - 1) {
+                    tx = px[k - 1];
+                    tz = pz[k - 1];
+                } else {
+                    double[] q = closestOnSegment(px[k - 1], pz[k - 1], px[k + 1], pz[k + 1], chain.get(k));
+                    tx = q[0];
+                    tz = q[1];
+                }
+                Surface c = chain.get(k);
+                px[k] = clamp(tx, c.minX, c.maxX);
+                pz[k] = clamp(tz, c.minZ, c.maxZ);
+            }
+        }
+        suffix = new double[m];
+        for (int k = m - 2; k >= 0; k--) suffix[k] = suffix[k + 1] + Math.hypot(px[k + 1] - px[k], pz[k + 1] - pz[k]);
+    }
+
+    /** The point of segment (x1,z1)-(x2,z2) nearest to the rectangle, by sampling. */
+    private static double[] closestOnSegment(double x1, double z1, double x2, double z2, Surface r) {
+        double best = Double.POSITIVE_INFINITY, bx = x1, bz = z1;
+        for (int i = 0; i <= 32; i++) {
+            double f = i / 32.0;
+            double x = x1 + (x2 - x1) * f, z = z1 + (z2 - z1) * f;
+            double d = r.dist(x, z);
+            if (d < best - 1e-12) {
+                best = d;
+                bx = x;
+                bz = z;
+            }
+        }
+        return new double[] {bx, bz};
+    }
+
+    private static double clamp(double v, double lo, double hi) {
+        return v < lo ? lo : v > hi ? hi : v;
+    }
+
+    /**
+     * Remaining horizontal distance from (x, z) to the goal when the next waypoint is
+     * {@code stage}; {@code aim} receives the point to head for.
+     */
+    public double remaining(double x, double z, int stage, double[] aim) {
+        Waypoint w = waypoints.get(stage);
+        if (w.goal) {
+            Region g = problem.goal;
+            double ax = clamp(x, g.minX, g.maxX), az = clamp(z, g.minZ, g.maxZ);
+            if (aim != null) {
+                aim[0] = ax;
+                aim[1] = az;
+            }
+            return Math.hypot(ax - x, az - z);
+        }
+        double best = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < w.cells.size(); i++) {
+            int k = w.firstChainIndex + i;
+            Surface c = w.cells.get(i);
+            double qx = clamp(x, c.minX, c.maxX), qz = clamp(z, c.minZ, c.maxZ);
+            // Head for the string's next point through this cell when it lies beyond the cell.
+            double nx = px[k + 1], nz = pz[k + 1];
+            double[] q = closestOnSegment(x, z, nx, nz, c);
+            if (c.dist(q[0], q[1]) < 1e-9) {
+                qx = q[0];
+                qz = q[1];
+            }
+            double d = Math.hypot(qx - x, qz - z) + Math.hypot(nx - qx, nz - qz) + suffix[k + 1];
+            if (d < best) {
+                best = d;
+                if (aim != null) {
+                    aim[0] = qx;
+                    aim[1] = qz;
+                }
+            }
+        }
+        return best;
+    }
+
+    /** Horizontal distance from (x, z) to the nearest place that counts as landing on waypoint {@code stage}; 0 inside. */
+    public double missDistance(int stage, double x, double z) {
+        Waypoint w = waypoints.get(stage);
+        if (w.goal) {
+            Region g = problem.goal;
+            double dx = Math.max(0, Math.max(g.minX - x, x - g.maxX));
+            double dz = Math.max(0, Math.max(g.minZ - z, z - g.maxZ));
+            return Math.sqrt(dx * dx + dz * dz);
+        }
+        double best = Double.POSITIVE_INFINITY;
+        for (Surface c : w.cells) best = Math.min(best, c.dist(x, z));
+        return best;
+    }
+
+    /**
+     * The highest surface whose top lies in [lowY, highY] and that supports a player centred at
+     * (x, z), or null.
+     */
+    public Surface support(double x, double z, double lowY, double highY) {
+        Surface best = null;
+        int x0 = (int) Math.floor(x - 0.3), x1 = (int) Math.floor(x + 0.3);
+        int z0 = (int) Math.floor(z - 0.3), z1 = (int) Math.floor(z + 0.3);
+        for (int bx = x0; bx <= x1; bx++) {
+            for (int bz = z0; bz <= z1; bz++) {
+                List<Surface> list = allByColumn.get(col(bx, bz));
+                if (list == null) continue;
+                for (Surface c : list) {
+                    if (c.top < lowY || c.top > highY) continue;
+                    if (x < c.minX || x > c.maxX || z < c.minZ || z > c.maxZ) continue;
+                    if (best == null || c.top > best.top) best = c;
+                }
+            }
+        }
+        return best;
+    }
+
+    /** True when a player standing at this position has landed on waypoint {@code stage}. */
+    public boolean landed(int stage, double x, double y, double z, boolean onGround) {
+        Waypoint w = waypoints.get(stage);
+        if (w.goal) return false;
+        if (!onGround || Math.abs(y - w.top) > 1e-7) return false;
+        for (Surface c : w.cells) {
+            if (x >= c.minX && x <= c.maxX && z >= c.minZ && z <= c.maxZ) return true;
+        }
+        return false;
+    }
+
+    /** Standable surfaces: the top of each block's highest collision boxes with 1.8 blocks of room above. */
+    static List<Surface> surfaces(SparseBlockWorld world) {
+        final List<Surface> out = new ArrayList<Surface>();
+        final Aabb everything = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
+        world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                List<Aabb> boxes = new ArrayList<Aabb>();
+                type.addCollisionBoxes(world, x, y, z, everything, boxes);
+                if (boxes.isEmpty()) return;
+                double top = Double.NEGATIVE_INFINITY;
+                for (Aabb b : boxes) top = Math.max(top, b.maxY);
+                double minX = Double.POSITIVE_INFINITY, minZ = Double.POSITIVE_INFINITY;
+                double maxX = Double.NEGATIVE_INFINITY, maxZ = Double.NEGATIVE_INFINITY;
+                for (Aabb b : boxes) {
+                    if (b.maxY < top - 1e-9) continue;
+                    minX = Math.min(minX, b.minX);
+                    minZ = Math.min(minZ, b.minZ);
+                    maxX = Math.max(maxX, b.maxX);
+                    maxZ = Math.max(maxZ, b.maxZ);
+                }
+                // Room for the player above the centre of the footprint.
+                double cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
+                Aabb room = new Aabb(cx - 0.25, top + 1e-6, cz - 0.25, cx + 0.25, top + 1.8, cz + 0.25);
+                List<Aabb> above = new ArrayList<Aabb>();
+                for (int yy = y; yy <= y + 3; yy++) {
+                    for (int xx = x - 1; xx <= x + 1; xx++) {
+                        for (int zz = z - 1; zz <= z + 1; zz++) {
+                            world.getBlock(xx, yy, zz).addCollisionBoxes(world, xx, yy, zz, room, above);
+                        }
+                    }
+                }
+                if (!above.isEmpty()) return;
+                out.add(new Surface(x, y, z, top, minX, minZ, maxX, maxZ));
+            }
+        });
+        return out;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Waypoint w : waypoints) {
+            if (sb.length() > 0) sb.append(" -> ");
+            sb.append(w);
+        }
+        return sb.toString();
+    }
+}
