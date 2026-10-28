@@ -123,6 +123,33 @@ public final class ApproxSolver {
                 say("route " + i + " pilot: " + ticks + " ticks");
             }
         }
+        // No route the pilot flies end to end: search the stretches it cannot fly (ladders, vines,
+        // posts, water) with the segment search, route by route, with up to half the budget.
+        if (best == null) {
+            long until = t0 + budgetMillis / 2;
+            for (int i = 0; i < routes.size() && best == null && System.currentTimeMillis() < until; i++) {
+                if (!routes.get(i).found()) continue;
+                // Routes share the time by need: one that gets through stops the loop.
+                List<PlayerInput> in = new Bridge(problem, routes.get(i)).log(this::say)
+                    .run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
+                if (in == null) continue;
+                int ticks = Rollout.ticks(problem, in, new int[1]);
+                if (ticks < 0) continue;
+                best = in;
+                bestTicks = ticks;
+                pilotTicks[i] = ticks;
+                foundAt = System.currentTimeMillis() - t0;
+                say("route " + i + " bridged: " + ticks + " ticks");
+                long left = deadline - System.currentTimeMillis();
+                Refiner.Outcome o = new Refiner(problem, routes.get(i)).deadline(System.currentTimeMillis() + left / 4).improve(best, bestTicks);
+                if (o.ticks < bestTicks) {
+                    best = o.inputs;
+                    bestTicks = o.ticks;
+                    foundAt = System.currentTimeMillis() - t0;
+                    say("refined: " + bestTicks + " ticks at " + foundAt + " ms");
+                }
+            }
+        }
         if (seed != null) {
             List<PlayerInput> in = new ArrayList<PlayerInput>();
             for (TickInput ti : seed) in.add(io.github.konqasasas.mctas.problem.judge.PhysicsModel.toPhysics(ti));
