@@ -22,4 +22,5 @@
 | E-016 | 2026-10-28 | v1 の目標タイム作り | 同じビルドで `--budget 120` を `v1-dev` と `v1-holdout` に | v1-holdout の 30 秒の解は 9 問中 6 問で 120 秒と同じ、残りは +1〜+4 | F-016 |
 | E-017 | 2026-10-28 | 近似探索 v2(磨き込み)と v1 の比較 | ブランチ `claude/project-thread-e5m6fi`(`ce94d4a`)で v0 を 15 秒、`v1-dev` と `v1-holdout` を 30 秒 | v0 は 10 問すべて目標どおり(08 が 24 → 23)。v1-holdout は 9 問解けて合計 817(v1 は 816) | F-020 |
 | E-018 | 2026-10-28 | 近似探索の解の実機再生 | 実機で `/mctas replay` に `problems/v1-holdout/s1008-5j`、`s1011-8j`、`problems/v1-dev/s0005-10j` の問題と `.tas` | 3 本とも予測どおり(60, 67, 134 ティック)で、全ティック一致 | F-021 |
-| E-019 | 2026-10-28 | 実際のワールドから書き出した問題を解いて実機再生 | ユーザーが `/mctas export test1` で書き出した問題(10 ジャンプほど、石と羊毛)を `mctas-approx solve test1.problem.json out --budget 60`(approx v2)で解き、実機で `/mctas replay problems/test1.problem.json problems/test1.tas` | 86 ティック。実機も 86 ティックで全ティック一致 | F-022 |
+| E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
+| E-020 | 2026-10-28 | 実際のワールドから書き出した問題を解いて実機再生 | ユーザーが `/mctas export test1` で書き出した問題(10 ジャンプほど、石と羊毛)を `mctas-approx solve test1.problem.json out --budget 60`(approx v2)で解き、実機で `/mctas replay problems/test1.problem.json problems/test1.tas` | 86 ティック。実機も 86 ティックで全ティック一致 | F-023 |
