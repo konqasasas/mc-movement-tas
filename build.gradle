@@ -17,4 +17,23 @@ subprojects {
     dependencies {
         testImplementation 'junit:junit:4.13.2'
     }
+
+    // Tests marked @Category(Slow.class) stay out of `test` (and so of `build` on pull requests) and run
+    // in `slowTest`, which CI runs on pushes to main, nightly and on pull requests labelled full-tests.
+    def slow = 'io.github.konqasasas.mctas.physics.testing.Slow'
+    tasks.named('test', Test) {
+        useJUnit {
+            excludeCategories slow
+        }
+    }
+    tasks.register('slowTest', Test) {
+        description = 'Runs only the tests marked @Category(Slow.class).'
+        group = 'verification'
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        useJUnit {
+            includeCategories slow
+        }
+        maxHeapSize = '4g'
+    }
 }

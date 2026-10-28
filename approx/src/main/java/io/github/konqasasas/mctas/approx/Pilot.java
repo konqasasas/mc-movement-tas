@@ -45,10 +45,13 @@ final class Pilot {
 
     private final Problem problem;
     private final Route route;
+    /** The start box is too thin to enter in the air. */
+    private final boolean flatStart;
 
     Pilot(Problem problem, Route route) {
         this.problem = problem;
         this.route = route;
+        this.flatStart = problem.start.maxY - problem.start.minY < 0.5;
     }
 
     /**
@@ -63,10 +66,19 @@ final class Pilot {
         Region goal = problem.goal;
         int stopStage = landings >= route.waypoints.size() - 1 - stage ? Integer.MAX_VALUE : stage + landings;
         double[] aim = new double[2];
-        for (int k = 1; k <= maxTicks; k++) {
-            PlayerInput a = decide(s, stage, aim);
-            PlayerState ns = Physics.tick(problem.world, s, a);
+        // From before the start entry, the tick allowance counts from the entry: otherwise a later
+        // entry would leave less of the course to play and look better than it is.
+        int limit = maxTicks;
+        int played = 0;
+        for (int k = 1; k <= limit && tick + k <= problem.maxTicks; k++) {
+            played = k;
             int t = tick + k;
+            PlayerInput a = decide(s, stage, entry >= 0, aim);
+            // After the entry, a wall that stops the sprint must not make the next press break
+            // the toggle rule. (Holding back before it too made the run-up beam dawdle on v1-dev.)
+            if (entry >= 0) a = Rollout.holdSprint(s, a, lastToggle, t);
+            a = Rollout.holdSneak(s, a, lastToggle, t);
+            PlayerState ns = Physics.tick(problem.world, s, a);
             if (ToggleRule.toggles(s, ns)) {
                 if (!ToggleRule.allowed(lastToggle, t)) {
                     r.failed = true;
@@ -81,14 +93,18 @@ final class Pilot {
             s = ns;
             if (record) r.inputs.add(a);
             boolean in = problem.start.contains(s.posX, s.posY, s.posZ);
-            if (in && !inStart) entry = t;
+            if (in && !inStart) {
+                if (entry < 0) limit = Math.max(limit, k + maxTicks);
+                entry = t;
+            }
             inStart = in;
             if (entry >= 0 && goal.contains(s.posX, s.posY, s.posZ)) {
                 r.finished = true;
                 return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
-            if (stage < route.waypoints.size() - 1 && route.landed(stage, s.posX, s.posY, s.posZ, s.onGround)) {
-                stage++;
+            int next = route.after(stage, s.posX, s.posY, s.posZ, s.onGround);
+            if (next > stage) {
+                stage = next;
                 if (stage >= stopStage) return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
             if (s.posY < problem.voidY || fallen(s, stage)) {
@@ -97,7 +113,7 @@ final class Pilot {
                 return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
         }
-        return finish(r, s, maxTicks, stage, entry, inStart, lastToggle);
+        return finish(r, s, played, stage, entry, inStart, lastToggle);
     }
 
     private static Run finish(Run r, PlayerState s, int ticks, int stage, int entry, boolean inStart, int lastToggle) {
@@ -117,19 +133,74 @@ final class Pilot {
         return s.posY < Math.min(ahead, behind) - 0.6 || s.posY < route.floorY - 1.0;
     }
 
-    private PlayerInput decide(PlayerState s, int stage, double[] aim) {
+    /**
+     * The heading to slide along an obstacle right ahead that a jump does not clear, towards the
+     * nearer side where the body fits through; NaN when nothing blocks ahead or no side is free.
+     */
+    private float sidestep(PlayerState s, float heading) {
+        double fx = -Math.sin(Math.toRadians(heading)), fz = Math.cos(Math.toRadians(heading));
+        double lo = s.posY + 1.3, hi = s.posY + 1.8;
+        // Blocked: something ahead still in the way at the height a jump lifts the feet to.
+        if (!route.solidAt(s.posX + fx * 0.35, lo, s.posZ + fz * 0.35, hi, 0.29)) return Float.NaN;
+        for (double k = 0.25; k <= 1.5; k += 0.25) {
+            for (int sign = -1; sign <= 1; sign += 2) {
+                double lx = -fz * sign * k, lz = fx * sign * k;
+                if (!route.solidAt(s.posX + lx + fx * 0.35, s.posY + 0.05, s.posZ + lz + fz * 0.35, hi, 0.29)) {
+                    return heading + sign * 90F;
+                }
+            }
+        }
+        return Float.NaN;
+    }
+
+    /**
+     * Right ahead, a surface of the route still to come, above step height and low enough for a
+     * jump, with room above it.
+     */
+    private boolean stepAhead(PlayerState s, int stage, float heading) {
+        double fx = -Math.sin(Math.toRadians(heading)), fz = Math.cos(Math.toRadians(heading));
+        double x = s.posX + fx * 0.65, z = s.posZ + fz * 0.65;
+        Route.Surface c = route.support(x, z, s.posY + 0.6, s.posY + 1.25);
+        return c != null && route.ahead(stage, c) && !route.solidAt(s.posX + fx * 0.35, s.posY + 1.3, s.posZ + fz * 0.35, c.top + 1.8, 0.29);
+    }
+
+    /** In ladders or vines, sneak once the feet are this little above the platform ahead. */
+    static final double CLIMB_HOLD = 0.35;
+
+    private PlayerInput decide(PlayerState s, int stage, boolean entered, double[] aim) {
         Route.Waypoint w = route.waypoints.get(stage);
         route.remaining(s.posX, s.posZ, stage, aim);
         double dx = aim[0] - s.posX, dz = aim[1] - s.posZ;
         double d = Math.sqrt(dx * dx + dz * dz);
         float heading = d > 1e-6 ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : velocityHeading(s);
+        if (w.viaClimb && route.holding(s.posX, s.posY, s.posZ) && !s.onGround) {
+            // Holding on in ladders or vines on the way: move along the route, sneaking whenever
+            // the feet sink near the height of the platform ahead so as not to drop below it.
+            route.aimAlong(s.posX, s.posZ, stage, aim);
+            double ax = aim[0] - s.posX, az = aim[1] - s.posZ;
+            float h = ax * ax + az * az > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
+            if (s.posY < w.top + CLIMB_HOLD) return PlayerInput.of(PlayerInput.W | PlayerInput.SNEAK, h);
+            return PlayerInput.of(TickBeam.RUN, h + 45F);
+        }
+        if (s.onGround) {
+            // Pressed against something too high to step or jump onto (a post, say): slide along
+            // it towards the nearer side where the body fits past it.
+            float side = sidestep(s, heading);
+            if (!Float.isNaN(side)) return PlayerInput.of(TickBeam.RUN, side + 45F);
+            // Stopped against a step of the route that a jump clears: jump.
+            if (s.collidedHorizontally && stepAhead(s, stage, heading)) return PlayerInput.of(TickBeam.JUMP_W, heading);
+        }
         if (s.onGround || s.inWater) {
             double along = d > 1e-9 ? (s.motionX * dx + s.motionZ * dz) / d : 0;
             if (w.needsJump) {
                 boolean supported = route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) != null;
                 int landing = Flight.landingTick(w.top - s.posY);
                 boolean reaches = landing > 0 && Flight.jumpDistance(Math.max(0, along), landing - 1) >= d;
-                if (reaches || !supported) return PlayerInput.of(TickBeam.JUMP_W, heading);
+                // Up against the next step and it is too high to walk onto: jump now. A wall further
+                // from the step is something else in the way, and jumping onto it can strand us.
+                double miss = route.missDistance(stage, s.posX, s.posZ);
+                boolean blocked = w.top - s.posY > 0.6 && (miss < 0.35 || s.collidedHorizontally && miss < 1.2);
+                if (reaches || !supported || blocked) return PlayerInput.of(TickBeam.JUMP_W, heading);
             }
             // Otherwise follow the route's ground. Sprint-jumping is faster than running: hop
             // whenever the hop lands on this same ground short of the aim.
@@ -139,7 +210,9 @@ final class Pilot {
             float runHeading = ad > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
             double runAlong = ad > 1e-9 ? (s.motionX * ax + s.motionZ * az) / ad : 0;
             double hop = Flight.jumpDistance(Math.max(0, runAlong), HOP_TICKS - 1);
-            if (hop < d && ad > 1e-9 && route.support(s.posX + ax / ad * hop, s.posZ + az / ad * hop, s.posY - 1e-6, s.posY + 1e-6) != null) {
+            // Before entering a start box that is only a block top, stay on the ground: a hop
+            // could sail over it.
+            if ((entered || !flatStart) && hop < d && ad > 1e-9 && route.support(s.posX + ax / ad * hop, s.posZ + az / ad * hop, s.posY - 1e-6, s.posY + 1e-6) != null) {
                 return PlayerInput.of(TickBeam.JUMP_W, runHeading);
             }
             return PlayerInput.of(TickBeam.RUN, runHeading + 45F);

@@ -1,0 +1,1805 @@
+{
+  "format": "mctas-solution",
+  "version": 1,
+  "problem": "stpt1",
+  "mcVersion": "1.12.2",
+  "result": {
+    "status": "finished",
+    "ticks": 187,
+    "startTick": 12,
+    "goalTick": 199,
+    "model": "physics-1.12.2",
+    "engineBuild": "2c6c9649375411b7"
+  },
+  "inputs": [
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": -22.5,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "SPRINT"
+      ],
+      "yaw": 90.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 55.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "SPRINT"
+      ],
+      "yaw": 90.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "SPRINT"
+      ],
+      "yaw": -90.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.0,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 0.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 135.3941,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "D",
+        "SPRINT"
+      ],
+      "yaw": -134.6059,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "D",
+        "SPRINT"
+      ],
+      "yaw": -134.6059,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 0.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "D",
+        "SPRINT"
+      ],
+      "yaw": -134.6059,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 22.894104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 10.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 90.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 0.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "SPRINT"
+      ],
+      "yaw": -22.105896,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 22.894104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "D",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": -22.105896,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "D",
+        "SPRINT"
+      ],
+      "yaw": -134.6059,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 90.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 67.894104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 49.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": -9.605896,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 22.894104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": -9.605896,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "JUMP",
+        "SPRINT"
+      ],
+      "yaw": 0.3941039,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    },
+    {
+      "keys": [
+        "W",
+        "A",
+        "SPRINT"
+      ],
+      "yaw": 45.394104,
+      "pitch": 0.0
+    }
+  ]
+}

@@ -162,5 +162,11 @@
   "limits": {
     "maxTicks": 720,
     "voidY": 0.0
+  },
+  "target": {
+    "ticks": 73,
+    "kind": "upper_bound",
+    "witness": "s2003-8j.tas",
+    "note": "mctas-search beam --width 4000 (WS3)"
   }
 }
