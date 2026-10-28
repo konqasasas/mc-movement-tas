@@ -74,6 +74,7 @@ final class Planner {
         this.course = course;
         maneuvers.add(new ClimbManeuver());
         maneuvers.add(new HoleManeuver());
+        maneuvers.add(new BounceClimbManeuver());
     }
 
     Planner add(Maneuver m) {
@@ -318,7 +319,12 @@ final class Planner {
                 for (Course.Surface a : course.platforms.get(here)) {
                     Course.Surface sl = a.bounceVia.get(b);
                     if (sl == null) continue;
-                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sl.cx(), sl.cz()});
+                    // Land with the whole body over the slime, at its point nearest the foothold.
+                    double[] e = course.slimeExtent(sl);
+                    double sx0 = e[0] + 0.3, sx1 = e[1] - 0.3, sz0 = e[2] + 0.3, sz1 = e[3] - 0.3;
+                    double sx = clamp(nx, Math.min(sx0 + 0.1, (sx0 + sx1) / 2), Math.max(sx1 - 0.1, (sx0 + sx1) / 2));
+                    double sz = clamp(nz, Math.min(sz0 + 0.1, (sz0 + sz1) / 2), Math.max(sz1 - 0.1, (sz0 + sz1) / 2));
+                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sx, sz, sx0, sx1, sz0, sz1, sl.top});
                     break;
                 }
             }

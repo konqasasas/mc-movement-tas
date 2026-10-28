@@ -58,6 +58,7 @@ final class ClimbManeuver implements Maneuver {
         java.util.Map<Integer, Integer> platforms = new java.util.HashMap<Integer, Integer>();
         java.util.Set<Long> pairs = new java.util.HashSet<Long>();
         int tried = 0;
+        Course.Surface missed = null;
         for (int i : order) {
             Course.Surface h = cand.get(i);
             Integer ways = platforms.get(h.platform);
@@ -86,9 +87,17 @@ final class ClimbManeuver implements Maneuver {
             if (exit == null) continue;
             if (++tried > ATTEMPTS) break;
             List<int[]> entries = new ArrayList<int[]>();
+            java.util.Map<int[], double[]> vias = new java.util.IdentityHashMap<int[], double[]>();
             for (int[] cell : enterable(c, a, body.get(i))) {
-                if (c.blockedLine(x, z, cell[0] + 0.5, cell[2] + 0.5, Math.min(a.top, cell[1]))) continue;
+                double base = Math.min(a.top, cell[1]);
+                if (!c.blockedLine(x, z, cell[0] + 0.5, cell[2] + 0.5, base)) {
+                    entries.add(cell);
+                    continue;
+                }
+                double[] v1 = openSide(c, cell, x, z, base);
+                if (v1 == null) continue;
                 entries.add(cell);
+                vias.put(cell, v1);
             }
             final int[] ex = exit;
             entries.sort((p, q) -> Double.compare(entryScore(p, x, z, a.top, ex), entryScore(q, x, z, a.top, ex)));
@@ -100,11 +109,12 @@ final class ClimbManeuver implements Maneuver {
             List<int[]> exits = new ArrayList<int[]>();
             exits.add(exit);
             if (high != exit && high[1] > exit[1]) exits.add(high);
+            int before = out.size();
             for (int[] x1 : exits) {
                 for (int e = 0; e < Math.min(ENTRIES, entries.size()); e++) {
                     List<int[]> path = c.water(x1[0], x1[1], x1[2]) ? path(c, body.get(i), entries.get(e), x1) : null;
                     for (int j : JUMPS) {
-                        ClimbStep st = new ClimbStep(entries.get(e), x1, h.top, region, j, path, c.bodyKeys(body.get(i)));
+                        ClimbStep st = new ClimbStep(entries.get(e), x1, h.top, region, j, path, c.bodyKeys(body.get(i)), vias.get(entries.get(e)));
                         Run r = from.copy();
                         List<PlayerInput> in = new ArrayList<PlayerInput>();
                         st.play(r, in);
@@ -112,7 +122,67 @@ final class ClimbManeuver implements Maneuver {
                     }
                 }
             }
+            boolean reached = false;
+            for (int k = before; k < out.size() && !reached; k++) reached = c.platformAt(out.get(k).run.s) == h.platform;
+            if (!reached && missed == null) missed = h;
         }
+        // The controller missed the best foothold it had a body for (a jump into a ladder set in a
+        // slot, say): search the inputs there tick by tick instead (WS8), once.
+        if (missed != null && TECHNIQUE_MILLIS > 0) technique(from, missed, out);
+    }
+
+    /** Time for the local technique search of a missed climb, per call (0: none). */
+    static final long TECHNIQUE_MILLIS = Long.getLong("planner.climbTechnique", 1500);
+
+    private static void technique(Run from, Course.Surface h, List<Successor> out) {
+        Course c = from.course;
+        // Any landing on h's platform (its extent; a landing off it inside the box is dropped below).
+        double x0 = h.minX, x1 = h.maxX, z0 = h.minZ, z1 = h.maxZ;
+        for (Course.Surface q : c.platforms.get(h.platform)) {
+            x0 = Math.min(x0, q.minX);
+            x1 = Math.max(x1, q.maxX);
+            z0 = Math.min(z0, q.minZ);
+            z1 = Math.max(z1, q.maxZ);
+        }
+        io.github.konqasasas.mctas.technique.Target t = new io.github.konqasasas.mctas.technique.Target(x0, x1, z0, z1, h.top);
+        io.github.konqasasas.mctas.technique.SegmentSearch.Options o = io.github.konqasasas.mctas.technique.SegmentSearch.Options.fast();
+        o.voidY = c.problem.voidY;
+        o.maxTicks = 100;
+        o.results = 2;
+        List<io.github.konqasasas.mctas.technique.Technique.Segment> segs;
+        try {
+            segs = io.github.konqasasas.mctas.technique.Technique.solve(c.world, from.s.copy(), Math.min(from.tick - from.lastToggle, 1000),
+                io.github.konqasasas.mctas.technique.Exit.landing(t), io.github.konqasasas.mctas.technique.Technique.headingTo(from.s, t.centerX(), t.centerZ()), TECHNIQUE_MILLIS, o);
+        } catch (RuntimeException e) {
+            return;
+        }
+        if (TRACE) System.err.println("climb technique onto " + h + ": " + segs.size() + " ways");
+        for (io.github.konqasasas.mctas.technique.Technique.Segment seg : segs) {
+            FixedMove m = new FixedMove(seg.inputs);
+            Run r = from.copy();
+            List<PlayerInput> in = new ArrayList<PlayerInput>();
+            m.play(r, in);
+            if (!r.dead && r.s.onGround && c.platformAt(r.s) == h.platform) out.add(new Successor(m, r, in));
+        }
+    }
+
+    /**
+     * A point a block out from a side of the cell that is open at the cell's height, reached straight
+     * from (x, z) and with a straight way on into the cell; the nearest such, or null.
+     */
+    private static double[] openSide(Course c, int[] cell, double x, double z, double base) {
+        double[] best = null;
+        double bestD = Double.POSITIVE_INFINITY;
+        for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            double vx = cell[0] + 0.5 + d[0], vz = cell[2] + 0.5 + d[1];
+            if (c.blockedLine(x, z, vx, vz, base) || c.blockedLine(vx, vz, cell[0] + 0.5, cell[2] + 0.5, base)) continue;
+            double dd = Math.hypot(vx - x, vz - z);
+            if (dd < bestD) {
+                bestD = dd;
+                best = new double[] {vx, vz};
+            }
+        }
+        return best;
     }
 
     private final java.util.concurrent.ConcurrentHashMap<String, List<int[]>> paths = new java.util.concurrent.ConcurrentHashMap<String, List<int[]>>();

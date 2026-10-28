@@ -54,6 +54,12 @@ final class Course {
         final List<Integer> viaBodyId = new ArrayList<Integer>();
         /** Moves in {@link #next} that bounce off a slime foothold, with that foothold ({@link Course#linkBounces}). */
         final Map<Surface, Surface> bounceVia = new HashMap<Surface, Surface>();
+        /**
+         * Moves in {@link #next} that bounce off a slime foothold up into a body of water or ladders and
+         * climb out of it ({@link Course#linkBounceBodies}), and how ({@link BounceClimbManeuver}).
+         */
+        final List<Surface> viaBounceBody = new ArrayList<Surface>();
+        final List<BounceEntry> viaBounceEntry = new ArrayList<BounceEntry>();
         /** Moves in {@link #next} that only another maneuver makes (through a body, down a hole), not a step. */
         final Set<Surface> notByStep = new HashSet<Surface>();
 
@@ -395,6 +401,8 @@ final class Course {
      * a to the centre of cell c, outside both (a thin probe, so a ladder's own box or the wall it hangs
      * on does not count).
      */
+    static final double WALL_PROBE = 0.25;
+
     private boolean wallToCell(int[] c, double x, double z, double base, Surface a) {
         double tx = c[0] + 0.5, tz = c[2] + 0.5;
         double len = Math.hypot(tx - x, tz - z);
@@ -402,12 +410,16 @@ final class Course {
         List<Aabb> hit = new ArrayList<Aabb>();
         for (int i = 1; i < steps; i++) {
             double px = x + (tx - x) * i / steps, pz = z + (tz - z) * i / steps;
-            int bx = (int) Math.floor(px), bz = (int) Math.floor(pz);
-            if ((bx == c[0] && bz == c[2]) || a.contains(px, pz)) continue;
-            Aabb probe = new Aabb(px - 0.05, base + 0.6, pz - 0.05, px + 0.05, base + 1.3, pz + 0.05);
+            if (((int) Math.floor(px) == c[0] && (int) Math.floor(pz) == c[2]) || a.contains(px, pz)) continue;
+            // Nearly the player's width: a thin line slips past the corner of a slot a body is set in.
+            Aabb probe = new Aabb(px - WALL_PROBE, base + 0.6, pz - WALL_PROBE, px + WALL_PROBE, base + 1.3, pz + WALL_PROBE);
             hit.clear();
-            for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
-                world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
+            for (int bx = (int) Math.floor(px - WALL_PROBE); bx <= (int) Math.floor(px + WALL_PROBE); bx++) {
+                for (int bz = (int) Math.floor(pz - WALL_PROBE); bz <= (int) Math.floor(pz + WALL_PROBE); bz++) {
+                    for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                        world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
+                    }
+                }
             }
             if (!hit.isEmpty()) return true;
         }
@@ -498,6 +510,7 @@ final class Course {
                     }
                 }
             }
+            bodyOut.add(out);
             for (Surface a : in) {
                 for (Surface h : out) {
                     if (h == a || h.platform == a.platform) continue;
@@ -627,14 +640,70 @@ final class Course {
         }
         linkBounces(r);
         linkClimbs();
+        linkBounceBodies();
         linkHoles();
     }
+
+    /** A bounce into a body: off slime foothold {@code slime}, up into {@code cell} of body {@code body}. */
+    static final class BounceEntry {
+        final Surface slime;
+        final int body;
+        final int[] cell;
+
+        BounceEntry(Surface slime, int body, int[] cell) {
+            this.slime = slime;
+            this.body = body;
+            this.cell = cell;
+        }
+    }
+
+    /**
+     * Bounces up into a body: from each foothold a that falls onto a slime foothold s, the bounce
+     * ({@link #bounceRise}) reaches the cells of a body over s (at most a block and a half aside) whose
+     * bottom the part of the box that feels water gets to; a is linked to every foothold the body can
+     * be left onto ({@link #canLeave}).
+     */
+    private void linkBounceBodies() {
+        Map<Long, Integer> cellBody = new HashMap<Long, Integer>();
+        for (int b = 0; b < bodies.size(); b++) for (int[] c : bodies.get(b)) cellBody.put(key(c[0], c[1], c[2]), b);
+        for (Surface a : surfaces) {
+            for (Surface s : new ArrayList<Surface>(a.next)) {
+                if (a.top <= s.top + 1 || !slime(s)) continue;
+                double rise = bounceRise(a.top + reach.maxRise() - s.top, water(s.x, s.y + 1, s.z));
+                Map<Integer, int[]> best = new HashMap<Integer, int[]>();
+                for (int x = (int) Math.floor(s.minX - 1.2); x <= (int) Math.floor(s.maxX + 1.2); x++) {
+                    for (int z = (int) Math.floor(s.minZ - 1.2); z <= (int) Math.floor(s.maxZ + 1.2); z++) {
+                        for (int y = (int) Math.floor(s.top) + 1; y <= (int) Math.floor(s.top + rise + 1.3); y++) {
+                            Integer b = cellBody.get(key(x, y, z));
+                            if (b == null) continue;
+                            int[] old = best.get(b);
+                            if (old == null || y < old[1]) best.put(b, new int[] {x, y, z});
+                        }
+                    }
+                }
+                for (Map.Entry<Integer, int[]> e : best.entrySet()) {
+                    for (Surface h : bodyOut.get(e.getKey())) {
+                        if (h.platform == a.platform || h.platform == s.platform) continue;
+                        if (!a.next.contains(h)) {
+                            a.next.add(h);
+                            a.notByStep.add(h);
+                        }
+                        a.viaBounceBody.add(h);
+                        a.viaBounceEntry.add(new BounceEntry(s, e.getKey(), e.getValue()));
+                    }
+                }
+            }
+        }
+    }
+
+    /** The footholds each body can be left onto ({@link #canLeave}), by body. */
+    private final List<Set<Surface>> bodyOut = new ArrayList<Set<Surface>>();
 
     /**
      * Slime blocks: a player falling onto one (not sneaking) bounces back up with the speed it came
      * down at, so how high the bounce goes depends on where the fall started. Each foothold a that
-     * falls onto a slime foothold s is linked through it to every foothold no higher above s than a
-     * (as if the bounce lost nothing, plus a jump's rise), within the longest reach of a fall from s,
+     * falls onto a slime foothold s is linked through it to every foothold no higher above s than the
+     * bounce from a jump off a goes ({@link #bounceRise}), within the longest reach of a fall from s,
      * and not walled off from s ({@link Surface#bounceVia} keeps s for the aims).
      */
     private void linkBounces(int r) {
@@ -649,7 +718,7 @@ final class Course {
                         if (list == null) continue;
                         for (Surface b : list) {
                             if (b.platform == s.platform || b.platform == a.platform) continue;
-                            if (b.top > a.top + reach.maxRise() + EPS || rectGap(s, b) > far || walled(s, b)) continue;
+                            if (b.top > s.top + bounceRise(a.top + reach.maxRise() - s.top, water(s.x, s.y + 1, s.z)) || rectGap(s, b) > far || walled(s, b)) continue;
                             add.add(new Surface[] {a, b, s});
                         }
                     }
@@ -665,6 +734,50 @@ final class Course {
             double mx = (a.cx() + b.cx()) / 2, mz = (a.cz() + b.cz()) / 2;
             if (old == null || Math.hypot(sl.cx() - mx, sl.cz() - mz) < Math.hypot(old.cx() - mx, old.cz() - mz)) a.bounceVia.put(b, sl);
         }
+    }
+
+    /** The extent (minX, maxX, minZ, maxZ) of the slime footholds on s's platform. */
+    double[] slimeExtent(Surface s) {
+        double[] e = {s.minX, s.maxX, s.minZ, s.maxZ};
+        for (Surface q : platforms.get(s.platform)) {
+            if (!slime(q)) continue;
+            e[0] = Math.min(e[0], q.minX);
+            e[1] = Math.max(e[1], q.maxX);
+            e[2] = Math.min(e[2], q.minZ);
+            e[3] = Math.max(e[3], q.maxZ);
+        }
+        return e;
+    }
+
+    /** Feet below this height over a slime block under water are in the water. */
+    private static final double WET = 0.5;
+
+    /**
+     * How high above a slime block a player bounces after falling {@code drop} onto it from rest: the
+     * landing turns the vertical speed round, and air drag takes some of it on the way up (a fall of 4
+     * comes back 2.55). With water over the slime, the water slows the fall and the bounce while the
+     * player is in it.
+     */
+    static double bounceRise(double drop, boolean wet) {
+        // The drag of a tick is the water's when the tick starts with the player in it.
+        double y = drop, vy = 0;
+        for (int i = 0; i < 400 && y + vy > 0; i++) {
+            boolean in = wet && y < WET;
+            y += vy;
+            vy = in ? vy * 0.8 - 0.02 : (vy - 0.08) * 0.98;
+        }
+        if (y + vy > 0) return 0;
+        boolean in = wet && y < WET;
+        vy = in ? -vy * 0.8 - 0.02 : (-vy - 0.08) * 0.98;
+        y = 0;
+        double top = 0;
+        for (int i = 0; i < 400 && vy > 0; i++) {
+            in = wet && y < WET;
+            y += vy;
+            top = Math.max(top, y);
+            vy = in ? vy * 0.8 - 0.02 : (vy - 0.08) * 0.98;
+        }
+        return top;
     }
 
     boolean slime(Surface a) {

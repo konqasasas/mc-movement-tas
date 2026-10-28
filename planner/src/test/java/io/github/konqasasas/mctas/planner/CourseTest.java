@@ -58,4 +58,11 @@ public class CourseTest {
         for (Course.Surface a : c.platforms.get(floor.platform)) for (Course.Surface b : a.next) assertTrue(b.platform != far.platform);
         assertTrue(c.flatGoal());
     }
+
+    @Test
+    public void bounceComesBackLowerThanTheFall() {
+        // Measured in the engine: a fall of 4 onto slime comes back 2.55; 11 onto slime under water, 4.3.
+        assertEquals(2.55, Course.bounceRise(4, false), 0.02);
+        assertEquals(4.3, Course.bounceRise(11, true), 0.15);
+    }
 }
