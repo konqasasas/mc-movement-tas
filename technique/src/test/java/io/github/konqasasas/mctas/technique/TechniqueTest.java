@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.technique;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -28,6 +30,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void segmentsReplayToTheirExitAndKeepTheToggleGap() {
         SparseBlockWorld w = stepUnderCeiling();
         PlayerState entry = sprinting(25.0);
@@ -62,6 +65,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void searchBeatsRunningIntoTheStep() {
         // Holding W+A into the face and jumping on contact (what a naive policy does) versus the search.
         SparseBlockWorld w = stepUnderCeiling();
@@ -114,5 +118,63 @@ public class TechniqueTest {
             any |= j.clean;
         }
         assertTrue(any);
+    }
+
+    @Test
+    public void fastModeAnswersQuickly() {
+        SparseBlockWorld w = StepWindow.world(1.0, 30, 0, 0);
+        PlayerState entry = sprinting(25.0);
+        Target top = new Target(-3, 4, 31, 33, StepWindow.FLOOR + 1);
+        long t0 = System.nanoTime();
+        List<Technique.Segment> segs = Technique.solve(w, entry, 100, Exit.landing(top), 0, 5_000,
+                SegmentSearch.Options.fast());
+        long ms = (System.nanoTime() - t0) / 1_000_000;
+        assertFalse(segs.isEmpty());
+        assertTrue("took " + ms + " ms", ms < 3_000);
+    }
+
+    /**
+     * The fence posts of realdev ex1 (z 302..313): up a plank, back onto a post, onto a higher post, onto
+     * a slab. The landings are named in order, since the way goes backwards first.
+     */
+    @Test
+    public void chainClimbsBackAndForthOverPosts() {
+        SparseBlockWorld w = new SparseBlockWorld();
+        io.github.konqasasas.mctas.physics.BlockType planks = io.github.konqasasas.mctas.problem.world.Blocks
+                .byId("minecraft:planks");
+        io.github.konqasasas.mctas.physics.BlockType post = io.github.konqasasas.mctas.problem.world.Blocks
+                .byId("minecraft:cobblestone_wall");
+        io.github.konqasasas.mctas.physics.BlockType slab = io.github.konqasasas.mctas.problem.world.Blocks
+                .byId("minecraft:wooden_slab[half=bottom]");
+        int f = StepWindow.FLOOR;
+        w.fill(-2, f - 1, 0, 2, f - 1, 5, StepWindow.STONE);
+        w.fill(-1, f - 1, 8, 1, f - 1, 8, planks);
+        w.fill(0, f, 8, 0, f, 8, post);
+        w.fill(0, f, 10, 0, f, 10, planks);
+        w.fill(-1, f, 10, -1, f + 1, 10, planks);
+        w.fill(-1, f + 1, 10, -1, f + 1, 10, post);
+        w.fill(-2, f + 2, 13, 2, f + 2, 13, planks);
+        w.fill(-2, f + 3, 13, 2, f + 3, 13, slab);
+        PlayerState entry = PlayerState.standing(0.5, f, 2.5, 0);
+        java.util.List<Target> legs = java.util.Arrays.asList(
+                new Target(0, 1, 10, 11, f + 1),
+                new Target(-0.05, 1.05, 8.25, 8.75, f + 1.5),
+                new Target(-1.05, 0.05, 10.25, 10.75, f + 2.5),
+                new Target(-2, 3, 13, 14, f + 3.5));
+        List<Technique.Segment> segs = Technique.chain(w, entry, 100, legs, 5_000, 2, SegmentSearch.Options.fast());
+        assertFalse(segs.isEmpty());
+        PlayerState s = entry;
+        for (PlayerInput a : segs.get(0).inputs) s = Physics.tick(w, s, a);
+        assertTrue(s.onGround);
+        assertEquals(f + 3.5, s.posY, 1e-9);
+        assertTrue("ticks " + segs.get(0).ticks(), segs.get(0).ticks() <= 80);
+    }
+
+    /** A closed top trapdoor one block up leaves 1.8125 of headroom: the jump chain beats a 2-high ceiling. */
+    @Test
+    public void trapdoorCeilingIsTheFastestJumpChain() {
+        int trapdoor = CeilingBench.policy(1.8125, 20, true);
+        int stone = CeilingBench.policy(2, 20, true);
+        assertTrue(trapdoor + " vs " + stone, trapdoor > 0 && trapdoor < stone);
     }
 }

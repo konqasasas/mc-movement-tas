@@ -1,4 +1,6 @@
-# 実験の登録簿
+# 実験の登録簿: 2026-10-28 の帯ルールより前
+
+帯ルールより前の番号(E-001〜E-099)の置き場で、新しい行は足しません。
 
 走らせる前に登録し、終わったら結果と F 番号を書き足します。条件をそろえて比べられるよう、コマンドはそのまま再実行できる形で書きます。
 
@@ -20,9 +22,13 @@
 | E-014 | 2026-10-28 | 近似探索 v1 の v0 成績 | ブランチ `claude/project-thread-e5m6fi`(`b73a506`)で `mctas-approx solve problems/v0 out --budget 15`、`mctas-problem score problems/v0 out` | 10 問すべて解け、9 問が目標どおり。08 は 24(最適 23)、10 は 33(目標 35) | F-016 |
 | E-015 | 2026-10-28 | 近似探索 v1 の報告用成績 | 同じビルドで `mctas-approx solve problems/v1-holdout out --budget 30`、`v1-full` も 30 秒 | v1-holdout 12 問中 9 問、v1-full 8 問中 7 問を解いた | F-016 |
 | E-016 | 2026-10-28 | v1 の目標タイム作り | 同じビルドで `--budget 120` を `v1-dev` と `v1-holdout` に | v1-holdout の 30 秒の解は 9 問中 6 問で 120 秒と同じ、残りは +1〜+4 | F-016 |
+| E-017 | 2026-10-28 | 近似探索 v2(磨き込み)と v1 の比較 | ブランチ `claude/project-thread-e5m6fi`(`ce94d4a`)で v0 を 15 秒、`v1-dev` と `v1-holdout` を 30 秒 | v0 は 10 問すべて目標どおり(08 が 24 → 23)。v1-holdout は 9 問解けて合計 817(v1 は 816) | F-020 |
+| E-018 | 2026-10-28 | 近似探索の解の実機再生 | 実機で `/mctas replay` に `problems/v1-holdout/s1008-5j`、`s1011-8j`、`problems/v1-dev/s0005-10j` の問題と `.tas` | 3 本とも予測どおり(60, 67, 134 ティック)で、全ティック一致 | F-021 |
 | E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
+| E-020 | 2026-10-28 | 実際のワールドから書き出した問題を解いて実機再生 | ユーザーが `/mctas export test1` で書き出した問題(10 ジャンプほど、石と羊毛)を `mctas-approx solve test1.problem.json out --budget 60`(approx v2)で解き、実機で `/mctas replay problems/test1.problem.json problems/test1.tas` | 86 ティック。実機も 86 ティックで全ティック一致 | F-023 |
+| E-021 | 2026-10-28 | stpt1(低い天井・段差の通路)で人間の記録と比べる | `mctas-approx solve problems/real/stpt1.problem.json out --budget 60`、解を `mctas-problem time --trace` で区間に分ける | 232 ティック(人間は約 187)。遅れは天井の終わりと段差の 3 区間に集中 | F-024 |
 | E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
+| E-023 | 2026-10-28 | stpt1 を人間の解から磨く | `mctas-approx solve problems/real/stpt1.problem.json out --budget 120 --seed stpt1-human187.tas` | 187 のまま、改善なし(98 秒) | F-026 |
+| E-024 | 2026-10-28 | F-024 の対応の悪化確認 | `mctas-approx gen /tmp/dev2 v1-dev2 9 16` を v2(`ce94d4a`)と `c41692a` で `--budget 20` | 14 問ずつ解け、2 問で良く 2 問で 1 ティック悪い | F-027 |
 | E-025 | 2026-10-28 | stpt1 の段差区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique segment <stpt1.problem.json> <stpt1.tas> 103 0 8.5 65 12 0 --width 20000 --max 80`(B は `156 0 8.5 78 12 0`、C は `192 0 goal 0 0 0`。人間の解は 122、159、183) | 近似 36/37/47 → 25/26/39。人間 24/28/38 → 24/27/38 | F-029 |
 | E-026 | 2026-10-28 | 段差の踏み切りの窓 | 同じブランチで `mctas-technique window` | 高さ 1、走りで 0.79〜2.51。天井が 1 ブロック手前までなら後ろ向きのジャンプだけ | F-030 |
-| E-401 | 2026-10-28 | 局所探索で近似の解の途中からゴールまで | ブランチ `claude/project-thread-usu2am` で `MCTAS_SPLICE=out.tas mctas-technique segment <stpt1.problem.json> <stpt1.tas> 7 0 goal 0 0 0 --width 20000 --max 240`(103 からも) | 7 から 191、103 から 196。違反なし | F-401 |
-| E-301 | 2026-10-28 | 物理の高速化の前後比較 | main(`a4cc840`)とブランチ `claude/project-thread-k025c7` で `./gradlew :problem:bench -Prounds=6 -Pproblems=problems/v1-full/s2007-12j.problem.json,problems/place/01-pillar-2.problem.json,<test1.problem.json>,<stpt1.problem.json>`(test1 と stpt1 は共有フォルダ ws3b/) | 探索型の木 37〜45 万 → 88〜101 万ティック/秒、状態 1 つ約 240 バイトで変わらず、チェックサム一致 | F-301 |

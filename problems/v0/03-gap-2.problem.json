@@ -74,8 +74,8 @@
   },
   "target": {
     "ticks": 9,
-    "kind": "upper_bound",
+    "kind": "optimal",
     "witness": "03-gap-2.tas",
-    "note": "baseline beam search"
+    "note": "proven: the witness reaches the goal in 9 ticks and mctas-search bound proves no run is faster"
   }
 }

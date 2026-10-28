@@ -4,6 +4,12 @@ import io.github.konqasasas.mctas.physics.PlayerState;
 
 /** Where a technique ends: the first tick whose state satisfies {@link #reached}. */
 public interface Exit {
+    /**
+     * Weight of the height still to climb in the ranking of {@link #box} and {@link #landing}, against
+     * horizontal distance. With 0 a long ladder climb looks no better than standing at the wall; with
+     * 1 jumping under a low ceiling looks like progress.
+     */
+    double CLIMB_WEIGHT = Double.parseDouble(System.getProperty("mctas.climbWeight", "0.3"));
 
     /** True when the tick that turned {@code before} into {@code after} completes the technique. */
     boolean reached(PlayerState before, PlayerState after);
@@ -31,7 +37,8 @@ public interface Exit {
 
     /**
      * The feet point inside an axis-aligned box, corners included (the problem format's goal test).
-     * Ranked by the horizontal distance to the box, so the beam steers sideways into it too.
+     * Ranked by the horizontal distance to the box (so the beam steers sideways into it too) plus
+     * {@link #CLIMB_WEIGHT} times the height still to climb.
      */
     static Exit box(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         return new Exit() {
@@ -43,12 +50,16 @@ public interface Exit {
 
             @Override
             public double progress(PlayerState s, double along) {
-                return -distance(s.posX, s.posZ, minX, maxX, minZ, maxZ);
+                return -distance(s.posX, s.posZ, minX, maxX, minZ, maxZ)
+                        - CLIMB_WEIGHT * Math.max(0, minY - s.posY);
             }
         };
     }
 
-    /** Standing on the target's top face with the feet point over it: the first tick of the landing. */
+    /**
+     * Standing on the target's top face with the feet point over it: the first tick of the landing.
+     * Ranked like {@link #box}.
+     */
     static Exit landing(Target t) {
         return new Exit() {
             @Override
@@ -59,7 +70,8 @@ public interface Exit {
 
             @Override
             public double progress(PlayerState s, double along) {
-                return -distance(s.posX, s.posZ, t.minX, t.maxX, t.minZ, t.maxZ);
+                return -distance(s.posX, s.posZ, t.minX, t.maxX, t.minZ, t.maxZ)
+                        - CLIMB_WEIGHT * Math.max(0, t.topY - s.posY);
             }
         };
     }

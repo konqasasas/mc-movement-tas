@@ -1,0 +1,186 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "real/test1",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "imported": {
+      "exportedFrom": "mctas-recorder",
+      "from": [
+        -80,
+        78,
+        232
+      ],
+      "to": [
+        -71,
+        85,
+        270
+      ]
+    },
+    "fills": [
+      {
+        "from": [
+          -77,
+          79,
+          235
+        ],
+        "to": [
+          -75,
+          79,
+          238
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -77,
+          79,
+          239
+        ],
+        "to": [
+          -77,
+          79,
+          240
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          239
+        ],
+        "block": "minecraft:wool"
+      },
+      {
+        "from": [
+          -75,
+          79,
+          239
+        ],
+        "to": [
+          -75,
+          79,
+          240
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          240
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          243
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -78,
+          79,
+          246
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -74,
+          79,
+          253
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          256
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          261
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -76,
+          79,
+          266
+        ],
+        "block": "minecraft:wool"
+      },
+      {
+        "from": [
+          -76,
+          80,
+          249
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -80,
+          84,
+          270
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      -75.58776189107911,
+      80.0,
+      235.49233230593217
+    ],
+    "yaw": -360.98947,
+    "pitch": 14.686221
+  },
+  "start": {
+    "min": [
+      -76.0,
+      80.0,
+      239.0
+    ],
+    "max": [
+      -75.0,
+      80.0001,
+      240.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -76.3,
+      80.0,
+      265.7
+    ],
+    "max": [
+      -74.7,
+      80.0,
+      267.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 1200,
+    "voidY": 78.0
+  },
+  "target": {
+    "ticks": 86,
+    "kind": "upper_bound",
+    "witness": "test1.tas",
+    "note": "approx-beam-v2, 60 s"
+  }
+}
