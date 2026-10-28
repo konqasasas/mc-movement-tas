@@ -90,6 +90,46 @@ public final class TechniqueMain {
         return sb.length() == 0 ? "none" : sb.toString();
     }
 
+    /**
+     * Writes the inputs up to {@code from}, then the segment, then (unless the segment already ends at
+     * the goal) the fastest search from its exit to the goal, and judges the whole run.
+     */
+    private static void splice(Problem p, List<TickInput> in, int from, SegmentSearch.Result r,
+                               boolean atGoal, SegmentSearch.Options o, String out) throws Exception {
+        List<TickInput> all = new ArrayList<TickInput>(in.subList(0, from));
+        for (PlayerInput x : r.inputs) all.add(toTick(x));
+        if (!atGoal) {
+            Exit goal = Exit.box(p.goal.minX, p.goal.minY, p.goal.minZ, p.goal.maxX, p.goal.maxY, p.goal.maxZ);
+            SegmentSearch.Options g = o;
+            g.maxTicks = Math.max(g.maxTicks, 200);
+            float heading = io.github.konqasasas.mctas.technique.Technique.headingTo(r.end,
+                    (p.goal.minX + p.goal.maxX) / 2, (p.goal.minZ + p.goal.maxZ) / 2);
+            List<SegmentSearch.Result> rest = new SegmentSearch().search(p.world, r.end, r.lastToggle - r.ticks(), goal, heading, g);
+            if (rest.isEmpty()) {
+                System.out.println("splice: no way from the segment's exit to the goal");
+                return;
+            }
+            for (PlayerInput x : rest.get(0).inputs) all.add(toTick(x));
+        }
+        io.github.konqasasas.mctas.problem.judge.RunResult rr = io.github.konqasasas.mctas.problem.judge.Evaluator.run(p, all);
+        System.out.println("splice: " + rr.status + " " + rr.ticks() + " ticks, toggle violations "
+                + io.github.konqasasas.mctas.problem.judge.ToggleRule.violations(p, all));
+        Files.write(Paths.get(out), InputText.format(all, p.spawn).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static TickInput toTick(PlayerInput a) {
+        java.util.Set<io.github.konqasasas.mctas.problem.input.Key> k =
+                java.util.EnumSet.noneOf(io.github.konqasasas.mctas.problem.input.Key.class);
+        if (a.has(PlayerInput.W)) k.add(io.github.konqasasas.mctas.problem.input.Key.W);
+        if (a.has(PlayerInput.A)) k.add(io.github.konqasasas.mctas.problem.input.Key.A);
+        if (a.has(PlayerInput.S)) k.add(io.github.konqasasas.mctas.problem.input.Key.S);
+        if (a.has(PlayerInput.D)) k.add(io.github.konqasasas.mctas.problem.input.Key.D);
+        if (a.has(PlayerInput.JUMP)) k.add(io.github.konqasasas.mctas.problem.input.Key.JUMP);
+        if (a.has(PlayerInput.SPRINT)) k.add(io.github.konqasasas.mctas.problem.input.Key.SPRINT);
+        if (a.has(PlayerInput.SNEAK)) k.add(io.github.konqasasas.mctas.problem.input.Key.SNEAK);
+        return new TickInput(k, a.yaw, a.pitch);
+    }
+
     private static float[] floats(String csv) {
         String[] p = csv.split(",");
         float[] f = new float[p.length];
@@ -151,6 +191,8 @@ public final class TechniqueMain {
         System.out.printf("search: %d results, %d ticks expanded, %.1f s%n", rs.size(), ss.expanded,
                 (System.nanoTime() - t0) / 1e9);
         if (o.guide != null) System.out.println("guide lost at tick " + ss.guideLost);
+        String splice = System.getenv("MCTAS_SPLICE");
+        if (splice != null && !rs.isEmpty()) splice(p, in, from, rs.get(0), a[5].equals("goal"), o, splice);
         for (int k = 0; k < Math.min(5, rs.size()); k++) {
             SegmentSearch.Result r = rs.get(k);
             System.out.printf("  %d ticks, speed %.4f, end %s%n", r.ticks(), r.speedAlong(heading), r.end);
