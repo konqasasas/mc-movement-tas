@@ -119,14 +119,23 @@ v1 は `"source": "inline"` だけを実装しています。`fills` は `/fill`
 - 耕地を踏み荒らすこと。1.5 ブロック以上の高さから耕地に落ちると土に変わり、プレイヤーが押し上げられます(0.5〜1.5 ブロックでは確率)。
 - 勝手に変わるブロック: 砂や砂利の落下、作物の成長、葉の消滅、感圧板・トリップワイヤー・ディテクターレールをプレイヤーが踏んで出る信号とそれで開くドアやピストンなど。エンジンのワールドは書いたとおりのまま動きません。
 
-次の版で、1.12.2 のセーブデータ(Anvil 形式)から範囲を指定して読む `"source": "anvil"` を足す予定です。形は次を想定しています。
+#### 実際のワールドから作る
+
+1.12.2 のセーブ(Anvil 形式)や `.schematic` から範囲を切り出して `fills` に書き出すには、`mctas-problem import`(9 節)か、ゲーム内で `/mctas mark` と `/mctas export`(`mod-forge/README.md`)を使います。どちらも範囲の外は空気になります。書き出したファイルの `world.imported` には、どこから切り出したかが入ります(読み込み時には無視されます)。
 
 ```json
-"world": {"source": "anvil", "save": "saves/MyMap", "dimension": 0,
-          "bounds": {"min": [-100, 0, -100], "max": [100, 128, 100]}}
+"world": {"source": "inline",
+          "imported": {"save": "MyMap", "dimension": 0, "from": [-100, 0, -100], "to": [100, 128, 100]},
+          "fills": [...]}
 ```
 
-範囲の外は空気として扱います。
+セーブの数値 ID とメタデータは、ゲームがチャンクを読むときと同じに解釈します(`problem/.../cli/importer/LegacyBlocks.java`)。
+
+- どの状態にも当たらないメタデータ(階段の 8 以上、はしごの 0 など)は、ゲームでは空気として読まれるので、空気にして警告します。
+- ドアは上下の半分がそれぞれ半分ずつの情報しか持たないので、もう半分から補います(`BlockDoor.getActualState` と同じ)。
+- 1.12.2 にない ID(Mod のブロック)と、ポータル類・動いている途中のピストンはエラーです(`--unsupported-as-air` で空気にできます)。
+- 勝手に変わるブロック(砂、作物、レールなど)とダメージを受けるブロックは、書き出したうえで警告します。
+- スポーンでプレイヤーがブロックにめり込むとエラー、静止して立てない(空中など)と警告です。
 
 ### ゴール直方体の作り方(問題集の慣習)
 
@@ -212,9 +221,18 @@ problem/build/install/mctas-problem/bin/mctas-problem time <問題> <入力> --t
 problem/build/install/mctas-problem/bin/mctas-problem check problems/v0
 problem/build/install/mctas-problem/bin/mctas-problem search <問題> out.tas --beam 4000 --yaws 0,45 --via "0,64,4"
 problem/build/install/mctas-problem/bin/mctas-problem score problems/v0 out-a/ out-b/ --markdown
+problem/build/install/mctas-problem/bin/mctas-problem import <セーブのフォルダ> -o out.problem.json --id my/course --from -10,60,-40 --to 10,80,10 --spawn-on 0,64,-30 --start -1,60,0,2,70,1 --goal-on 0,64,4
+problem/build/install/mctas-problem/bin/mctas-problem diffworld a.problem.json b.problem.json
 ```
 
 - `time`: 入力列のタイムを計算します。`--trace` で毎ティックの座標を出します。
 - `check`: フォルダ内の全問題について、`target.witness` の入力列が `target.ticks` ちょうどで解けるか確かめます。
 - `search`: 目標タイムを作るための簡単なビームサーチです。最適解を探すものではありません。`--via` は途中で着地するブロックの座標です。
 - `score`: 探索エンジンどうしの成績表です。解答フォルダ(エンジンごとに 1 つ、`*.solution.json`)の全解答を物理で計り直し、問題ごとに「ティック数(目標との差)計算時間」を並べます。計算時間は解答の `result.search.wallMillis`、列の名前は `result.search.engine` です。切り替えの 3 ティック規則を破る解答には `!` が付きます。最後に、解けた数と目標以下の数、全エンジンが解けた問題でのティック合計を出します。`optimal` の目標より速い解答があれば(物理か証明の誤り)エラーで終わります。
+- `import`: セーブ(`level.dat` のあるフォルダ)か `.schematic` から、`--from` と `--to` の範囲(両端を含むブロック座標)を切り出して問題ファイルを書きます。
+  - `--spawn x,y,z[,yaw[,pitch]]` か、ブロックの上面の中央に立たせる `--spawn-on x,y,z`(向きは `--yaw`、`--pitch`)。
+  - `--start x1,y1,z1,x2,y2,z2`(実数の 2 隅)。
+  - `--goal x1,y1,z1,x2,y2,z2` か、4 節の慣習どおりブロックへの着地をゴールにする `--goal-on x,y,z`(上面の高さちょうど、当たり判定の水平範囲を 0.3 ずつ広げる)。
+  - `--dimension`(0 地上、-1 ネザー、1 エンド)、`--origin x,y,z`(schematic の隅を置くワールド座標。既定 0,0,0、範囲の既定は schematic 全体)、`--title`、`--max-ticks`、`--void-y`(既定は範囲の下端。それより下には着地できるものがないため)。
+  - エラーがあると何も書かずに終了コード 1 を返します。書く前に、書いた内容を読み直して切り出したワールドと一致することを確かめます。
+- `diffworld`: 2 つの問題のワールドで違うブロックを並べます。同じ場所をセーブから `import` したものと、ゲーム内で `/mctas export` したものを比べるのに使います。

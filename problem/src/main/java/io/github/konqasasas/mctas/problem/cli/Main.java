@@ -4,6 +4,8 @@ import io.github.konqasasas.mctas.physics.EngineBuild;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.baseline.BeamSearch;
+import io.github.konqasasas.mctas.problem.cli.importer.WorldDiff;
+import io.github.konqasasas.mctas.problem.cli.importer.WorldImport;
 import io.github.konqasasas.mctas.problem.Vec3;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 import io.github.konqasasas.mctas.problem.io.InputText;
@@ -32,7 +34,9 @@ public final class Main {
         "  mctas-problem time <problem.json> <inputs.tas|solution.json> [--trace] [--strict] [--solution out.json] [--pkc out.json]",
         "  mctas-problem check <problem-dir>",
         "  mctas-problem score <problem-dir> <solution-dir>... [--markdown]",
-        "  mctas-problem search <problem.json> <out.tas> [--beam N] [--horizon T] [--yaws a,b,c] [--via x,y,z;x,y,z]");
+        "  mctas-problem search <problem.json> <out.tas> [--beam N] [--horizon T] [--yaws a,b,c] [--via x,y,z;x,y,z]",
+        WorldImport.USAGE,
+        "  mctas-problem diffworld <a.problem.json> <b.problem.json>");
 
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
@@ -47,6 +51,10 @@ public final class Main {
             System.exit(check(Paths.get(args[1])));
         } else if (args[0].equals("score") && args.length >= 3) {
             System.exit(Score.run(args));
+        } else if (args[0].equals("import")) {
+            System.exit(WorldImport.run(args));
+        } else if (args[0].equals("diffworld") && args.length == 3) {
+            System.exit(WorldDiff.run(args));
         } else {
             System.err.println(USAGE);
             System.exit(2);
