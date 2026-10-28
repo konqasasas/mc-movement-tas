@@ -170,6 +170,9 @@ public final class Physics {
 
         // EntityPlayerSP.onUpdate, after super.onUpdate: what the server is told.
         Placement.afterMove(s);
+        if (!s.pressed.isEmpty()) {
+            s.pressed = s.pressed.aged();
+        }
     }
 
     /** {@code EntityLivingBase.jump}. */

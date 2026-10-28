@@ -58,6 +58,8 @@ public final class VanillaOracle {
     private int rightClickDelay;
     private boolean prevUse;
     private boolean unsupportedAction;
+    /** Buttons pressed and maybe still on, kept as the engine keeps them (the server side is not run). */
+    private io.github.konqasasas.mctas.physics.Pressed pressed = io.github.konqasasas.mctas.physics.Pressed.NONE;
 
     // EntityPlayerSP's record of what the server was told, and the server's copy of the player.
     private double lastReportedPosX;
@@ -109,6 +111,13 @@ public final class VanillaOracle {
         p.miSneak = s.prevSneak;
         for (WorldDelta e : s.placed.entries()) {
             world.setBlockState(new BlockPos(e.x, e.y, e.z), VanillaStates.of(e.type), 11);
+        }
+        pressed = s.pressed;
+        for (int i = 0; i < pressed.size(); i++) {
+            BlockType on = pressed.shown(i);
+            // A button that may be off already is kept on; rightClickMouse refuses rays that reach it.
+            world.set(new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i)),
+                    VanillaStates.of(on.name().contains("powered=") ? on : powered(pressed.off(i))));
         }
         p.inventory.clear();
         for (int i = 0; i < Hotbar.SLOTS; i++) {
@@ -179,6 +188,7 @@ public final class VanillaOracle {
         s.rightClickDelay = rightClickDelay;
         s.prevUse = prevUse;
         s.unsupportedAction = unsupportedAction;
+        s.pressed = pressed;
         s.lastReportedPosX = lastReportedPosX;
         s.lastReportedPosY = lastReportedPosY;
         s.lastReportedPosZ = lastReportedPosZ;
@@ -238,7 +248,12 @@ public final class VanillaOracle {
         Vec3d eye = new Vec3d(player.posX, player.posY + (double) player.getEyeHeight(), player.posZ);
         Vec3d look = player.look();
         double reach = (double) 4.5F;
-        RayTraceResult r = world.rayTraceBlocks(eye, eye.add(look.x * reach, look.y * reach, look.z * reach), false, false, true);
+        Vec3d end = eye.add(look.x * reach, look.y * reach, look.z * reach);
+        if (reachesUncertainButton(eye, end)) {
+            unsupportedAction = true;
+            return;
+        }
+        RayTraceResult r = world.rayTraceBlocks(eye, end, false, false, true);
         if (r == null || r.typeOfHit != RayTraceResult.Type.BLOCK) {
             return;
         }
@@ -252,7 +267,7 @@ public final class VanillaOracle {
         float f1 = (float) (r.hitVec.y - (double) pos.getY());
         float f2 = (float) (r.hitVec.z - (double) pos.getZ());
         if ((!player.isSneaking() || stack.isEmpty()) && InteractionTableWriter.activates(st)) {
-            unsupportedAction = true;
+            activate(pos, st, stack, r.sideHit, f, f1, f2);
             return;
         }
         if (stack.isEmpty()) {
@@ -278,6 +293,119 @@ public final class VanillaOracle {
             return;
         }
         stack.onItemUse(player, world, pos, EnumHand.MAIN_HAND, r.sideHit, f, f1, f2);
+    }
+
+    /**
+     * Whether the view ray reaches a button that the client may or may not show off again: with a full
+     * block in its place, the ray stops there.
+     */
+    private boolean reachesUncertainButton(Vec3d eye, Vec3d end) {
+        for (int i = 0; i < pressed.size(); i++) {
+            if (pressed.age(i) <= io.github.konqasasas.mctas.physics.Pressed.certainTicks(pressed.off(i))) {
+                continue;
+            }
+            BlockPos at = new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i));
+            IBlockState was = world.getBlockState(at);
+            world.set(at, Blocks.STONE.getDefaultState());
+            RayTraceResult r = world.rayTraceBlocks(eye, end, false, false, true);
+            world.set(at, was);
+            if (r != null && r.typeOfHit == RayTraceResult.Type.BLOCK && r.getBlockPos().equals(at)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The client's {@code onBlockActivated} on the game's own code for buttons and levers, after the
+     * engine's rules for what it does not model: the server must see the same click (not sneaking with a
+     * block in hand), and nothing around the block or the one it hangs on may react to power
+     * (the interaction table). Any other block is unsupported. Checks that the button's own code changed
+     * nothing else.
+     */
+    private void activate(BlockPos pos, IBlockState st, ItemStack stack, EnumFacing side, float f, float f1, float f2) {
+        Block b = st.getBlock();
+        if (!(b instanceof net.minecraft.block.BlockButton) && !(b instanceof net.minecraft.block.BlockLever)) {
+            unsupportedAction = true;
+            return;
+        }
+        if (!stack.isEmpty() && (serverSneakState || sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE)) {
+            unsupportedAction = true;
+            return;
+        }
+        EnumFacing facing = b instanceof net.minecraft.block.BlockLever
+                ? st.getValue(net.minecraft.block.BlockLever.FACING).getFacing()
+                : st.getValue(net.minecraft.block.BlockButton.FACING);
+        BlockPos attached = pos.offset(facing.getOpposite());
+        for (EnumFacing n : EnumFacing.values()) {
+            for (BlockPos q : new BlockPos[] {pos.offset(n), attached.offset(n)}) {
+                if (q.equals(pos)) {
+                    continue;
+                }
+                BlockType t = VanillaBlocks.require(catalogName(world.getBlockState(q)));
+                if (t.reactsToPower() || t.isExcept(BlockType.UNSTABLE)) {
+                    unsupportedAction = true;
+                    return;
+                }
+            }
+        }
+        if (b instanceof net.minecraft.block.BlockLever) {
+            // BlockLever.onBlockActivated returns at once on the client.
+            return;
+        }
+        boolean wasOn = st.getValue(net.minecraft.block.BlockButton.POWERED);
+        int logged = world.placedLog.size();
+        int scheduled = world.scheduled;
+        // The button's own code, as the client runs it (its notifyNeighbors reach the same blocks).
+        boolean took;
+        try {
+            took = b.onBlockActivated(world, pos, st, player, EnumHand.MAIN_HAND, side, f, f1, f2);
+        } catch (RuntimeException e) {
+            StringBuilder around = new StringBuilder();
+            for (EnumFacing n : EnumFacing.values()) {
+                around.append(' ').append(world.getBlockState(pos.offset(n))).append(' ').append(world.getBlockState(attached.offset(n)));
+            }
+            throw new IllegalStateException("pressing the button at " + pos + " failed; around:" + around, e);
+        }
+        if (!took) {
+            throw new IllegalStateException("a button did not take the click at " + pos);
+        }
+        if (!wasOn) {
+            if (world.placedLog.size() != logged + 1 || world.scheduled != scheduled + 1) {
+                StringBuilder changed = new StringBuilder();
+                for (BlockPos q : world.placedLog.subList(logged, world.placedLog.size())) {
+                    changed.append(' ').append(q).append('=').append(world.getBlockState(q));
+                }
+                for (EnumFacing n : EnumFacing.values()) {
+                    changed.append(" | ").append(world.getBlockState(pos.offset(n))).append(' ').append(world.getBlockState(attached.offset(n)));
+                }
+                throw new IllegalStateException("pressing the button at " + pos + " changed more than the button:"
+                        + changed + ", " + (world.scheduled - scheduled) + " updates scheduled");
+            }
+            world.placedLog.remove(world.placedLog.size() - 1);
+            pressed = pressed.with(pos.getX(), pos.getY(), pos.getZ(), VanillaBlocks.require(catalogName(st)));
+        }
+    }
+
+    /** The button on. */
+    private static BlockType powered(BlockType off) {
+        java.util.Map<String, String> props = VanillaBlocks.parseProperties(off.name());
+        props.put("powered", "true");
+        return VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(off.name()), props));
+    }
+
+    /** One tick later for the pressed buttons; the ones surely off again turn off. */
+    private void agePressed() {
+        if (pressed.isEmpty()) {
+            return;
+        }
+        io.github.konqasasas.mctas.physics.Pressed next = pressed.aged();
+        for (int i = 0; i < pressed.size(); i++) {
+            if (!next.has(pressed.x(i), pressed.y(i), pressed.z(i))) {
+                world.set(new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i)), VanillaStates.of(pressed.off(i)));
+            }
+        }
+        pressed = next;
     }
 
     /**
@@ -349,6 +477,7 @@ public final class VanillaOracle {
             unsupportedAction = true;
         }
         onUpdateWalkingPlayer();
+        agePressed();
         return snapshot();
     }
 

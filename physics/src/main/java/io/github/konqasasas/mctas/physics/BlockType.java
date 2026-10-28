@@ -91,6 +91,7 @@ public class BlockType {
         t.setInteraction(rayHittable, materialReplaceable, activates, placeable, replaceable, replaceableFromNeighbours,
                 selection, selectionFromNeighbours, selectionOffsetXZ, fragile);
         t.selectionUnknown = true;
+        t.reactsToPower = reactsToPower;
         return t;
     }
 
@@ -102,7 +103,7 @@ public class BlockType {
                 && blocksMovement == o.blocksMovement && rayHittable == o.rayHittable
                 && materialReplaceable == o.materialReplaceable && activates == o.activates && placeable == o.placeable
                 && replaceable == o.replaceable && replaceableFromNeighbours == o.replaceableFromNeighbours
-                && fragile == o.fragile;
+                && fragile == o.fragile && reactsToPower == o.reactsToPower;
     }
 
     /** Marks a block whose material does not block movement ({@code MaterialLogic}, webs). Returns this block. */
@@ -175,6 +176,7 @@ public class BlockType {
     private boolean selectionOffsetXZ;
     private boolean fragile;
     private boolean selectionUnknown;
+    private boolean reactsToPower;
 
     void setInteraction(boolean rayHittable, boolean materialReplaceable, boolean activates, boolean placeable,
                         boolean replaceable, boolean replaceableFromNeighbours, Aabb selection,
@@ -189,6 +191,19 @@ public class BlockType {
         this.selectionFromNeighbours = selectionFromNeighbours;
         this.selectionOffsetXZ = selectionOffsetXZ;
         this.fragile = fragile;
+    }
+
+    void setReactsToPower(boolean reacts) {
+        this.reactsToPower = reacts;
+    }
+
+    /**
+     * True if the block changes, schedules an update or fires a block event when a neighbour is powered
+     * or stops being powered (doors, pistons, lamps, redstone wire, liquids, ...), so pressing a button
+     * or pulling a lever next to it changes the course.
+     */
+    public boolean reactsToPower() {
+        return reactsToPower;
     }
 
     /** {@code Block.canCollideCheck(state, false)}: the view ray can stop on this block (not air, liquids or fire). */

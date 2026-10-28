@@ -279,6 +279,7 @@ public final class VanillaBlocks {
                     }
                     t.setInteraction(f[1].equals("1"), f[2].equals("1"), f[3].equals("1"), f[4].equals("1"),
                             f[5].equals("1"), f[5].equals("dyn"), box, sel.equals("dyn"), offsetXZ, f.length > 7 && f[7].equals("1"));
+                    t.setReactsToPower(f.length > 8 && f[8].equals("1"));
                 }
             } finally {
                 r.close();

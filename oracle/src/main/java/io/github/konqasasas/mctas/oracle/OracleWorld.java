@@ -32,6 +32,8 @@ final class OracleWorld extends World {
     private final Map<BlockPos, IBlockState> blocks = new HashMap<BlockPos, IBlockState>();
     /** Positions changed through {@link #setBlockState}, in order: the blocks the player placed. */
     final List<BlockPos> placedLog = new java.util.ArrayList<BlockPos>();
+    /** Block updates scheduled and block events added, for tests that ask whether a block reacts. */
+    int scheduled;
     /** The one entity in the world, for {@code World.mayPlace}'s entity check; null until set. */
     Entity player;
 
@@ -108,6 +110,26 @@ final class OracleWorld extends World {
             placedLog.add(p);
         }
         return true;
+    }
+
+    @Override
+    public void scheduleUpdate(BlockPos pos, net.minecraft.block.Block blockIn, int delay) {
+        scheduled++;
+    }
+
+    @Override
+    public void updateBlockTick(BlockPos pos, net.minecraft.block.Block blockIn, int delay, int priority) {
+        scheduled++;
+    }
+
+    @Override
+    public void scheduleBlockUpdate(BlockPos pos, net.minecraft.block.Block blockIn, int delay, int priority) {
+        scheduled++;
+    }
+
+    @Override
+    public void addBlockEvent(BlockPos pos, net.minecraft.block.Block blockIn, int eventID, int eventParam) {
+        scheduled++;
     }
 
     /** Only the player, and only for callers that do not exclude it ({@code World.checkNoEntityCollision}). */
