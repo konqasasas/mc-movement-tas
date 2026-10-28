@@ -13,10 +13,24 @@ public final class Hotbar {
 
     private final BlockType[] items;
     private final int[] counts;
+    // Both are read for every state hash and comparison, so they are worked out once.
+    private final boolean empty;
+    private final int hash;
 
     private Hotbar(BlockType[] items, int[] counts) {
         this.items = items;
         this.counts = counts;
+        boolean e = true;
+        int h = 0;
+        for (int i = 0; i < SLOTS; i++) {
+            if (items[i] != null) {
+                e = false;
+            }
+            h = h * 31 + (items[i] == null ? 0 : items[i].name().hashCode());
+            h = h * 31 + counts[i];
+        }
+        this.empty = e;
+        this.hash = h;
     }
 
     /** A hotbar with this stack in the slot. {@code count} 0 or a null block empties it. */
@@ -46,12 +60,7 @@ public final class Hotbar {
 
     /** True when no slot holds anything, so nothing more can be placed. */
     public boolean isEmpty() {
-        for (BlockType t : items) {
-            if (t != null) {
-                return false;
-            }
-        }
-        return true;
+        return empty;
     }
 
     /** {@code ItemStack.shrink(1)} on the slot. */
@@ -61,17 +70,15 @@ public final class Hotbar {
 
     @Override
     public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
         return o instanceof Hotbar && Arrays.equals(items, ((Hotbar) o).items) && Arrays.equals(counts, ((Hotbar) o).counts);
     }
 
     @Override
     public int hashCode() {
-        int h = 0;
-        for (int i = 0; i < SLOTS; i++) {
-            h = h * 31 + (items[i] == null ? 0 : items[i].name().hashCode());
-            h = h * 31 + counts[i];
-        }
-        return h;
+        return hash;
     }
 
     @Override
