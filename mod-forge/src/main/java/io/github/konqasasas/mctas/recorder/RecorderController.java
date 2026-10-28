@@ -120,6 +120,8 @@ public final class RecorderController {
     private Hotbar runHotbar;
     /** True while the run's hotbar, slot and placed blocks are compared with the engine. */
     private boolean runPlacing;
+    /** The tick on which the engine reached a right-click it does not model, or -1. */
+    private int runUnsupportedTick;
     /** The player's own hotbar before the first run that replaced it, put back when the session stops. */
     private volatile net.minecraft.item.ItemStack[] savedHotbar;
     private volatile boolean serverReady;
@@ -294,6 +296,9 @@ public final class RecorderController {
                 PlayerState real = PlayerSnapshot.read(p);
                 PlayerInput in = mode == Mode.RECORD ? PlayerSnapshot.lastInput(p) : inputs.get(tick);
                 Physics.step(blocks, sim, in);
+                if (sim.unsupportedAction && runUnsupportedTick < 0) {
+                    runUnsupportedTick = tick;
+                }
                 readPlacement(p, real, sim);
                 if (entityNearby(p)) {
                     runEntityTicks++;
@@ -323,7 +328,8 @@ public final class RecorderController {
                 tick++;
                 boolean judged = mode == Mode.REPLAY
                         && judge.observe(new Vec3(real.posX, real.posY, real.posZ));
-                if (mode != Mode.RECORD && (judged || tick >= inputs.size())) {
+                // After an unmodelled right-click (a door opened, a chest's screen) the game and the engine part.
+                if (mode != Mode.RECORD && (judged || tick >= inputs.size() || runUnsupportedTick >= 0)) {
                     endRun();
                     // Leave RUN first, or stop() would close the finished run a second time.
                     phase = Phase.PREPARE;
@@ -386,6 +392,7 @@ public final class RecorderController {
         EntityPlayerSP p = mc.player;
         sim = PlayerSnapshot.read(p);
         runPlacing = runHotbar != null;
+        runUnsupportedTick = -1;
         if (runPlacing) {
             PlayerSnapshot.readPlacement(p, sim);
         }
@@ -417,7 +424,11 @@ public final class RecorderController {
             return;
         }
         String result;
-        if (!blocks.unsupported().isEmpty()) {
+        if (runUnsupportedTick >= 0) {
+            result = "INVALID: at tick " + runUnsupportedTick + " the inputs right-clicked a block that opens or"
+                    + " toggles, which the engine does not model";
+            runsInvalid++;
+        } else if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
             runsInvalid++;
         } else if (runScreenOpened) {
@@ -570,6 +581,10 @@ public final class RecorderController {
         List<String> notes = new java.util.ArrayList<String>();
         if (replayOffSpawn) {
             notes.add("the player did not start exactly at the spawn");
+        }
+        if (runUnsupportedTick >= 0) {
+            notes.add("stopped at tick " + runUnsupportedTick + ": the inputs right-clicked a block that opens or"
+                    + " toggles, which the engine does not model");
         }
         if (!blocks.unsupported().isEmpty()) {
             notes.add("touched unsupported blocks " + blocks.unsupported());

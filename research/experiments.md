@@ -9,6 +9,8 @@
 | E-003 | 2026-10-28 | 解答の実機再生 | 実機で `/mctas replay ../../../../problems/v0/02-gap-1.problem.json ../../../../problems/v0/02-gap-1.tas` | 4 ティック、全ティック一致 | F-007 |
 | E-004 | 2026-10-28 | フルブロック設置の一致 | ブランチ `ws2/block-placement` で `./gradlew :oracle:fuzz -Pruns=10000 -Pcourses=place` | 不一致 0 | F-009 |
 | E-005 | 2026-10-28 | 視線のレイキャストの一致 | ブランチ `ws2/block-placement` で `./gradlew :oracle:rayFuzz -Pruns=3000` | 不一致 0 | F-010 |
+| E-006 | 2026-10-28 | フルブロック設置の実機一致 | 実機で `/mctas fuzz place 30` | 一致 1、不一致 1、INVALID 19(テストの作り方の問題) | F-011 |
+| E-007 | 2026-10-28 | 設置つき解答の実機再生 | 実機で `/mctas replay ../../../../problems/place/01-pillar-2.problem.json ../../../../problems/place/01-pillar-2.tas` | 21 ティック、全ティック一致 | F-011 |
 | E-008 | 2026-10-28 | v0 の target 解が切り替え3ティック制約を守るか | `./gradlew :search:test --tests '*WitnessToggleTest'`(差し替え前の解で実行) | 09・10 が違反 | F-012 |
 | E-009 | 2026-10-28 | v0 の最速タイムの証明 | `mctas-search bound --cell 0.25 problems/v0/*.problem.json`(02・06 は `--cell` なし)、上界は `mctas-search beam <問題> --width 4000` | 5 問で下界 = 上界 | F-013 |
 
