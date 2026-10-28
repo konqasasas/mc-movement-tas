@@ -6,6 +6,7 @@ import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.Pressed;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
@@ -47,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Runs the recorder's three modes and writes one log per session under {@code .minecraft/mctas/logs}.
@@ -110,6 +112,16 @@ public final class RecorderController {
     /** The world's randomTickSpeed before the fuzz set it to 0, restored when the fuzz stops. */
     private volatile String savedRandomTickSpeed;
     private int runPausedTicks;
+    /** Buttons the engine pressed in this run that the client still shows on, with the tick of the press. */
+    private final Map<BlockPos, Integer> runPressTicks = new java.util.LinkedHashMap<BlockPos, Integer>();
+    /** Every button the engine pressed in this run: their powered state is not a change of the course. */
+    private final java.util.Set<BlockPos> runPressed = new java.util.HashSet<BlockPos>();
+    /**
+     * For each button kind, the fewest and most ticks after the press at whose start the client first
+     * showed the button off, over the whole session: what {@code Pressed.certainTicks} and
+     * {@code Pressed.UNCERTAIN_TICKS} must cover.
+     */
+    private final Map<String, int[]> buttonOffTicks = new java.util.TreeMap<String, int[]>();
 
     // fuzz
     private long seed;
@@ -217,6 +229,9 @@ public final class RecorderController {
                 ? String.format("fuzz: %d matched, %d mismatched, %d invalid, %d skipped (not standing starts)",
                 runsMatched, runsMismatched, runsInvalid, runsSkipped)
                 : "stopped";
+        if (!buttonOffTicks.isEmpty()) {
+            summary += "; buttons off after " + buttonOffSummary();
+        }
         if (log != null) {
             log.println("# " + summary + (why == null ? "" : " (" + why + ")"));
             log.close();
@@ -272,6 +287,7 @@ public final class RecorderController {
         if (phase != Phase.RUN) {
             return;
         }
+        checkPressed();
         PlayerState now = PlayerSnapshot.read(p);
         readPlacement(p, now, lastEnd);
         // The client counts the delay down before this event, so take it from the end of the last tick.
@@ -320,6 +336,7 @@ public final class RecorderController {
                 PlayerState real = PlayerSnapshot.read(p);
                 PlayerInput in = mode == Mode.RECORD ? PlayerSnapshot.lastInput(p) : inputs.get(tick);
                 Physics.step(blocks, sim, in);
+                notePresses();
                 if (sim.unsupportedAction && runUnsupportedTick < 0) {
                     runUnsupportedTick = tick;
                 }
@@ -375,6 +392,86 @@ public final class RecorderController {
         }
     }
 
+    /** Starts following the buttons the engine pressed on the tick that just ran. */
+    private void notePresses() {
+        for (int i = 0; i < sim.pressed.size(); i++) {
+            // A press ages once at the end of its own tick.
+            if (sim.pressed.age(i) == 1) {
+                BlockPos pos = new BlockPos(sim.pressed.x(i), sim.pressed.y(i), sim.pressed.z(i));
+                runPressTicks.put(pos, tick);
+                runPressed.add(pos);
+            }
+        }
+    }
+
+    /**
+     * At the start of a tick, after the client took in the server's packets: the state a right-click of
+     * this tick sees. A button the engine pressed must still show on for {@code Pressed.certainTicks}
+     * ticks and be off again after {@code Pressed.UNCERTAIN_TICKS} more; the tick it turns off is logged
+     * and counted for the session summary.
+     */
+    private void checkPressed() {
+        java.util.Iterator<Map.Entry<BlockPos, Integer>> it = runPressTicks.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<BlockPos, Integer> e = it.next();
+            BlockPos pos = e.getKey();
+            int k = tick - e.getValue();
+            IBlockState st = mc.world.getBlockState(pos);
+            String id = String.valueOf(net.minecraft.block.Block.REGISTRY.getNameForObject(st.getBlock()));
+            if (!(st.getBlock() instanceof net.minecraft.block.BlockButton)) {
+                it.remove();
+                continue;
+            }
+            BlockType type = VanillaBlocks.require(ClientWorldBlocks.catalogName(st));
+            int certain = Pressed.certainTicks(type);
+            boolean on = st.getValue(net.minecraft.block.BlockButton.POWERED);
+            String at = pos.getX() + " " + pos.getY() + " " + pos.getZ();
+            if (!on) {
+                log.println("# button " + id + " at " + at + " off at the start of tick " + tick + ", " + k
+                        + " ticks after the press on tick " + e.getValue());
+                int[] mm = buttonOffTicks.get(id);
+                if (mm == null) {
+                    buttonOffTicks.put(id, new int[] {k, k, 1});
+                } else {
+                    mm[0] = Math.min(mm[0], k);
+                    mm[1] = Math.max(mm[1], k);
+                    mm[2]++;
+                }
+                if (k <= certain) {
+                    pressMismatch("button " + at + " off already " + k + " ticks after the press (engine: on until "
+                            + certain + ")");
+                }
+                it.remove();
+            } else if (k > certain + Pressed.UNCERTAIN_TICKS) {
+                pressMismatch("button " + at + " still on " + k + " ticks after the press (engine: off after "
+                        + (certain + Pressed.UNCERTAIN_TICKS) + ")");
+                it.remove();
+            }
+        }
+    }
+
+    private void pressMismatch(String what) {
+        runMismatches++;
+        if (runFirstMismatch == null) {
+            runFirstMismatch = "tick " + tick + " pressed: " + what;
+        }
+        log.println("# DIFF pressed: " + what);
+    }
+
+    /** {@link #buttonOffTicks} as "stone_button 18..19 (12 presses), ...". */
+    private String buttonOffSummary() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, int[]> e : buttonOffTicks.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            int[] mm = e.getValue();
+            sb.append(e.getKey().replace("minecraft:", "")).append(' ').append(mm[0]).append("..").append(mm[1])
+                    .append(" ticks (").append(mm[2]).append(" presses)");
+        }
+        return sb.toString();
+    }
+
     /**
      * Fills in the placement fields of {@code real}. Without a hotbar for the run they are taken from
      * {@code ref} (the person's own inventory is not part of the comparison). With one, the hotbar, slot
@@ -385,6 +482,8 @@ public final class RecorderController {
     private void readPlacement(EntityPlayerSP p, PlayerState real, PlayerState ref) {
         real.prevUse = ref.prevUse;
         real.unsupportedAction = ref.unsupportedAction;
+        // The client's buttons are checked against the engine's on their own ({@link #checkPressed}).
+        real.pressed = ref.pressed;
         if (!runPlacing) {
             real.hotbar = ref.hotbar;
             real.selectedSlot = ref.selectedSlot;
@@ -442,10 +541,13 @@ public final class RecorderController {
         }
         lastEnd = sim.copy();
         blocks = new ClientWorldBlocks(mc.world);
-        if (runPlacing) {
-            // The engine places its own blocks; the client's placed ones would otherwise be in its way.
+        if (runPlacing || mode == Mode.FUZZ || mode == Mode.REPLAY) {
+            // The engine places its own blocks and presses its own buttons; the client's would
+            // otherwise be in its way.
             blocks.freeze();
         }
+        runPressTicks.clear();
+        runPressed.clear();
         tick = 0;
         runMismatches = 0;
         runBetween = 0;
@@ -854,6 +956,11 @@ public final class RecorderController {
                         return;
                     }
                     BlockType now = check.getBlock(x + originX, y, z + originZ);
+                    if (phase == Phase.RUN && runPressed.contains(new BlockPos(x + originX, y, z + originZ))
+                            && VanillaBlocks.blockId(now.name()).equals(VanillaBlocks.blockId(type.name()))) {
+                        // A button the engine pressed: checkPressed follows it.
+                        return;
+                    }
                     if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
                         first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                     }
