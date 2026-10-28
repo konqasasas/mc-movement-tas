@@ -350,6 +350,26 @@ final class Planner {
                 if (Math.hypot(q[0] - nx, q[1] - nz) > 0.15) out.add(new double[] {q[0], q[1], b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             }
         }
+        // The bodies off this platform with the best footholds beyond them.
+        if (here >= 0) {
+            List<Integer> bodies = new ArrayList<Integer>();
+            List<Double> best = new ArrayList<Double>();
+            for (Course.Surface a : course.platforms.get(here)) {
+                for (int i = 0; i < a.viaBody.size(); i++) {
+                    int b = a.viaBodyId.get(i);
+                    double t = a.viaBody.get(i).toGo;
+                    int k = bodies.indexOf(b);
+                    if (k < 0) {
+                        bodies.add(b);
+                        best.add(t);
+                    } else if (t < best.get(k)) best.set(k, t);
+                }
+            }
+            Integer[] order = new Integer[bodies.size()];
+            for (int i = 0; i < order.length; i++) order[i] = i;
+            java.util.Arrays.sort(order, (p, q) -> Double.compare(best.get(p), best.get(q)));
+            for (int i = 0; i < Math.min(BODY_CORNERS, order.length); i++) addBodyCorner(r, bodies.get(order[i]), out);
+        }
         if (goalNear || here < 0) {
             Region g = course.problem.goal;
             double ix = Math.min(0.2, (g.maxX - g.minX) / 2), iz = Math.min(0.2, (g.maxZ - g.minZ) / 2);
@@ -360,6 +380,8 @@ final class Planner {
         return out;
     }
 
+    /** Bodies off the platform that a corner towards an entry is looked for. */
+    static final int BODY_CORNERS = 2;
     /** Footholds a corner search ({@link #addCorner}) visits at most. */
     static final int CORNER_SEARCH = 600;
 
@@ -372,6 +394,30 @@ final class Planner {
     private void addCorner(Run r, double[] aim, java.util.function.Predicate<Course.Surface> from, List<double[]> out) {
         double x = r.s.posX, y = r.s.posY, z = r.s.posZ;
         if (!course.blockedLine(x, z, aim[0], aim[1], y)) return;
+        addCorner(r, a -> from.test(a) && !course.blockedLine(a.cx(), a.cz(), clamp(a.cx(), aim[3], aim[4]), clamp(a.cz(), aim[5], aim[6]), a.top), out);
+    }
+
+    /**
+     * The same for a body of ladders, vines or water the platform leads into (handled by
+     * {@link ClimbManeuver}, which runs straight at the entry): when no entry is in sight from where
+     * the player stands, the corner on the way to a foothold that has one.
+     */
+    private void addBodyCorner(Run r, int body, List<double[]> out) {
+        List<int[]> cells = course.bodies.get(body);
+        java.util.function.Predicate<Course.Surface> sees = a -> {
+            for (int[] c : cells) {
+                if (course.canEnter(a, c) && !course.blockedLine(a.cx(), a.cz(), c[0] + 0.5, c[2] + 0.5, Math.min(a.top, c[1]))) return true;
+            }
+            return false;
+        };
+        Course.Surface start = course.support(r.s.posX, r.s.posY, r.s.posZ);
+        if (start == null || sees.test(start)) return;
+        addCorner(r, sees, out);
+    }
+
+    /** The corner on the walk over the player's platform to the nearest foothold that {@code goal} accepts. */
+    private void addCorner(Run r, java.util.function.Predicate<Course.Surface> goal, List<double[]> out) {
+        double x = r.s.posX, y = r.s.posY, z = r.s.posZ;
         Course.Surface start = course.support(x, y, z);
         if (start == null) return;
         Map<Course.Surface, Course.Surface> back = new HashMap<Course.Surface, Course.Surface>();
@@ -381,7 +427,7 @@ final class Planner {
         Course.Surface end = null;
         while (!queue.isEmpty() && back.size() < CORNER_SEARCH) {
             Course.Surface a = queue.poll();
-            if (a != start && from.test(a) && !course.blockedLine(a.cx(), a.cz(), clamp(a.cx(), aim[3], aim[4]), clamp(a.cz(), aim[5], aim[6]), a.top)) {
+            if (a != start && goal.test(a)) {
                 end = a;
                 break;
             }
