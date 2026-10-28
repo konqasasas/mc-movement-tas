@@ -44,6 +44,16 @@ public final class Hotbar {
         return counts[slot];
     }
 
+    /** True when no slot holds anything, so nothing more can be placed. */
+    public boolean isEmpty() {
+        for (BlockType t : items) {
+            if (t != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** {@code ItemStack.shrink(1)} on the slot. */
     public Hotbar withOneUsed(int slot) {
         return with(slot, items[slot], counts[slot] - 1);

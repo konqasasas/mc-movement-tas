@@ -256,7 +256,7 @@ public final class RecorderController {
         now.rightClickDelay = lastEnd.rightClickDelay;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
-        String field = now.firstDifference(lastEnd);
+        String field = difference(now, lastEnd);
         if (field != null) {
             runBetween++;
             log.println("# between ticks " + (tick - 1) + " and " + tick + ": " + field + " changed outside the player tick");
@@ -277,7 +277,9 @@ public final class RecorderController {
                 return;
             case SETTLE:
                 settleCount++;
-                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient()) {
+                // A replay that places blocks also waits for the position resend the problem starts on.
+                boolean reported = mode != Mode.REPLAY || runHotbar == null || PlayerSnapshot.reportedAtRest(p);
+                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient() && reported) {
                     if (mode == Mode.REPLAY) {
                         beginReplay(p);
                     } else {
@@ -312,7 +314,7 @@ public final class RecorderController {
                         runWorldChange = "tick " + tick + " " + changed;
                     }
                 }
-                String field = sim.firstDifference(real);
+                String field = difference(sim, real);
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
                 if (field != null) {
@@ -366,9 +368,17 @@ public final class RecorderController {
             real.selectedSlot = ref.selectedSlot;
             real.rightClickDelay = ref.rightClickDelay;
             real.placed = ref.placed;
+            real.lastReportedPosX = ref.lastReportedPosX;
+            real.lastReportedPosY = ref.lastReportedPosY;
+            real.lastReportedPosZ = ref.lastReportedPosZ;
+            real.positionUpdateTicks = ref.positionUpdateTicks;
+            real.serverSneakState = ref.serverSneakState;
+            real.sneakReportedTicks = ref.sneakReportedTicks;
             return;
         }
         PlayerSnapshot.readPlacement(p, real);
+        // Not kept by the client; it follows from the sneak states already compared.
+        real.sneakReportedTicks = ref.sneakReportedTicks;
         ClientWorldBlocks live = new ClientWorldBlocks(mc.world);
         io.github.konqasasas.mctas.physics.WorldDelta shown = io.github.konqasasas.mctas.physics.WorldDelta.EMPTY;
         for (io.github.konqasasas.mctas.physics.WorldDelta e : ref.placed.entries()) {
@@ -379,7 +389,19 @@ public final class RecorderController {
         real.placed = shown;
     }
 
-    private boolean entityNearby(EntityPlayerSP p) {
+    /**
+     * The first field that differs, then the placed blocks: in a run with a hotbar, a block the engine
+     * placed that the client world does not show (or no longer shows, once the server took it back).
+     */
+    private String difference(PlayerState a, PlayerState b) {
+        String field = a.firstDifference(b);
+        if (field == null && runPlacing && !a.placed.sameBlocks(b.placed)) {
+            field = "placed";
+        }
+        return field;
+    }
+
+        private boolean entityNearby(EntityPlayerSP p) {
         for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, p.getEntityBoundingBox().grow(1.0D))) {
             if (e.canBePushed()) {
                 return true;
