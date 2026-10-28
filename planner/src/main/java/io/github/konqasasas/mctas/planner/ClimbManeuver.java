@@ -54,7 +54,20 @@ final class ClimbManeuver implements Maneuver {
         final double x = from.s.posX, z = from.s.posZ;
         Integer[] order = new Integer[cand.size()];
         for (int i = 0; i < order.length; i++) order[i] = i;
-        java.util.Arrays.sort(order, (p, q) -> Double.compare(cand.get(p).dist(x, z) / v + cand.get(p).toGo, cand.get(q).dist(x, z) / v + cand.get(q).toGo));
+        // Rank by the way through the body: to the cell it is left from, then to the foothold. A
+        // foothold near the player but reached from the far end of the body (back over the top of a
+        // passage's wall from the top of a ladder, say) comes after the one right at that end.
+        final double[] score = new double[cand.size()];
+        for (int i = 0; i < score.length; i++) {
+            Course.Surface h = cand.get(i);
+            double best = Double.POSITIVE_INFINITY;
+            for (int[] cell : c.bodies.get(body.get(i))) {
+                if (!c.canLeave(cell, h)) continue;
+                best = Math.min(best, Math.hypot(cell[0] + 0.5 - x, cell[2] + 0.5 - z) + h.dist(cell[0] + 0.5, cell[2] + 0.5));
+            }
+            score[i] = (best == Double.POSITIVE_INFINITY ? h.dist(x, z) : best) / v + h.toGo;
+        }
+        java.util.Arrays.sort(order, (p, q) -> Double.compare(score[p], score[q]));
         java.util.Map<Integer, Integer> platforms = new java.util.HashMap<Integer, Integer>();
         java.util.Set<Long> pairs = new java.util.HashSet<Long>();
         int tried = 0;
