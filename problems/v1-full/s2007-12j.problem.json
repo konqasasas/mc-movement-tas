@@ -1,0 +1,218 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-full/s2007-12j",
+  "title": "12 jumps, generated (seed 2007): stone, stone, stone, stone, stone, stone, stone, stone, stone, stone, stone, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          64,
+          3
+        ],
+        "to": [
+          1,
+          64,
+          3
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          64,
+          6
+        ],
+        "to": [
+          -1,
+          64,
+          6
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          62,
+          11
+        ],
+        "to": [
+          -3,
+          62,
+          12
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          63,
+          15
+        ],
+        "to": [
+          -4,
+          63,
+          16
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -5,
+          62,
+          20
+        ],
+        "to": [
+          -5,
+          62,
+          20
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          62,
+          24
+        ],
+        "to": [
+          -4,
+          62,
+          24
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -6,
+          60,
+          28
+        ],
+        "to": [
+          -6,
+          60,
+          28
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -5,
+          59,
+          31
+        ],
+        "to": [
+          -5,
+          59,
+          31
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          58,
+          34
+        ],
+        "to": [
+          -3,
+          58,
+          35
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          58,
+          38
+        ],
+        "to": [
+          -1,
+          58,
+          38
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          57,
+          41
+        ],
+        "to": [
+          0,
+          57,
+          41
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          57,
+          44
+        ],
+        "to": [
+          1,
+          57,
+          44
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      0.7,
+      58.0,
+      43.7
+    ],
+    "max": [
+      2.3,
+      58.0,
+      45.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 880,
+    "voidY": 0.0
+  }
+}

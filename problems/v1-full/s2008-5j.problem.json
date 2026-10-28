@@ -1,0 +1,127 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-full/s2008-5j",
+  "title": "5 jumps, generated (seed 2008): stone, stone, stone, stone, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          65,
+          3
+        ],
+        "to": [
+          -2,
+          65,
+          3
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          64,
+          6
+        ],
+        "to": [
+          -4,
+          64,
+          7
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          64,
+          11
+        ],
+        "to": [
+          -4,
+          64,
+          11
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -5,
+          64,
+          14
+        ],
+        "to": [
+          -5,
+          64,
+          15
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          64,
+          17
+        ],
+        "to": [
+          -3,
+          64,
+          17
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -3.3,
+      65.0,
+      16.7
+    ],
+    "max": [
+      -1.7,
+      65.0,
+      18.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 600,
+    "voidY": 0.0
+  }
+}

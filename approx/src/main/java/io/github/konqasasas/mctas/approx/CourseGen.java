@@ -66,8 +66,11 @@ public final class CourseGen {
     private CourseGen() {
     }
 
-    /** The problem file text for a course. */
-    public static String generate(String id, long seed, int jumps) {
+    /**
+     * The problem file text for a course. With {@code fullOnly} every platform is stone, for exact
+     * solvers that handle only full blocks.
+     */
+    public static String generate(String id, long seed, int jumps, boolean fullOnly) {
         Random r = new Random(seed);
         List<Fill> fills = new ArrayList<Fill>();
         fills.add(new Fill(0, 64, -30, 0, 64, 0, "minecraft:stone"));
@@ -78,6 +81,7 @@ public final class CourseGen {
         List<String> kinds = new ArrayList<String>();
         for (int attempt = 0; placed < jumps && attempt < 10000; attempt++) {
             String block = pick(r);
+            if (fullOnly) block = "minecraft:stone";
             int dy = new int[] {-2, -1, -1, 0, 0, 0, 0, 1, 1}[r.nextInt(9)];
             int dz = 1 + r.nextInt(5);
             int dx = r.nextInt(5) - 2;

@@ -1,0 +1,133 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-dev/s0008-5j",
+  "title": "5 jumps, generated (seed 8): stone, stone_slab[half=top], stone_slab[half=bottom], glass_pane, end_rod[facing=up]",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          65,
+          1
+        ],
+        "to": [
+          -1,
+          65,
+          2
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          65,
+          6
+        ],
+        "to": [
+          0,
+          65,
+          6
+        ],
+        "block": "minecraft:stone_slab[half=top]"
+      },
+      {
+        "from": [
+          -1,
+          65,
+          10
+        ],
+        "to": [
+          -1,
+          65,
+          10
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          0,
+          65,
+          12
+        ],
+        "to": [
+          0,
+          65,
+          12
+        ],
+        "block": "minecraft:glass_pane"
+      },
+      {
+        "from": [
+          0,
+          64,
+          16
+        ],
+        "to": [
+          0,
+          64,
+          17
+        ],
+        "block": "minecraft:end_rod[facing=up]"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      0.07500000000000001,
+      65.0,
+      16.075
+    ],
+    "max": [
+      0.925,
+      65.0,
+      17.925
+    ]
+  },
+  "limits": {
+    "maxTicks": 600,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 54,
+    "kind": "upper_bound",
+    "witness": "s0008-5j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

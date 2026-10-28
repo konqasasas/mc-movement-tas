@@ -1,0 +1,159 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-dev/s0002-7j",
+  "title": "7 jumps, generated (seed 2): ice, sea_lantern, cobblestone_wall, stone, stone, ice, anvil[facing=north]",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          62,
+          3
+        ],
+        "to": [
+          1,
+          62,
+          3
+        ],
+        "block": "minecraft:ice"
+      },
+      {
+        "from": [
+          -1,
+          62,
+          6
+        ],
+        "to": [
+          -1,
+          62,
+          6
+        ],
+        "block": "minecraft:sea_lantern"
+      },
+      {
+        "from": [
+          -3,
+          62,
+          9
+        ],
+        "to": [
+          -3,
+          62,
+          9
+        ],
+        "block": "minecraft:cobblestone_wall"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          12
+        ],
+        "to": [
+          -2,
+          63,
+          12
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          64,
+          15
+        ],
+        "to": [
+          -4,
+          64,
+          16
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -5,
+          64,
+          20
+        ],
+        "to": [
+          -5,
+          64,
+          20
+        ],
+        "block": "minecraft:ice"
+      },
+      {
+        "from": [
+          -5,
+          64,
+          24
+        ],
+        "to": [
+          -5,
+          64,
+          24
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -5.175,
+      65.0,
+      23.7
+    ],
+    "max": [
+      -3.825,
+      65.0,
+      25.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 680,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 72,
+    "kind": "upper_bound",
+    "witness": "s0002-7j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

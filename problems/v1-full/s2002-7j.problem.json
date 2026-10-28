@@ -1,0 +1,153 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-full/s2002-7j",
+  "title": "7 jumps, generated (seed 2002): stone, stone, stone, stone, stone, stone, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          65,
+          3
+        ],
+        "to": [
+          -1,
+          65,
+          3
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          64,
+          5
+        ],
+        "to": [
+          1,
+          64,
+          5
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          3,
+          63,
+          8
+        ],
+        "to": [
+          3,
+          63,
+          8
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          5,
+          62,
+          13
+        ],
+        "to": [
+          5,
+          62,
+          13
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          3,
+          61,
+          15
+        ],
+        "to": [
+          3,
+          61,
+          15
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          2,
+          61,
+          19
+        ],
+        "to": [
+          2,
+          61,
+          20
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          3,
+          60,
+          24
+        ],
+        "to": [
+          3,
+          60,
+          24
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      2.7,
+      61.0,
+      23.7
+    ],
+    "max": [
+      4.3,
+      61.0,
+      25.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 680,
+    "voidY": 0.0
+  }
+}

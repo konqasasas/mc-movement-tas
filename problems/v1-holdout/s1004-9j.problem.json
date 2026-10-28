@@ -1,0 +1,185 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1004-9j",
+  "title": "9 jumps, generated (seed 1004): chest, chest, skull[facing=up], stone_stairs[facing=north,half=bottom], soul_sand, stone, stone_stairs[facing=north,half=bottom], anvil[facing=north], chest",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          3
+        ],
+        "to": [
+          -2,
+          63,
+          3
+        ],
+        "block": "minecraft:chest"
+      },
+      {
+        "from": [
+          -3,
+          63,
+          7
+        ],
+        "to": [
+          -3,
+          63,
+          7
+        ],
+        "block": "minecraft:chest"
+      },
+      {
+        "from": [
+          -1,
+          62,
+          9
+        ],
+        "to": [
+          -1,
+          62,
+          9
+        ],
+        "block": "minecraft:skull[facing=up]"
+      },
+      {
+        "from": [
+          0,
+          62,
+          11
+        ],
+        "to": [
+          0,
+          62,
+          12
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          2,
+          60,
+          16
+        ],
+        "to": [
+          2,
+          60,
+          17
+        ],
+        "block": "minecraft:soul_sand"
+      },
+      {
+        "from": [
+          1,
+          58,
+          20
+        ],
+        "to": [
+          1,
+          58,
+          20
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          57,
+          23
+        ],
+        "to": [
+          1,
+          57,
+          23
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          2,
+          57,
+          27
+        ],
+        "to": [
+          2,
+          57,
+          27
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      },
+      {
+        "from": [
+          4,
+          57,
+          28
+        ],
+        "to": [
+          4,
+          57,
+          29
+        ],
+        "block": "minecraft:chest"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      3.7625,
+      57.875,
+      27.7625
+    ],
+    "max": [
+      5.2375,
+      57.875,
+      30.2375
+    ]
+  },
+  "limits": {
+    "maxTicks": 760,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 105,
+    "kind": "upper_bound",
+    "witness": "s1004-9j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

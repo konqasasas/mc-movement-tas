@@ -24,12 +24,13 @@ public final class ApproxMain {
     private static final String USAGE = String.join("\n",
         "usage:",
         "  mctas-approx solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet]",
-        "  mctas-approx gen <out-dir> <set-name> <first-seed> <count>",
+        "  mctas-approx gen <out-dir> <set-name> <first-seed> <count> [--full]",
         "",
         "Writes <id>.solution.json (and a .tas copy) per problem into out-dir. The budget is per problem.");
 
     public static void main(String[] args) throws IOException {
-        if (args.length == 5 && args[0].equals("gen")) {
+        if ((args.length == 5 || args.length == 6 && args[5].equals("--full")) && args[0].equals("gen")) {
+            boolean full = args.length == 6;
             Path out = Paths.get(args[1]);
             Files.createDirectories(out);
             long first = Long.parseLong(args[3]);
@@ -37,7 +38,7 @@ public final class ApproxMain {
             for (long seed = first; seed < first + count; seed++) {
                 int jumps = 5 + (int) (seed % 8);
                 String name = String.format("s%04d-%dj", seed, jumps);
-                String text = CourseGen.generate(args[2] + "/" + name, seed, jumps);
+                String text = CourseGen.generate(args[2] + "/" + name, seed, jumps, full);
                 Files.write(out.resolve(name + ".problem.json"), text.getBytes(StandardCharsets.UTF_8));
                 System.out.println("wrote " + out.resolve(name + ".problem.json"));
             }

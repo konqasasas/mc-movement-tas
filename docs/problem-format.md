@@ -211,8 +211,10 @@ problem/build/install/mctas-problem/bin/mctas-problem time problems/v0/04-gap-3.
 problem/build/install/mctas-problem/bin/mctas-problem time <問題> <入力> --trace --solution out.solution.json --pkc out.pkc.json
 problem/build/install/mctas-problem/bin/mctas-problem check problems/v0
 problem/build/install/mctas-problem/bin/mctas-problem search <問題> out.tas --beam 4000 --yaws 0,45 --via "0,64,4"
+problem/build/install/mctas-problem/bin/mctas-problem score problems/v0 out-a/ out-b/ --markdown
 ```
 
 - `time`: 入力列のタイムを計算します。`--trace` で毎ティックの座標を出します。
 - `check`: フォルダ内の全問題について、`target.witness` の入力列が `target.ticks` ちょうどで解けるか確かめます。
 - `search`: 目標タイムを作るための簡単なビームサーチです。最適解を探すものではありません。`--via` は途中で着地するブロックの座標です。
+- `score`: 探索エンジンどうしの成績表です。解答フォルダ(エンジンごとに 1 つ、`*.solution.json`)の全解答を物理で計り直し、問題ごとに「ティック数(目標との差)計算時間」を並べます。計算時間は解答の `result.search.wallMillis`、列の名前は `result.search.engine` です。切り替えの 3 ティック規則を破る解答には `!` が付きます。最後に、解けた数と目標以下の数、全エンジンが解けた問題でのティック合計を出します。`optimal` の目標より速い解答があれば(物理か証明の誤り)エラーで終わります。
