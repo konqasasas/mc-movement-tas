@@ -104,6 +104,7 @@ public final class Improver {
             ts[i].start();
         }
         for (Thread t : ts) t.join();
+        if (Rebuild.DEBUG) System.err.println("rebuild stages: " + Rebuild.stages());
         return best();
     }
 

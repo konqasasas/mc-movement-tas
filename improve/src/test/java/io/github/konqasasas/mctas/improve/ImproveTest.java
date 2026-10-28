@@ -125,4 +125,18 @@ public class ImproveTest {
         assertEquals(-1, cma.mean[1], 1e-3);
         assertEquals(0, cma.mean[2], 1e-3);
     }
+
+    @Test
+    public void windowInputsAreDistinctAndMostUsedFirst() {
+        PlayerInput run = PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT, 0);
+        PlayerInput jump = PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT | PlayerInput.JUMP, 0);
+        PlayerInput sneak = PlayerInput.of(PlayerInput.W | PlayerInput.SNEAK, 90);
+        PlayerInput[] in = {jump, run, run, sneak, run, sneak};
+        List<PlayerInput> w = Rebuild.windowInputs(in, 0, in.length);
+        assertEquals(3, w.size());
+        assertEquals(run, w.get(0));
+        assertEquals(sneak, w.get(1));
+        assertEquals(jump, w.get(2));
+        assertEquals(2, Rebuild.windowInputs(in, 3, 5).size());
+    }
 }
