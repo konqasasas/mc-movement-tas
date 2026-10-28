@@ -125,9 +125,9 @@
     "voidY": 0.0
   },
   "target": {
-    "ticks": 73,
+    "ticks": 60,
     "kind": "upper_bound",
     "witness": "s2008-5j.tas",
-    "note": "approx-beam v1, 30 s"
+    "note": "mctas-search beam --width 4000 (WS3)"
   }
 }

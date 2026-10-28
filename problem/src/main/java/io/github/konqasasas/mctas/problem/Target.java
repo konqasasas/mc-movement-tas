@@ -1,7 +1,11 @@
 package io.github.konqasasas.mctas.problem;
 
 public final class Target {
-    public enum Kind { UPPER_BOUND, OPTIMAL }
+    /**
+     * {@code UPPER_BOUND}: a known solution, {@code OPTIMAL}: proven optimal, {@code HUMAN_BENCHMARK}:
+     * a top human time on the course, with no witness and no claim about the optimum.
+     */
+    public enum Kind { UPPER_BOUND, OPTIMAL, HUMAN_BENCHMARK }
 
     public final int ticks;
     public final Kind kind;
