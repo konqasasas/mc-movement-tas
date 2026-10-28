@@ -22,7 +22,7 @@ import java.util.List;
 public final class PlannerMain {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-planner solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet]",
+        "  mctas-planner solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet] [--no-technique]",
         "",
         "Writes <id>.solution.json (and a .tas copy) per problem into out-dir. The budget is per problem.");
 
@@ -35,9 +35,11 @@ public final class PlannerMain {
         Path out = Paths.get(args[2]);
         double budget = 60;
         boolean quiet = false;
+        boolean technique = true;
         for (int i = 3; i < args.length; i++) {
             if (args[i].equals("--budget")) budget = Double.parseDouble(args[++i]);
             else if (args[i].equals("--quiet")) quiet = true;
+            else if (args[i].equals("--no-technique")) technique = false;
             else {
                 System.err.println(USAGE);
                 System.exit(2);
@@ -58,7 +60,7 @@ public final class PlannerMain {
             Problem problem = ProblemIO.read(f);
             long t0 = System.currentTimeMillis();
             System.out.println(problem.id + ":");
-            PlannerSolver solver = new PlannerSolver(problem, (long) (budget * 1000));
+            PlannerSolver solver = new PlannerSolver(problem, (long) (budget * 1000)).segments(technique);
             if (!quiet) solver.log(System.out);
             PlannerSolver.Solution sol = solver.solve();
             long ms = System.currentTimeMillis() - t0;

@@ -54,6 +54,73 @@ final class Tightener {
         return -1;
     }
 
+    /**
+     * Re-searches each move, and each pair of moves, tick by tick with the local technique search
+     * (WS8): from the run before the move to the foothold the move (or the pair) lands on, or to the
+     * goal. Each segment of the returned Pareto set replaces the move(s), the rest of the plan replays
+     * from its exit, and the fastest whole run is kept. {@code perCall} bounds each search.
+     */
+    Planner.Plan segments(Planner.Plan plan, long deadline, long perCall) {
+        Runup.Root root = plan.root;
+        List<Move> moves = new ArrayList<Move>(plan.moves);
+        Replay cur = replay(root, moves, Integer.MAX_VALUE);
+        if (cur.time < 0) return plan;
+        moves = new ArrayList<Move>(moves.subList(0, cur.before.size()));
+        int best = cur.time;
+        Course c = root.run.course;
+        for (int span = 1; span <= 2; span++) {
+            for (int i = 0; i + span <= moves.size() && System.currentTimeMillis() < deadline; i++) {
+                Run before = cur.before.get(i);
+                io.github.konqasasas.mctas.technique.Exit exit;
+                double hx, hz;
+                if (i + span == moves.size()) {
+                    io.github.konqasasas.mctas.problem.Region g = c.problem.goal;
+                    exit = io.github.konqasasas.mctas.technique.Exit.box(g.minX, g.minY, g.minZ, g.maxX, g.maxY, g.maxZ);
+                    hx = (g.minX + g.maxX) / 2;
+                    hz = (g.minZ + g.maxZ) / 2;
+                } else {
+                    Run after = cur.before.get(i + span);
+                    Course.Surface land = after.s.onGround ? c.support(after.s.posX, after.s.posY, after.s.posZ) : null;
+                    if (land == null) continue;
+                    io.github.konqasasas.mctas.technique.Target t =
+                        new io.github.konqasasas.mctas.technique.Target(land.minX, land.maxX, land.minZ, land.maxZ, land.top);
+                    exit = io.github.konqasasas.mctas.technique.Exit.landing(t);
+                    hx = t.centerX();
+                    hz = t.centerZ();
+                }
+                io.github.konqasasas.mctas.technique.SegmentSearch.Options o = new io.github.konqasasas.mctas.technique.SegmentSearch.Options();
+                o.voidY = c.problem.voidY;
+                o.maxTicks = 80;
+                long budget = Math.min(perCall, deadline - System.currentTimeMillis());
+                if (budget <= 0) break;
+                List<io.github.konqasasas.mctas.technique.Technique.Segment> segs;
+                try {
+                    segs = io.github.konqasasas.mctas.technique.Technique.solve(c.world, before.s.copy(),
+                        Math.min(before.tick - before.lastToggle, 1000), exit,
+                        io.github.konqasasas.mctas.technique.Technique.headingTo(before.s, hx, hz), budget, o);
+                } catch (RuntimeException e) {
+                    continue;
+                }
+                for (io.github.konqasasas.mctas.technique.Technique.Segment seg : segs) {
+                    List<Move> trial = new ArrayList<Move>(moves.subList(0, i));
+                    trial.add(new FixedMove(seg.inputs));
+                    trial.addAll(moves.subList(i + span, moves.size()));
+                    tried++;
+                    int t = finish(before.copy(), trial, i, best);
+                    if (t >= 0 && t < best) {
+                        Replay x = replay(root, trial, Integer.MAX_VALUE);
+                        if (x.time != t) continue;
+                        cur = x;
+                        moves = new ArrayList<Move>(trial.subList(0, cur.before.size()));
+                        best = t;
+                        kept++;
+                    }
+                }
+            }
+        }
+        return new Planner.Plan(root, moves, cur.inputs, best);
+    }
+
     Planner.Plan tighten(Planner.Plan plan, long deadline) {
         Runup.Root root = plan.root;
         List<Move> moves = new ArrayList<Move>(plan.moves);

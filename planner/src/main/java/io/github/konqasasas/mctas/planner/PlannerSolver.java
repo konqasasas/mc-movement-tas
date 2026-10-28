@@ -39,10 +39,17 @@ public final class PlannerSolver {
     private final Problem problem;
     private final long budgetMillis;
     private PrintStream log;
+    private boolean segments = true;
 
     public PlannerSolver(Problem problem, long budgetMillis) {
         this.problem = problem;
         this.budgetMillis = budgetMillis;
+    }
+
+    /** Re-search the plan's moves with the local technique search (WS8). */
+    public PlannerSolver segments(boolean on) {
+        this.segments = on;
+        return this;
     }
 
     public PlannerSolver log(PrintStream out) {
@@ -93,6 +100,19 @@ public final class PlannerSolver {
             if (q.time < best.time) {
                 best = q;
                 foundAt = System.currentTimeMillis() - t0;
+            }
+            if (segments) {
+                Tightener seg = new Tightener(roots);
+                long sUntil = System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 2;
+                long perCall = Math.max(200, (sUntil - System.currentTimeMillis()) / Math.max(1, 2 * best.moves.size()));
+                q = seg.segments(best, sUntil, perCall);
+                say("technique re-search: " + q.time + " ticks (" + seg.kept + " of " + seg.tried + " segments kept, " + (System.currentTimeMillis() - t0) + " ms)");
+                if (q.time < best.time) {
+                    best = q;
+                    foundAt = System.currentTimeMillis() - t0;
+                    q = tight.tighten(best, System.currentTimeMillis() + (deadline - System.currentTimeMillis()) / 3);
+                    if (q.time < best.time) best = q;
+                }
             }
         }
         if (best == null) return null;
