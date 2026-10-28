@@ -13,8 +13,9 @@ import org.lwjgl.input.Mouse;
  * keys and turning the mouse would. Meant to be reused by the replay mod.
  *
  * <p>While installed: the player's {@code movementInput} is replaced by a scripted one, the mouse
- * no longer turns the view, auto-jump is off, the sprint key binding is replaced by one that follows
- * the script (so no real key event can press or release it), and the
+ * no longer turns the view, auto-jump is off, the sprint and use-item key bindings are replaced by
+ * ones that follow the script (so no real key event can press or release them), the hotbar number keys
+ * do nothing (the script picks the slot), and the
  * game no longer opens the pause menu when its window loses focus, so a run can go on while the person
  * uses other windows. Call {@link #apply} at the start of each client tick.
  */
@@ -27,7 +28,11 @@ public final class InputDriver {
     private boolean originalAutoJump;
     private boolean originalPauseOnLostFocus;
     private KeyBinding originalSprint;
+    private KeyBinding originalUse;
+    private KeyBinding[] originalHotbar;
     private ScriptedMovementInput scripted;
+    /** Whether the script held the use-item button on the last tick, so a new hold counts as a press. */
+    private boolean useHeld;
 
     public boolean installed() {
         return player != null;
@@ -55,6 +60,17 @@ public final class InputDriver {
         originalSprint = mc.gameSettings.keyBindSprint;
         ScriptedKey.SPRINT.down = false;
         mc.gameSettings.keyBindSprint = ScriptedKey.SPRINT;
+        // Minecraft.processKeyBinds right-clicks once per press of keyBindUseItem (isPressed) and every
+        // 4 ticks while it is held (isKeyDown).
+        originalUse = mc.gameSettings.keyBindUseItem;
+        ScriptedKey.USE.down = false;
+        ScriptedKey.USE.pressed = false;
+        useHeld = false;
+        mc.gameSettings.keyBindUseItem = ScriptedKey.USE;
+        originalHotbar = mc.gameSettings.keyBindsHotbar.clone();
+        for (int i = 0; i < originalHotbar.length; i++) {
+            mc.gameSettings.keyBindsHotbar[i] = ScriptedKey.HOTBAR[i];
+        }
     }
 
     /** Sets the view angles and the keys for the tick that is about to run. */
@@ -68,6 +84,14 @@ public final class InputDriver {
         player.rotationPitch = in.pitch;
         scripted.next = in;
         ScriptedKey.SPRINT.down = in.has(PlayerInput.SPRINT);
+        // The slot is set before processKeyBinds right-clicks, as a hotbar key press would.
+        if (in.slot >= 0) {
+            player.inventory.currentItem = in.slot;
+        }
+        boolean use = in.has(PlayerInput.USE);
+        ScriptedKey.USE.down = use;
+        ScriptedKey.USE.pressed = use && !useHeld;
+        useHeld = use;
     }
 
     public void uninstall() {
@@ -84,6 +108,16 @@ public final class InputDriver {
             mc.gameSettings.keyBindSprint = originalSprint;
         }
         ScriptedKey.SPRINT.down = false;
+        if (mc.gameSettings.keyBindUseItem == ScriptedKey.USE) {
+            mc.gameSettings.keyBindUseItem = originalUse;
+        }
+        ScriptedKey.USE.down = false;
+        ScriptedKey.USE.pressed = false;
+        for (int i = 0; i < originalHotbar.length; i++) {
+            if (mc.gameSettings.keyBindsHotbar[i] == ScriptedKey.HOTBAR[i]) {
+                mc.gameSettings.keyBindsHotbar[i] = originalHotbar[i];
+            }
+        }
         player = null;
         scripted = null;
     }
@@ -129,8 +163,18 @@ public final class InputDriver {
      */
     static final class ScriptedKey extends KeyBinding {
         static final ScriptedKey SPRINT = new ScriptedKey("key.mctas.scriptedSprint");
+        static final ScriptedKey USE = new ScriptedKey("key.mctas.scriptedUse");
+        static final ScriptedKey[] HOTBAR = new ScriptedKey[9];
+
+        static {
+            for (int i = 0; i < HOTBAR.length; i++) {
+                HOTBAR[i] = new ScriptedKey("key.mctas.scriptedHotbar" + (i + 1));
+            }
+        }
 
         boolean down;
+        /** One press for {@link #isPressed}, which takes it. */
+        boolean pressed;
 
         private ScriptedKey(String description) {
             super(description, 0, "key.categories.movement");
@@ -139,6 +183,13 @@ public final class InputDriver {
         @Override
         public boolean isKeyDown() {
             return down;
+        }
+
+        @Override
+        public boolean isPressed() {
+            boolean p = pressed;
+            pressed = false;
+            return p;
         }
     }
 

@@ -1,12 +1,18 @@
 package io.github.konqasasas.mctas.recorder;
 
 import io.github.konqasasas.mctas.physics.Aabb;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.VanillaBlocks;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.MobEffects;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.MovementInput;
@@ -22,6 +28,7 @@ public final class PlayerSnapshot {
     private static final Field SPRINT_TOGGLE_TIMER = field(EntityPlayerSP.class, "sprintToggleTimer", "field_71156_d");
     private static final Field IN_WEB = field(net.minecraft.entity.Entity.class, "isInWeb", "field_70134_J");
     private static final Field IN_WATER = field(net.minecraft.entity.Entity.class, "inWater", "field_70171_ac");
+    private static final Field RIGHT_CLICK_DELAY = field(Minecraft.class, "rightClickDelayTimer", "field_71467_ac");
 
     private PlayerSnapshot() {
     }
@@ -88,6 +95,29 @@ public final class PlayerSnapshot {
         s.slownessAmplifier = amplifier(p, MobEffects.SLOWNESS);
         s.jumpBoostAmplifier = amplifier(p, MobEffects.JUMP_BOOST);
         return s;
+    }
+
+    /**
+     * Fills in the hotbar, the selected slot and the right-click delay. A slot holding something that is
+     * not a block the engine places reads as empty, so the run shows a difference there.
+     */
+    public static void readPlacement(EntityPlayerSP p, PlayerState s) {
+        Hotbar h = Hotbar.EMPTY;
+        for (int i = 0; i < Hotbar.SLOTS; i++) {
+            ItemStack st = p.inventory.getStackInSlot(i);
+            if (st.isEmpty() || !(st.getItem() instanceof ItemBlock)) {
+                continue;
+            }
+            Block b = ((ItemBlock) st.getItem()).getBlock();
+            String name = ClientWorldBlocks.catalogName(b.getStateFromMeta(st.getMetadata()));
+            BlockType t = name == null ? null : VanillaBlocks.get(name);
+            if (t != null && t.isPlaceable() && st.getCount() <= 64) {
+                h = h.with(i, t, st.getCount());
+            }
+        }
+        s.hotbar = h;
+        s.selectedSlot = p.inventory.currentItem;
+        s.rightClickDelay = getInt(RIGHT_CLICK_DELAY, Minecraft.getMinecraft());
     }
 
     private static int amplifier(EntityPlayerSP p, Potion potion) {

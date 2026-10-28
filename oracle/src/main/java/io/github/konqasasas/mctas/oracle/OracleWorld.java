@@ -30,6 +30,10 @@ import java.util.Map;
 final class OracleWorld extends World {
 
     private final Map<BlockPos, IBlockState> blocks = new HashMap<BlockPos, IBlockState>();
+    /** Positions changed through {@link #setBlockState}, in order: the blocks the player placed. */
+    final List<BlockPos> placedLog = new java.util.ArrayList<BlockPos>();
+    /** The one entity in the world, for {@code World.mayPlace}'s entity check; null until set. */
+    Entity player;
 
     OracleWorld(SparseBlockWorld source) {
         super(null, new WorldInfo(new WorldSettings(0L, GameType.SURVIVAL, false, false, WorldType.FLAT), "oracle"),
@@ -89,8 +93,29 @@ final class OracleWorld extends World {
         return null;
     }
 
+    /**
+     * As the client world's {@code setBlockState} for a placed block: the state changes and nothing
+     * else happens (the client neither notifies neighbours nor calls {@code onBlockAdded}).
+     */
+    @Override
+    public boolean setBlockState(BlockPos pos, IBlockState newState, int flags) {
+        if (pos.getY() < 0 || pos.getY() >= 256) {
+            return false;
+        }
+        BlockPos p = pos.toImmutable();
+        set(p, newState);
+        if (!placedLog.contains(p)) {
+            placedLog.add(p);
+        }
+        return true;
+    }
+
+    /** Only the player, and only for callers that do not exclude it ({@code World.checkNoEntityCollision}). */
     @Override
     public List<Entity> getEntitiesWithinAABBExcludingEntity(Entity entityIn, AxisAlignedBB bb) {
+        if (player != null && entityIn != player && player.getEntityBoundingBox().intersects(bb)) {
+            return Collections.singletonList(player);
+        }
         return Collections.emptyList();
     }
 

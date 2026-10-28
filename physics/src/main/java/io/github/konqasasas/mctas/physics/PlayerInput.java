@@ -13,23 +13,35 @@ public final class PlayerInput {
     public static final int JUMP = 1 << 4;
     public static final int SPRINT = 1 << 5;
     public static final int SNEAK = 1 << 6;
-    public static final int ALL_KEYS = (1 << 7) - 1;
+    /** The right mouse button: places the held block. */
+    public static final int USE = 1 << 7;
+    public static final int ALL_KEYS = (1 << 8) - 1;
 
-    private static final String NAMES = "WASDJRN";
+    private static final String NAMES = "WASDJRNU";
 
     public final int keys;
     /** {@code rotationYaw}, unwrapped, as the game stores it. */
     public final float yaw;
-    /** {@code rotationPitch}. Does not affect walking movement; kept for replay. */
+    /** {@code rotationPitch}. Does not affect walking movement; aims the right-click. */
     public final float pitch;
+    /** The hotbar slot (0 to 8) whose number key is pressed this tick, or -1 for none. */
+    public final int slot;
 
     public PlayerInput(int keys, float yaw, float pitch) {
+        this(keys, yaw, pitch, -1);
+    }
+
+    public PlayerInput(int keys, float yaw, float pitch, int slot) {
         if ((keys & ~ALL_KEYS) != 0) {
             throw new IllegalArgumentException("unknown key bits: " + keys);
+        }
+        if (slot < -1 || slot >= Hotbar.SLOTS) {
+            throw new IllegalArgumentException("hotbar slot must be -1 to 8: " + slot);
         }
         this.keys = keys;
         this.yaw = yaw;
         this.pitch = pitch;
+        this.slot = slot;
     }
 
     public static PlayerInput of(int keys, float yaw) {
@@ -47,15 +59,15 @@ public final class PlayerInput {
         }
         PlayerInput p = (PlayerInput) o;
         return keys == p.keys && Float.floatToIntBits(yaw) == Float.floatToIntBits(p.yaw)
-                && Float.floatToIntBits(pitch) == Float.floatToIntBits(p.pitch);
+                && Float.floatToIntBits(pitch) == Float.floatToIntBits(p.pitch) && slot == p.slot;
     }
 
     @Override
     public int hashCode() {
-        return (keys * 31 + Float.floatToIntBits(yaw)) * 31 + Float.floatToIntBits(pitch);
+        return ((keys * 31 + Float.floatToIntBits(yaw)) * 31 + Float.floatToIntBits(pitch)) * 31 + slot;
     }
 
-    /** Keys as letters: W A S D, J = jump, R = sprint, N = sneak. */
+    /** Keys as letters: W A S D, J = jump, R = sprint, N = sneak, U = use (right button). */
     public String keyString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < NAMES.length(); i++) {
@@ -68,6 +80,6 @@ public final class PlayerInput {
 
     @Override
     public String toString() {
-        return keyString() + "@" + yaw + "/" + pitch;
+        return keyString() + "@" + yaw + "/" + pitch + (slot >= 0 ? " slot" + slot : "");
     }
 }

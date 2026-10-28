@@ -53,6 +53,26 @@ public final class PlayerState implements Cloneable {
     /** Jump boost effect amplifier, or -1 for none. */
     public int jumpBoostAmplifier = -1;
 
+    /**
+     * Blocks this player placed, on top of the world passed to {@link Physics#tick}. Immutable and
+     * shared between copies; {@link #world} gives the combined view.
+     */
+    public WorldDelta placed = WorldDelta.EMPTY;
+    /** The hotbar. Immutable and shared between copies. */
+    public Hotbar hotbar = Hotbar.EMPTY;
+    /** {@code InventoryPlayer.currentItem}. */
+    public int selectedSlot;
+    /** {@code Minecraft.rightClickDelayTimer}: ticks until holding the right button clicks again. */
+    public int rightClickDelay;
+    /** The right button was held last tick, so holding it now is not a new press. */
+    public boolean prevUse;
+    /**
+     * Set for good once the player did something the engine does not model, such as right-clicking a
+     * door or a chest, or looking through a block whose selection box is not modelled. Later ticks
+     * are not to be trusted; a search should drop such a state.
+     */
+    public boolean unsupportedAction;
+
     public PlayerState() {
     }
 
@@ -82,6 +102,11 @@ public final class PlayerState implements Cloneable {
 
     public boolean isSneaking() {
         return prevSneak;
+    }
+
+    /** The world as this player sees it: {@code base} with {@link #placed} on top. */
+    public BlockWorld world(BlockWorld base) {
+        return placed.over(base);
     }
 
     public PlayerState copy() {
@@ -127,7 +152,79 @@ public final class PlayerState implements Cloneable {
         if (speedAmplifier != o.speedAmplifier) return "speedAmplifier";
         if (slownessAmplifier != o.slownessAmplifier) return "slownessAmplifier";
         if (jumpBoostAmplifier != o.jumpBoostAmplifier) return "jumpBoostAmplifier";
+        if (!hotbar.equals(o.hotbar)) return "hotbar";
+        if (selectedSlot != o.selectedSlot) return "selectedSlot";
+        if (rightClickDelay != o.rightClickDelay) return "rightClickDelay";
+        if (prevUse != o.prevUse) return "prevUse";
+        if (unsupportedAction != o.unsupportedAction) return "unsupportedAction";
         return null;
+    }
+
+    /**
+     * Equal when every field matches bitwise and the same blocks were placed (in any order): such
+     * states evolve identically. {@link #firstDifference} leaves {@link #placed} out, since a live
+     * client shows placed blocks in its world instead.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PlayerState)) {
+            return false;
+        }
+        PlayerState p = (PlayerState) o;
+        return firstDifference(p) == null && placed.sameBlocks(p.placed);
+    }
+
+    @Override
+    public int hashCode() {
+        long h = contentHash();
+        return (int) (h ^ (h >>> 32));
+    }
+
+    /** A 64-bit hash of exactly the fields {@link #equals} compares. */
+    public long contentHash() {
+        long h = 0xcbf29ce484222325L;
+        h = mix(h, Double.doubleToLongBits(posX));
+        h = mix(h, Double.doubleToLongBits(posY));
+        h = mix(h, Double.doubleToLongBits(posZ));
+        h = mix(h, Double.doubleToLongBits(box.minX));
+        h = mix(h, Double.doubleToLongBits(box.minY));
+        h = mix(h, Double.doubleToLongBits(box.minZ));
+        h = mix(h, Double.doubleToLongBits(box.maxX));
+        h = mix(h, Double.doubleToLongBits(box.maxY));
+        h = mix(h, Double.doubleToLongBits(box.maxZ));
+        h = mix(h, Double.doubleToLongBits(motionX));
+        h = mix(h, Double.doubleToLongBits(motionY));
+        h = mix(h, Double.doubleToLongBits(motionZ));
+        h = mix(h, Float.floatToIntBits(rotationYaw));
+        h = mix(h, Float.floatToIntBits(rotationPitch));
+        h = mix(h, (onGround ? 1 : 0) | (collidedHorizontally ? 2 : 0) | (collidedVertically ? 4 : 0)
+                | (inWeb ? 8 : 0) | (inWater ? 16 : 0) | (sprinting ? 32 : 0) | (prevJump ? 64 : 0)
+                | (prevSneak ? 128 : 0) | (prevUse ? 256 : 0) | (unsupportedAction ? 512 : 0));
+        h = mix(h, Float.floatToIntBits(fallDistance));
+        h = mix(h, Float.floatToIntBits(width));
+        h = mix(h, Float.floatToIntBits(height));
+        h = mix(h, jumpTicks);
+        h = mix(h, Float.floatToIntBits(jumpMovementFactor));
+        h = mix(h, sprintToggleTimer);
+        h = mix(h, Float.floatToIntBits(prevMoveForward));
+        h = mix(h, Float.floatToIntBits(prevMoveStrafe));
+        h = mix(h, speedAmplifier);
+        h = mix(h, slownessAmplifier);
+        h = mix(h, jumpBoostAmplifier);
+        h = mix(h, hotbar.hashCode());
+        h = mix(h, selectedSlot);
+        h = mix(h, rightClickDelay);
+        h = mix(h, placed.contentHash());
+        return h;
+    }
+
+    private static long mix(long h, long v) {
+        h ^= v;
+        h *= 0x100000001b3L;
+        return h ^ (h >>> 29);
     }
 
     private static boolean same(double a, double b) {
@@ -142,6 +239,10 @@ public final class PlayerState implements Cloneable {
     public String toString() {
         return "pos=(" + posX + ", " + posY + ", " + posZ + ") motion=(" + motionX + ", " + motionY + ", " + motionZ
                 + ") yaw=" + rotationYaw + " ground=" + onGround + " sprint=" + sprinting + " sneak=" + prevSneak
-                + " jumpTicks=" + jumpTicks + " " + box;
+                + " jumpTicks=" + jumpTicks + " " + box
+                + (hotbar == Hotbar.EMPTY ? "" : " hotbar=" + hotbar + " slot=" + selectedSlot)
+                + (placed.isEmpty() ? "" : " placed=" + placed.size())
+                + (rightClickDelay == 0 ? "" : " useDelay=" + rightClickDelay)
+                + (unsupportedAction ? " UNSUPPORTED" : "");
     }
 }

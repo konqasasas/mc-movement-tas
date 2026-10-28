@@ -9,6 +9,8 @@ import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.Spawn;
 import io.github.konqasasas.mctas.problem.Target;
 import io.github.konqasasas.mctas.problem.Vec3;
+import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.problem.world.Blocks;
 
@@ -31,12 +33,41 @@ public final class ProblemIO {
     public static Problem parse(String json) {
         JsonObject root = new JsonParser().parse(json).getAsJsonObject();
         expect(Problem.FORMAT.equals(str(root, "format")), "format must be \"" + Problem.FORMAT + "\"");
-        expect(intOf(root, "version") == Problem.VERSION, "unsupported version, expected " + Problem.VERSION);
+        int version = intOf(root, "version");
+        expect(version >= 1 && version <= Problem.VERSION, "unsupported version, expected 1 to " + Problem.VERSION);
         expect(Problem.MC_VERSION.equals(str(root, "mcVersion")), "mcVersion must be " + Problem.MC_VERSION);
         String id = str(root, "id");
         String title = root.has("title") ? str(root, "title") : id;
 
-        rejectReserved(root, "player");
+        Hotbar inventory = Hotbar.EMPTY;
+        int selectedSlot = 0;
+        if (version == 1) {
+            rejectReserved(root, "player");
+        } else if (root.has("player") && !root.get("player").isJsonNull()) {
+            JsonObject pl = obj(root, "player");
+            for (java.util.Map.Entry<String, JsonElement> en : pl.entrySet()) {
+                String k = en.getKey();
+                expect(k.equals("inventory") || k.equals("selectedSlot"),
+                    "player." + k + " is not supported (only inventory and selectedSlot)");
+            }
+            if (pl.has("inventory")) {
+                for (JsonElement e : pl.getAsJsonArray("inventory")) {
+                    JsonObject it = e.getAsJsonObject();
+                    int slot = intOf(it, "slot");
+                    expect(slot >= 0 && slot < Hotbar.SLOTS, "player.inventory slot must be 0 to 8 (only the hotbar)");
+                    expect(inventory.item(slot) == null, "player.inventory names slot " + slot + " twice");
+                    BlockType block = Blocks.byId(str(it, "block"));
+                    expect(block.isPlaceable(), "player.inventory: " + block.name() + " is not a full block the engine can place");
+                    int count = it.has("count") ? intOf(it, "count") : 64;
+                    expect(count >= 1 && count <= 64, "player.inventory count must be 1 to 64");
+                    inventory = inventory.with(slot, block, count);
+                }
+            }
+            if (pl.has("selectedSlot")) {
+                selectedSlot = intOf(pl, "selectedSlot");
+                expect(selectedSlot >= 0 && selectedSlot < Hotbar.SLOTS, "player.selectedSlot must be 0 to 8");
+            }
+        }
         if (root.has("rules")) {
             JsonObject rules = root.getAsJsonObject("rules");
             expect(!rules.has("autoJump") || !rules.get("autoJump").getAsBoolean(), "rules.autoJump=true is not supported");
@@ -66,7 +97,7 @@ public final class ProblemIO {
             target = new Target(intOf(t, "ticks"), kind, t.has("witness") ? str(t, "witness") : null,
                 t.has("note") ? str(t, "note") : null);
         }
-        return new Problem(id, title, world, spawn, start, goal, maxTicks, voidY, target);
+        return new Problem(id, title, world, spawn, start, goal, maxTicks, voidY, target, inventory, selectedSlot);
     }
 
     private static SparseBlockWorld readWorld(JsonObject w) {

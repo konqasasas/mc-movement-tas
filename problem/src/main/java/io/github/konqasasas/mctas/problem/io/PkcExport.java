@@ -34,6 +34,9 @@ public final class PkcExport {
         JsonArray rows = new JsonArray();
         for (TickInput in : inputs) {
             JsonObject r = new JsonObject();
+            if (in.has(Key.USE) || in.slot >= 0) {
+                throw new ProblemFormatException("PKC has no right-click or hotbar keys; inputs that place blocks cannot be exported");
+            }
             JsonArray keys = new JsonArray();
             for (Key k : in.keys()) keys.add(new JsonPrimitive(k.name()));
             r.add("keys", keys);

@@ -44,11 +44,18 @@ public final class Physics {
         return s;
     }
 
-    /** Advances {@code s} by one tick in place. */
-    public static void step(BlockWorld world, PlayerState s, PlayerInput input) {
+    /**
+     * Advances {@code s} by one tick in place. {@code world} is the base world; blocks the player places
+     * go to {@link PlayerState#placed}, never into {@code world}.
+     */
+    public static void step(BlockWorld base, PlayerState s, PlayerInput input) {
         // The view turns between ticks (Minecraft.runTick -> mouse), so the tick sees the new angles.
         s.rotationYaw = input.yaw;
         s.rotationPitch = input.pitch;
+
+        // Minecraft.runTick: the right-click delay, the hotbar keys and right-clicks, before the player moves.
+        Placement.beforeMove(base, s, input);
+        BlockWorld world = s.world(base);
 
         // Entity.onEntityUpdate
         handleWaterMovement(world, s);
