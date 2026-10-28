@@ -32,7 +32,9 @@ import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
+import net.minecraft.util.DamageSource;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -86,7 +88,8 @@ public final class RecorderController {
     private final InputDriver driver = new InputDriver();
 
     private Mode mode;
-    private Phase phase = Phase.IDLE;
+    /** Volatile because the integrated server thread reads it ({@link #onLivingAttack}). */
+    private volatile Phase phase = Phase.IDLE;
     private PrintWriter log;
     private File logFile;
 
@@ -220,6 +223,21 @@ public final class RecorderController {
             log = null;
         }
         chat(summary + ". Log: " + (logFile == null ? "-" : logFile.getPath()));
+    }
+
+    /**
+     * No fall damage while any session runs (replay, record, fuzz; D-012). On the integrated server,
+     * {@code EntityPlayer.attackEntityFrom} fires this before it hurts the player, and so before
+     * {@code EntityLivingBase.attackEntityFrom} marks the velocity changed and the server sends it back
+     * to the client, which is what moved replayed falls off the engine's path. Creative mode is not
+     * used instead because double-tapping jump toggles flying there.
+     */
+    @SubscribeEvent
+    public void onLivingAttack(LivingAttackEvent event) {
+        if (phase != Phase.IDLE && event.getSource() == DamageSource.FALL
+                && event.getEntityLiving() instanceof EntityPlayerMP) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
