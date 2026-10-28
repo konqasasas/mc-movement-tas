@@ -17,6 +17,8 @@ public final class DenseBlockWorld implements BlockWorld {
     private final int sizeZ;
     private final List<BlockType> palette;
     private final byte[] cells;
+    /** A liquid was ever set; stays true when it is overwritten. */
+    private boolean liquid;
 
     private DenseBlockWorld(int minX, int minY, int minZ, int sizeX, int sizeY, int sizeZ,
                             List<BlockType> palette, byte[] cells) {
@@ -76,6 +78,11 @@ public final class DenseBlockWorld implements BlockWorld {
         return palette.get(cells[(dx * sizeZ + dz) * sizeY + dy]);
     }
 
+    @Override
+    public boolean mayContainLiquid() {
+        return liquid;
+    }
+
     /** Sets a block inside the box. Throws when (x, y, z) is outside it. */
     public DenseBlockWorld setBlock(int x, int y, int z, BlockType type) {
         int dx = x - minX;
@@ -92,12 +99,17 @@ public final class DenseBlockWorld implements BlockWorld {
             palette.add(type);
             id = palette.size() - 1;
         }
+        if (type instanceof VanillaBlocks.Liquid) {
+            liquid = true;
+        }
         cells[(dx * sizeZ + dz) * sizeY + dy] = (byte) id;
         return this;
     }
 
     /** An independent copy. */
     public DenseBlockWorld copy() {
-        return new DenseBlockWorld(minX, minY, minZ, sizeX, sizeY, sizeZ, new ArrayList<BlockType>(palette), cells.clone());
+        DenseBlockWorld w = new DenseBlockWorld(minX, minY, minZ, sizeX, sizeY, sizeZ, new ArrayList<BlockType>(palette), cells.clone());
+        w.liquid = liquid;
+        return w;
     }
 }
