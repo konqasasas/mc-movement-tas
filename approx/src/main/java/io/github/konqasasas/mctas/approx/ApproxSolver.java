@@ -90,12 +90,14 @@ public final class ApproxSolver {
         // way is a guess along a straight line, so each also comes without it when that differs.
         List<Route> routes = new ArrayList<Route>();
         Set<String> seen = new HashSet<String>();
-        for (boolean throughWalls : new boolean[] {false, true}) {
+        // Also with surfaces kept clear of the walls beside them, for courses with trunks and posts
+        // standing in the way.
+        for (int kind = 0; kind < 3; kind++) {
             for (double slack : SLACKS) {
-                Route route = new Route(problem, slack, throughWalls);
+                Route route = new Route(problem, slack, kind == 2, kind == 1);
                 if (seen.add(route.toString())) {
                     routes.add(route);
-                    say("route (slack " + slack + (throughWalls ? ", through walls" : "") + "): "
+                    say("route (slack " + slack + (kind == 1 ? ", clear of walls" : kind == 2 ? ", through walls" : "") + "): "
                         + (route.found() ? route.toString() : "none found, heading straight for the goal"));
                 }
             }

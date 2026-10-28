@@ -144,26 +144,33 @@ public final class Route {
         this(problem, 0);
     }
 
-    /** Jumps may pass through things at body height on the way (the check is a straight-line guess). */
+    /** Jumps and walks may pass through things at body height on the way (the checks are straight-line guesses). */
     public final boolean throughWalls;
+    /** Surfaces next to walls keep the body clear of them (see {@link #surfaces(SparseBlockWorld, boolean)}). */
+    public final boolean clearOfWalls;
 
     public Route(Problem problem, double slack) {
         this(problem, slack, false);
     }
 
     public Route(Problem problem, double slack, boolean throughWalls) {
-        this(problem, JumpTable.get(), slack, throughWalls);
+        this(problem, slack, throughWalls, false);
+    }
+
+    public Route(Problem problem, double slack, boolean throughWalls, boolean clearOfWalls) {
+        this(problem, JumpTable.get(), slack, throughWalls, clearOfWalls);
     }
 
     Route(Problem problem, JumpTable jumps, double slack) {
-        this(problem, jumps, slack, false);
+        this(problem, jumps, slack, false, false);
     }
 
-    Route(Problem problem, JumpTable jumps, double slack, boolean throughWalls) {
+    Route(Problem problem, JumpTable jumps, double slack, boolean throughWalls, boolean clearOfWalls) {
         this.problem = problem;
         this.slack = slack;
         this.throughWalls = throughWalls;
-        List<Surface> surfaces = surfaces(problem.world);
+        this.clearOfWalls = clearOfWalls;
+        List<Surface> surfaces = surfaces(problem.world, clearOfWalls);
         for (Surface c : surfaces) allByColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Surface>()).add(c);
         surfaces.addAll(climbCells(problem.world));
         Region g = problem.goal;
@@ -695,6 +702,15 @@ public final class Route {
 
     /** Standable surfaces: the top of each block's highest collision boxes with 1.8 blocks of room above. */
     static List<Surface> surfaces(SparseBlockWorld world) {
+        return surfaces(world, false);
+    }
+
+    /**
+     * Standable surfaces; with {@code clearOfWalls}, a wall beside one above step height keeps the
+     * centre 0.3 inside that edge instead of 0.3 outside it, so the route does not run the body into
+     * a trunk or a post (but stays off the edges that a run along a wall could use).
+     */
+    static List<Surface> surfaces(SparseBlockWorld world, final boolean clearOfWalls) {
         final List<Surface> out = new ArrayList<Surface>();
         final Aabb everything = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
         world.forEach(new SparseBlockWorld.Visitor() {
@@ -723,14 +739,14 @@ public final class Route {
                     room = hasRoom(world, x, y, z, px, top, pz);
                 }
                 if (!room) return;
-                // A wall on a side above step height keeps the centre 0.3 inside that edge instead
-                // of 0.3 outside it, so the route does not run the body into a trunk or a post.
-                double lo = top + 0.6, hi = top + 1.8;
-                if (blocks(world, minX - 0.3, lo, minZ, minX, hi, maxZ)) minX += 0.6;
-                if (blocks(world, maxX, lo, minZ, maxX + 0.3, hi, maxZ)) maxX -= 0.6;
-                if (blocks(world, minX, lo, minZ - 0.3, maxX, hi, minZ)) minZ += 0.6;
-                if (blocks(world, minX, lo, maxZ, maxX, hi, maxZ + 0.3)) maxZ -= 0.6;
-                if (minX > maxX + 0.6 - 1e-9 || minZ > maxZ + 0.6 - 1e-9) return;
+                if (clearOfWalls) {
+                    double lo = top + 0.6, hi = top + 1.8;
+                    if (blocks(world, minX - 0.3, lo, minZ, minX, hi, maxZ)) minX += 0.6;
+                    if (blocks(world, maxX, lo, minZ, maxX + 0.3, hi, maxZ)) maxX -= 0.6;
+                    if (blocks(world, minX, lo, minZ - 0.3, maxX, hi, minZ)) minZ += 0.6;
+                    if (blocks(world, minX, lo, maxZ, maxX, hi, maxZ + 0.3)) maxZ -= 0.6;
+                    if (minX > maxX + 0.6 - 1e-9 || minZ > maxZ + 0.6 - 1e-9) return;
+                }
                 out.add(new Surface(x, y, z, top, minX, minZ, maxX, maxZ));
             }
         });
