@@ -35,6 +35,9 @@ public final class TechniqueMain {
             case "neo":
                 neo(args);
                 break;
+            case "ceiling":
+                ceiling(args);
+                break;
             case "window":
                 window(args);
                 break;
@@ -60,6 +63,8 @@ public final class TechniqueMain {
                 + "        compares holding W with the search for climbing a ladder onto a wall\n"
                 + "  mctas-technique neo [width]\n"
                 + "        the fastest neo around a wall end, landing 1 to 4 blocks past the wall\n"
+                + "  mctas-technique ceiling [width]\n"
+                + "        ticks to cover 20 blocks under ceilings 2, 2.5, 3 high and none: run, jump chain, search\n"
                 + "  mctas-technique window\n"
                 + "        prints the clean jump distances for climbing a step");
     }
@@ -126,6 +131,23 @@ public final class TechniqueMain {
                 q = Physics.tick(w, q, x);
                 System.out.printf("    %3d %-14s pos %.4f %.4f %.4f%s%n", ++k, x, q.posX, q.posY, q.posZ, q.onGround ? " G" : "");
             }
+        }
+    }
+
+    /** Prints the ticks to cover 20 blocks under ceilings of several heights: run, jump chain, search. */
+    private static void ceiling(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 100;
+        o.offsets = new float[] {0};
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        double dist = 20;
+        System.out.println("| ceiling | run | jump on every landing | search |");
+        System.out.println("| --- | --- | --- | --- |");
+        for (double gap : new double[] {2, 2.5, 3, 0}) {
+            System.out.printf("| %s | %d | %d | %d |%n", gap == 0 ? "none" : "" + gap,
+                    io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, false),
+                    io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, true),
+                    io.github.konqasasas.mctas.technique.CeilingBench.search(gap, dist, o));
         }
     }
 

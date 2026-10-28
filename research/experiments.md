@@ -29,3 +29,4 @@
 | E-403 | 2026-10-28 | stpt1 をスポーンから全自動で(助走の探索つき) | ブランチ `claude/project-thread-usu2am` で `mctas-technique runup <stpt1.problem.json> 3 out.tas 0 20000` | 187、違反なし | F-403 |
 | E-404 | 2026-10-28 | 壁の梯子の登り | 同じブランチで `mctas-technique ladder 3000` | W 押しより 11〜13 ティック速い | F-404 |
 | E-405 | 2026-10-28 | ネオの区間探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique neo 5000` | 壁の 1/2/3 先で 17/18/20、4 先は見つからない | F-405 |
+| E-406 | 2026-10-28 | 天井の下の連続ジャンプ | ブランチ `claude/project-thread-usu2am` で `mctas-technique ceiling 5000` | 20 ブロックで走り 70、天井 2 で 43、2.5 で 51、3 で 57、なし 58 | F-406 |
