@@ -1,4 +1,6 @@
-# 実験の登録簿
+# 実験の登録簿: 2026-10-28 の帯ルールより前
+
+帯ルールより前の番号(E-001〜E-099)の置き場で、新しい行は足しません。
 
 走らせる前に登録し、終わったら結果と F 番号を書き足します。条件をそろえて比べられるよう、コマンドはそのまま再実行できる形で書きます。
 
@@ -24,19 +26,3 @@
 | E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
 | E-025 | 2026-10-28 | stpt1 の段差区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique segment <stpt1.problem.json> <stpt1.tas> 103 0 8.5 65 12 0 --width 20000 --max 80`(B は `156 0 8.5 78 12 0`、C は `192 0 goal 0 0 0`。人間の解は 122、159、183) | 近似 36/37/47 → 25/26/39。人間 24/28/38 → 24/27/38 | F-029 |
 | E-026 | 2026-10-28 | 段差の踏み切りの窓 | 同じブランチで `mctas-technique window` | 高さ 1、走りで 0.79〜2.51。天井が 1 ブロック手前までなら後ろ向きのジャンプだけ | F-030 |
-| E-401 | 2026-10-28 | 局所探索で近似の解の途中からゴールまで | ブランチ `claude/project-thread-usu2am` で `MCTAS_SPLICE=out.tas mctas-technique segment <stpt1.problem.json> <stpt1.tas> 7 0 goal 0 0 0 --width 20000 --max 240`(103 からも) | 7 から 191、103 から 196。違反なし | F-401 |
-| E-402 | 2026-10-28 | stpt1 の 191 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-191.tas`(問題は `/mnt/project-files/ws3b/stpt1/`) | 191 ティック、全ティック一致 | F-402 |
-| E-403 | 2026-10-28 | stpt1 をスポーンから全自動で(助走の探索つき) | ブランチ `claude/project-thread-usu2am` で `mctas-technique runup <stpt1.problem.json> 3 out.tas 0 20000` | 187、違反なし | F-403 |
-| E-404 | 2026-10-28 | 壁の梯子の登り | 同じブランチで `mctas-technique ladder 3000` | W 押しより 11〜13 ティック速い | F-404 |
-| E-405 | 2026-10-28 | ネオの区間探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique neo 5000` | 壁の 1/2/3 先で 17/18/20、4 先は見つからない | F-405 |
-| E-406 | 2026-10-28 | 天井の下の連続ジャンプ | ブランチ `claude/project-thread-usu2am` で `mctas-technique ceiling 5000` | 20 ブロックで走り 70、天井 2 で 43、2.5 で 51、3 で 57、なし 58 | F-406 |
-| E-407 | 2026-10-28 | 90 度の角 | ブランチ `claude/project-thread-usu2am` で `mctas-technique corner 5000` | 幅 1/2/3 で 73/66/63 | F-407 |
-| E-301 | 2026-10-28 | 物理の高速化の前後比較 | main(`a4cc840`)とブランチ `claude/project-thread-k025c7` で `./gradlew :problem:bench -Prounds=6 -Pproblems=problems/v1-full/s2007-12j.problem.json,problems/place/01-pillar-2.problem.json,<test1.problem.json>,<stpt1.problem.json>`(test1 と stpt1 は共有フォルダ ws3b/) | 探索型の木 37〜45 万 → 88〜101 万ティック/秒、状態 1 つ約 240 バイトで変わらず、チェックサム一致 | F-301 |
-| E-101 | 2026-10-28 | v0 の target 解が切り替え3ティック制約を守るか | `./gradlew :search:test --tests '*WitnessToggleTest'`(差し替え前の解で実行) | 09・10 が違反 | F-101 |
-| E-102 | 2026-10-28 | v0 の最速タイムの証明 | `mctas-search bound --cell 0.25 problems/v0/*.problem.json`(02・06 は `--cell` なし)、上界は `mctas-search beam <問題> --width 4000` | 5 問で下界 = 上界 | F-102 |
-| E-103 | 2026-10-28 | 細かい区画での下界 | `mctas-search bound --cell 0.1 problems/v0/{03-gap-2,05-up-1,07-side-2}.problem.json` | 03 = 9、05 = 5、07 = 7 | F-103 |
-| E-104 | 2026-10-28 | x 方向だけ細かい区画での下界 | `mctas-search bound --cell 0.1 --max-steps 300000000 problems/v0/{07-side-2,09-three-jumps,10-three-jumps-zigzag}.problem.json`、05 は `--cell 0.05` | 09 = 33、07 = 7、10 = 31、05 = 5 | F-104 |
-| E-105 | 2026-10-28 | 05 の 5 ティックの可否と、加速度の見積もりの影響 | 総当たり(連続ジャンプの位相 × ストレイフ)、`bound --cell 0.1` を ROT = 1 で(健全でない実験) | 実測の最良 z = 1.69909(必要 1.7)、下界は 05 = 5、07 = 7、10 = 31 で変わらず | F-105, F-106 |
-| E-106 | 2026-10-28 | どのコースでも出る速度の下界 | `mctas-search speed problems/v0/*.problem.json problems/v1-dev/*.problem.json problems/v1-full/*.problem.json <realdev ex1〜ex6(ex4 は書き出し直し版)> <human6 6 問> <stpt1>`(共有フォルダ benchmarks/、ws3b/stpt1/)、`./gradlew :search:test --tests '*SpeedBoundTest'` | realdev 131/141/13/130/155/236、stpt1 132、human6 は poseidon 210・prism 55・rampart 218・remaining 138・tohell 136・verdure 55。v0・v1-dev で既知の解を超えず、テスト通過 | F-107 |
-| E-408 | 2026-10-28 | stpt1 の 187 ティックの解の実機再生 | 実機で `/mctas replay stpt1.problem.json stpt1-187.tas` | 問題なし(ユーザーの報告) | F-408 |
-| E-409 | 2026-10-28 | realdev の詰まる区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique region ...`(technique/README.md の表) | つた 75、塀の柱 60(chain)、1 ブロックのはしご 33、水柱 57 | F-409 |

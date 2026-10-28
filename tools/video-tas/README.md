@@ -41,4 +41,4 @@
 
 ## stpt1 の結果
 
-`stpt1/` に読み(`hud-readings.json`)、一致した入力(`matched-masks.txt`、最初の 4 ティックはテレポート直後の待ち)、助走をつけた解答(`stpt1-human187.tas`、`.solution.json`)がある。エンジンで 187 ティック、スプリント・スニーク切り替えの制約(D-004)の違反なし。詳しくは research/findings.md の F-025。
+`stpt1/` に読み(`hud-readings.json`)、一致した入力(`matched-masks.txt`、最初の 4 ティックはテレポート直後の待ち)、助走をつけた解答(`stpt1-human187.tas`、`.solution.json`)がある。エンジンで 187 ティック、スプリント・スニーク切り替えの制約(D-004)の違反なし。詳しくは research/findings/shared.md の F-025。
