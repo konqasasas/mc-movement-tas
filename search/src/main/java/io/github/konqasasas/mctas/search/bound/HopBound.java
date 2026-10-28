@@ -96,7 +96,7 @@ public final class HopBound {
     private final Region problemStart, problemGoal;
     private int radius;
     /** {@link SpeedBound#hops}: reach and end speed of a hop from the ground, by ticks and start speed. */
-    private final double[][] hopFar, hopFast;
+    private final double[][] hopFar, hopFast, hopLast;
     /** The start's horizontal speed on the ground, or -1 for any state in the start box. */
     private final double startSpeed;
     private double lowestTop;
@@ -131,6 +131,7 @@ public final class HopBound {
         double[][][] h = speed.hops(far.length - 1);
         this.hopFar = h[0];
         this.hopFast = h[1];
+        this.hopLast = h[2];
         final double[] top = {Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
         final List<double[]> boxes = new ArrayList<double[]>();
         final List<double[]> specials = new ArrayList<double[]>();
@@ -510,9 +511,24 @@ public final class HopBound {
 
     // ---- forward search over end-of-tick positions ----
 
-    private static final double SQRT2 = Math.sqrt(2);
+    /** Directions of the polygon's sides: k * 22.5 degrees. */
+    private static final int DIRS = 8;
+    private static final double[] COS = new double[DIRS], SIN = new double[DIRS];
 
-    /** A convex octagon of positions: bounds on x, z, x + z and x - z. */
+    static {
+        for (int k = 0; k < DIRS; k++) {
+            COS[k] = Math.cos(k * Math.PI / DIRS);
+            SIN[k] = Math.sin(k * Math.PI / DIRS);
+        }
+        COS[DIRS / 2] = 0;
+    }
+
+    /**
+     * A convex polygon of positions: bounds {@code v[2k] <= x cos + z sin <= v[2k + 1]} along
+     * {@link #DIRS} directions (x is direction 0, z direction DIRS / 2), kept tight after an
+     * intersection. Growing it by r adds r to every bound, which covers the disc of radius r round
+     * every point (the polygon round a disc is at most 2% wider than it).
+     */
     static final class Oct {
         final double[] v;
 
@@ -521,39 +537,87 @@ public final class HopBound {
         }
 
         static Oct rect(double x0, double x1, double z0, double z1) {
-            return new Oct(new double[] {x0, x1, z0, z1, x0 + z0, x1 + z1, x0 - z1, x1 - z0});
+            double[] w = new double[2 * DIRS];
+            for (int k = 0; k < DIRS; k++) {
+                double a = COS[k] * x0, b = COS[k] * x1, c = SIN[k] * z0, d = SIN[k] * z1;
+                w[2 * k] = Math.min(a, b) + Math.min(c, d);
+                w[2 * k + 1] = Math.max(a, b) + Math.max(c, d);
+            }
+            return new Oct(w);
         }
 
         Oct grow(double r) {
-            double q = r * SQRT2;
-            return new Oct(new double[] {v[0] - r, v[1] + r, v[2] - r, v[3] + r, v[4] - q, v[5] + q, v[6] - q, v[7] + q});
+            double[] w = v.clone();
+            for (int k = 0; k < DIRS; k++) {
+                w[2 * k] -= r;
+                w[2 * k + 1] += r;
+            }
+            return new Oct(w);
         }
 
         /** The intersection, or null when it is empty. */
         Oct and(Oct o) {
-            double[] w = new double[8];
-            for (int i = 0; i < 8; i += 2) {
+            // Both are tight, so when one holds the other the smaller one is the answer.
+            if (contains(o)) return o;
+            if (o.contains(this)) return this;
+            double[] w = new double[2 * DIRS];
+            for (int i = 0; i < 2 * DIRS; i += 2) {
                 w[i] = Math.max(v[i], o.v[i]);
                 w[i + 1] = Math.min(v[i + 1], o.v[i + 1]);
+                if (w[i] > w[i + 1] + EPS) return null;
             }
-            for (int round = 0; round < 2; round++) {
-                w[4] = Math.max(w[4], w[0] + w[2]);
-                w[5] = Math.min(w[5], w[1] + w[3]);
-                w[6] = Math.max(w[6], w[0] - w[3]);
-                w[7] = Math.min(w[7], w[1] - w[2]);
-                w[0] = Math.max(w[0], Math.max(w[4] - w[3], w[6] + w[2]));
-                w[1] = Math.min(w[1], Math.min(w[5] - w[2], w[7] + w[3]));
-                w[2] = Math.max(w[2], Math.max(w[4] - w[1], w[0] - w[7]));
-                w[3] = Math.min(w[3], Math.min(w[5] - w[0], w[1] - w[6]));
+            // Clip the bounding box by every bound, then read the bounds back off the corners.
+            double x0 = w[0], x1 = w[1], z0 = w[DIRS], z1 = w[DIRS + 1];
+            double[] px = {x0, x1, x1, x0}, pz = {z0, z0, z1, z1};
+            int n = 4;
+            for (int k = 1; k < DIRS && n > 0; k++) {
+                if (k == DIRS / 2) continue;
+                for (int side = 0; side < 2 && n > 0; side++) {
+                    double sign = side == 0 ? -1 : 1, bound = side == 0 ? -w[2 * k] : w[2 * k + 1];
+                    double[] qx = new double[n + 1], qz = new double[n + 1];
+                    int m = 0;
+                    for (int a = 0; a < n; a++) {
+                        int b = (a + 1) % n;
+                        double fa = sign * (COS[k] * px[a] + SIN[k] * pz[a]) - bound;
+                        double fb = sign * (COS[k] * px[b] + SIN[k] * pz[b]) - bound;
+                        if (fa <= EPS) {
+                            qx[m] = px[a];
+                            qz[m++] = pz[a];
+                        }
+                        if ((fa < -EPS && fb > EPS) || (fa > EPS && fb < -EPS)) {
+                            double f = fa / (fa - fb);
+                            if (m == qx.length) {
+                                qx = Arrays.copyOf(qx, m * 2);
+                                qz = Arrays.copyOf(qz, m * 2);
+                            }
+                            qx[m] = px[a] + f * (px[b] - px[a]);
+                            qz[m++] = pz[a] + f * (pz[b] - pz[a]);
+                        }
+                    }
+                    px = qx;
+                    pz = qz;
+                    n = m;
+                }
             }
-            for (int i = 0; i < 8; i += 2) if (w[i] > w[i + 1] + EPS) return null;
+            if (n == 0) return null;
+            for (int k = 0; k < DIRS; k++) {
+                double lo = Double.POSITIVE_INFINITY, hi = Double.NEGATIVE_INFINITY;
+                for (int a = 0; a < n; a++) {
+                    double d = COS[k] * px[a] + SIN[k] * pz[a];
+                    lo = Math.min(lo, d);
+                    hi = Math.max(hi, d);
+                }
+                // Never tighter than the bounds themselves (the corners are rounded).
+                w[2 * k] = Math.max(w[2 * k], lo - EPS);
+                w[2 * k + 1] = Math.min(w[2 * k + 1], hi + EPS);
+            }
             return new Oct(w);
         }
 
-        /** The smallest octagon holding both. */
+        /** The smallest polygon with these directions holding both. */
         Oct hull(Oct o) {
-            double[] w = new double[8];
-            for (int i = 0; i < 8; i += 2) {
+            double[] w = new double[2 * DIRS];
+            for (int i = 0; i < 2 * DIRS; i += 2) {
                 w[i] = Math.min(v[i], o.v[i]);
                 w[i + 1] = Math.max(v[i + 1], o.v[i + 1]);
             }
@@ -561,7 +625,7 @@ public final class HopBound {
         }
 
         boolean contains(Oct o) {
-            for (int i = 0; i < 8; i += 2) {
+            for (int i = 0; i < 2 * DIRS; i += 2) {
                 if (o.v[i] < v[i] - EPS || o.v[i + 1] > v[i + 1] + EPS) return false;
             }
             return true;
@@ -570,7 +634,7 @@ public final class HopBound {
         /** A lower bound on the distance to a box, from the bounding box. */
         double gap(Node b) {
             double dx = Math.max(0, Math.max(b.x0 - v[1], v[0] - b.x1));
-            double dz = Math.max(0, Math.max(b.z0 - v[3], v[2] - b.z1));
+            double dz = Math.max(0, Math.max(b.z0 - v[DIRS + 1], v[DIRS] - b.z1));
             return Math.hypot(dx, dz);
         }
     }
@@ -643,13 +707,17 @@ public final class HopBound {
             for (int j = 0; j < nbr[ai].length; j++) {
                 int bi = nbr[ai][j];
                 Node b = nodes.get(bi);
+                // A landing on a top is decided where the tick starts (y moves first), so the tick ends
+                // within its own move of the place: from the ground, at most the hop's last tick.
+                boolean exact = b.type == SURFACE && ground;
                 double gap = where.gap(b) - (bi == g ? 0 : step);
                 int[] r = nbrRanges[ai][j];
                 for (int i = 0; i < r.length; i += 2) {
                     for (int n = r[i]; n <= r[i + 1] && t + n <= problem.maxTicks; n++) {
                         double reach = ground ? Math.min(far[n], hopFar[n][v]) : far[n];
                         if (reach < gap) continue;
-                        Oct o = where.grow(reach).and(places[bi]);
+                        Oct place = exact ? Oct.rect(b.x0, b.x1, b.z0, b.z1).grow(Math.min(step, hopLast[n][v])) : places[bi];
+                        Oct o = where.grow(reach).and(place);
                         if (o == null) continue;
                         int w = bi == g ? 0 : ground ? speedIndex(hopFast[n][v], top) : top;
                         if (!covered(settled.get(bi), o, w)) {
@@ -665,7 +733,7 @@ public final class HopBound {
                             }
                         }
                         // Longer hops land in the same place later and no faster: nothing new.
-                        if (o.contains(places[bi]) && (!ground || w >= speedIndex(suffixFast[n + 1][v], top))) break;
+                        if (!exact && o.contains(places[bi]) && (!ground || w >= speedIndex(suffixFast[n + 1][v], top))) break;
                     }
                 }
             }
