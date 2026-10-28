@@ -1,7 +1,7 @@
 {
   "format": "mctas-problem",
   "version": 1,
-  "id": "ex4v2",
+  "id": "realdev/ex4",
   "mcVersion": "1.12.2",
   "world": {
     "source": "inline",
