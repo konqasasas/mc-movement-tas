@@ -71,6 +71,11 @@ final class OraclePlayer extends net.minecraft.entity.player.EntityPlayer {
         }
     }
 
+    /** {@code Entity.getVectorForRotation} at the current angles, which is protected. */
+    net.minecraft.util.math.Vec3d look() {
+        return getVectorForRotation(rotationPitch, rotationYaw);
+    }
+
     @Override
     public boolean isSneaking() {
         return miSneak;

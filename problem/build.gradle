@@ -15,3 +15,18 @@ application {
 run {
     workingDir = rootProject.projectDir
 }
+
+tasks.register('writeEngineBuild', JavaExec) {
+    description = 'Rewrites the engine build id (physics/src/main/resources/.../engine-build.txt) from the sources.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.physics.EngineBuild'
+    args = [rootProject.projectDir.path,
+            rootProject.file('physics/src/main/resources/io/github/konqasasas/mctas/physics/engine-build.txt').path]
+}
+
+test {
+    systemProperty 'mctas.repoRoot', rootProject.projectDir.path
+    // EngineBuildTest reads the sources themselves, so a comment-only change must rerun it too.
+    inputs.dir rootProject.file('physics/src/main')
+    inputs.dir rootProject.file('problem/src/main')
+}

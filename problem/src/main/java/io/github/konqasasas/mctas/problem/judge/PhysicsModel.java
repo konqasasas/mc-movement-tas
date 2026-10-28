@@ -25,6 +25,8 @@ public final class PhysicsModel implements MovementModel<PlayerState> {
     public PlayerState spawn(Problem problem) {
         PlayerState s = PlayerState.standing(problem.spawn.pos.x, problem.spawn.pos.y, problem.spawn.pos.z, problem.spawn.yaw);
         s.rotationPitch = problem.spawn.pitch;
+        s.hotbar = problem.inventory;
+        s.selectedSlot = problem.selectedSlot;
         return s;
     }
 
@@ -47,6 +49,7 @@ public final class PhysicsModel implements MovementModel<PlayerState> {
         if (in.has(Key.JUMP)) k |= PlayerInput.JUMP;
         if (in.has(Key.SPRINT)) k |= PlayerInput.SPRINT;
         if (in.has(Key.SNEAK)) k |= PlayerInput.SNEAK;
-        return new PlayerInput(k, in.yaw, in.pitch);
+        if (in.has(Key.USE)) k |= PlayerInput.USE;
+        return new PlayerInput(k, in.yaw, in.pitch, in.slot);
     }
 }

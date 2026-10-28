@@ -7,6 +7,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
@@ -15,7 +20,8 @@ import java.util.Map;
 import java.util.TreeSet;
 
 /**
- * The live client world as a {@link BlockWorld}. Each block state is mapped once to its entry in
+ * The client world as a {@link BlockWorld}: live, or after {@link #freeze} as it was then, so the
+ * blocks the player places during a run come only from the engine's own {@code PlayerState.placed}. Each block state is mapped once to its entry in
  * {@link VanillaBlocks}. The few blocks the catalog leaves out (portals, end gateways, moving pistons)
  * are remembered in {@link #unsupported()} and read as air, so a run that touched them is reported as
  * not comparable.
@@ -25,6 +31,9 @@ final class ClientWorldBlocks implements BlockWorld {
     private final World world;
     private final Map<IBlockState, BlockType> cache = new HashMap<IBlockState, BlockType>();
     private final TreeSet<String> unsupported = new TreeSet<String>();
+    /** The state each position had at {@link #freeze}, for the positions changed since. */
+    private final Map<BlockPos, IBlockState> before = new HashMap<BlockPos, IBlockState>();
+    private IWorldEventListener listener;
 
     ClientWorldBlocks(World world) {
         this.world = world;
@@ -40,13 +49,59 @@ final class ClientWorldBlocks implements BlockWorld {
             return BlockType.AIR;
         }
         BlockPos pos = new BlockPos(x, y, z);
-        IBlockState state = world.getBlockState(pos);
+        IBlockState state = before.get(pos);
+        if (state == null) {
+            state = world.getBlockState(pos);
+        }
         BlockType t = cache.get(state);
         if (t == null) {
             t = map(state);
             cache.put(state, t);
         }
         return t;
+    }
+
+    /** From now until {@link #unfreeze}, reads every block as it is now. */
+    void freeze() {
+        if (listener != null) {
+            return;
+        }
+        listener = new Changes();
+        world.addEventListener(listener);
+    }
+
+    void unfreeze() {
+        if (listener != null) {
+            world.removeEventListener(listener);
+            listener = null;
+        }
+        before.clear();
+    }
+
+    /** Records the first old state of every block that changes. */
+    private final class Changes implements IWorldEventListener {
+        @Override
+        public void notifyBlockUpdate(World w, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
+            if (!before.containsKey(pos)) {
+                before.put(pos.toImmutable(), oldState);
+            }
+        }
+
+        @Override public void notifyLightSet(BlockPos pos) { }
+        @Override public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2, int y2, int z2) { }
+        @Override public void playSoundToAllNearExcept(EntityPlayer player, SoundEvent sound, SoundCategory category,
+                                                      double x, double y, double z, float volume, float pitch) { }
+        @Override public void playRecord(SoundEvent sound, BlockPos pos) { }
+        @Override public void spawnParticle(int id, boolean ignoreRange, double x, double y, double z,
+                                            double xSpeed, double ySpeed, double zSpeed, int... parameters) { }
+        @Override public void spawnParticle(int id, boolean ignoreRange, boolean minimiseParticleLevel, double x,
+                                            double y, double z, double xSpeed, double ySpeed, double zSpeed,
+                                            int... parameters) { }
+        @Override public void onEntityAdded(Entity entity) { }
+        @Override public void onEntityRemoved(Entity entity) { }
+        @Override public void broadcastSound(int soundID, BlockPos pos, int data) { }
+        @Override public void playEvent(EntityPlayer player, int type, BlockPos pos, int data) { }
+        @Override public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) { }
     }
 
     /** The catalog name of a state, or null if the block is not in the catalog. */

@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.physics.testing;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
@@ -14,7 +15,8 @@ import java.util.Random;
  * A reproducible random course and input sequence for differential testing. The world is a small
  * parkour-like field with gaps, steps, pillars and ceilings, either of full blocks and ice
  * ({@link #generate}), of every solid block the engine models ({@link #generateShapes}), or of those
- * with pools of water or lava ({@link #generateFluids}); the inputs hold
+ * with pools of water or lava ({@link #generateFluids}), or of those with a hotbar of full blocks to
+ * place ({@link #generatePlacing}); the inputs hold
  * keys for a few ticks at a time and mix smooth turning with sudden angle jumps.
  */
 public final class RandomScenario {
@@ -35,8 +37,12 @@ public final class RandomScenario {
         this.standingStart = standingStart;
     }
 
+    /** Blocks whose selection box or replaceability the engine cannot compute from the catalog name. */
+    private static final List<String> UNMODELLED_CLICKS = java.util.Arrays.asList(
+            "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
+
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -46,8 +52,10 @@ public final class RandomScenario {
             return generateShapes(seed, ticks);
         } else if (course.equals("fluids")) {
             return generateFluids(seed, ticks);
+        } else if (course.equals("place")) {
+            return generatePlacing(seed, ticks);
         }
-        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes or fluids");
+        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes, fluids or place");
     }
 
     /** Full blocks and ice only. */
@@ -65,12 +73,21 @@ public final class RandomScenario {
         return generate(seed, ticks, 2);
     }
 
+    /**
+     * {@link #generateShapes} courses, without the blocks whose right-click the engine does not model,
+     * and a hotbar of full blocks; the inputs right-click, switch slots and often look down.
+     */
+    public static RandomScenario generatePlacing(long seed, int ticks) {
+        return generate(seed, ticks, 3);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
         boolean shapes = kind != 0;
-        BlockType[] palette = shapes ? shapeCourse(r, w, base) : fullBlockCourse(r, w, base);
+        boolean placing = kind == 3;
+        BlockType[] palette = shapes ? shapeCourse(r, w, base, placing) : fullBlockCourse(r, w, base);
         if (kind == 2) {
             addFluids(r, w, base, palette);
         }
@@ -109,8 +126,26 @@ public final class RandomScenario {
             start.prevMoveForward = r.nextBoolean() ? 1.0F : 0.0F;
         }
 
+        if (placing) {
+            List<BlockType> blocks = new ArrayList<BlockType>();
+            for (BlockType t : VanillaBlocks.all()) {
+                if (t.isPlaceable()) {
+                    blocks.add(t);
+                }
+            }
+            for (int i = 0; i < Hotbar.SLOTS; i++) {
+                if (r.nextDouble() < 0.6) {
+                    start.hotbar = start.hotbar.with(i, blocks.get(r.nextInt(blocks.size())), 1 + r.nextInt(r.nextBoolean() ? 4 : 64));
+                }
+            }
+            start.selectedSlot = r.nextInt(Hotbar.SLOTS);
+            start.rightClickDelay = r.nextInt(5);
+            start.prevUse = r.nextBoolean();
+        }
+
         List<PlayerInput> inputs = new ArrayList<PlayerInput>(ticks);
         int keys = 0;
+        boolean use = false;
         float yaw = yaw0;
         float turnRate = 0.0F;
         int hold = 0;
@@ -134,7 +169,22 @@ public final class RandomScenario {
             }
             yaw += turnRate;
             float pitch = (r.nextFloat() - 0.5F) * 180.0F;
-            inputs.add(new PlayerInput(k, yaw, pitch));
+            if (!placing) {
+                inputs.add(new PlayerInput(k, yaw, pitch));
+                continue;
+            }
+            if (r.nextDouble() < 0.2) {
+                use = !use;
+            }
+            if (use) {
+                k |= PlayerInput.USE;
+            }
+            if (r.nextDouble() < 0.7) {
+                // Down at the floor or the block just below, as when bridging or pillaring.
+                pitch = 30.0F + r.nextFloat() * 60.0F;
+            }
+            int slot = r.nextDouble() < 0.08 ? r.nextInt(Hotbar.SLOTS) : -1;
+            inputs.add(new PlayerInput(k, yaw, pitch, slot));
         }
         return new RandomScenario(seed, w, start, inputs, standing);
     }
@@ -173,7 +223,7 @@ public final class RandomScenario {
      * A field of a few block kinds at a time, so like blocks meet and connect: floors, raised blocks
      * to step or jump onto, walls, and ceilings. The 3x3 start area is stone with two blocks of air.
      */
-    private static BlockType[] shapeCourse(Random r, SparseBlockWorld w, int base) {
+    private static BlockType[] shapeCourse(Random r, SparseBlockWorld w, int base, boolean placing) {
         List<BlockType> all = new ArrayList<BlockType>(VanillaBlocks.all());
         all.remove(BlockType.AIR);
         for (java.util.Iterator<BlockType> it = all.iterator(); it.hasNext(); ) {
@@ -181,6 +231,8 @@ public final class RandomScenario {
             // Unstable blocks fall, grow or get powered by the player in the real game, so a course of them
             // would not stay as built.
             if (t instanceof VanillaBlocks.Liquid || t.isExcept(BlockType.UNSTABLE)) {
+                it.remove();
+            } else if (placing && UNMODELLED_CLICKS.contains(VanillaBlocks.blockId(t.name()))) {
                 it.remove();
             }
         }

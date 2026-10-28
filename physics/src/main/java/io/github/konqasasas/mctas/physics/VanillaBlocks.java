@@ -182,6 +182,7 @@ public final class VanillaBlocks {
         put(new ChorusPlant().notBlockingMovement(), null);
         CODED_IDS = Collections.unmodifiableSet(new HashSet<String>(PROPERTIES.keySet()));
         loadTable();
+        loadInteractions();
     }
 
     /** Block ids with hand-written entries above; every other id comes from {@link #TABLE}. */
@@ -238,6 +239,52 @@ public final class VanillaBlocks {
             }
         } catch (IOException e) {
             throw new IllegalStateException("cannot read " + TABLE, e);
+        }
+    }
+
+    /**
+     * What right-clicking reads from every state of the catalog, written from the game by
+     * {@code :oracle:writeInteractionTable}: name, the view ray can hit it, material replaceable,
+     * activates when right-clicked, places as a plain full block, block replaceable, and the selection
+     * box ({@code -} for none). {@code dyn} marks a value that depends on the neighbours: the block types
+     * below compute those selection boxes, and the others report {@link UnsupportedBlockException}.
+     */
+    static final String INTERACTION_TABLE = "/io/github/konqasasas/mctas/physics/vanilla-interaction.tsv";
+
+    private static void loadInteractions() {
+        InputStream in = VanillaBlocks.class.getResourceAsStream(INTERACTION_TABLE);
+        if (in == null) {
+            return;
+        }
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            try {
+                String line;
+                while ((line = r.readLine()) != null) {
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        continue;
+                    }
+                    String[] f = line.split("\t", -1);
+                    BlockType t = BY_NAME.get(f[0]);
+                    if (t == null) {
+                        throw new IllegalStateException(INTERACTION_TABLE + " names an unknown state " + f[0]);
+                    }
+                    Aabb box = null;
+                    boolean offsetXZ = f[6].startsWith("xz:");
+                    String sel = offsetXZ ? f[6].substring(3) : f[6];
+                    if (!sel.equals("-") && !sel.equals("dyn")) {
+                        String[] c = sel.split(",");
+                        box = new Aabb(Double.parseDouble(c[0]), Double.parseDouble(c[1]), Double.parseDouble(c[2]),
+                                Double.parseDouble(c[3]), Double.parseDouble(c[4]), Double.parseDouble(c[5]));
+                    }
+                    t.setInteraction(f[1].equals("1"), f[2].equals("1"), f[3].equals("1"), f[4].equals("1"),
+                            f[5].equals("1"), f[5].equals("dyn"), box, sel.equals("dyn"), offsetXZ);
+                }
+            } finally {
+                r.close();
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("cannot read " + INTERACTION_TABLE, e);
         }
     }
 
@@ -676,6 +723,12 @@ public final class VanillaBlocks {
             }
             add(x, y, z, area, out, b);
         }
+
+        /** {@code BlockDoor.getBoundingBox} is the collision box. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            return localCollisionBoxes(this, world, x, y, z).get(0);
+        }
     }
 
     /** {@code BlockChorusPlant}: a core with an arm towards each chorus plant or flower, and down to end stone. */
@@ -719,6 +772,20 @@ public final class VanillaBlocks {
                 add(x, y, z, area, out, SOUTH);
             }
         }
+
+        /** {@code BlockChorusPlant.getBoundingBox}: one box around the core and every arm. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            BlockType below = world.getBlock(x, y - 1, z);
+            double lo = 0.1875F;
+            double hi = 0.8125F;
+            return new Aabb(connects(world.getBlock(x - 1, y, z)) ? 0.0D : lo,
+                    connects(below) || below.name().equals("minecraft:end_stone") ? 0.0D : lo,
+                    connects(world.getBlock(x, y, z - 1)) ? 0.0D : lo,
+                    connects(world.getBlock(x + 1, y, z)) ? 1.0D : hi,
+                    connects(world.getBlock(x, y + 1, z)) ? 1.0D : hi,
+                    connects(world.getBlock(x, y, z + 1)) ? 1.0D : hi);
+        }
     }
 
     private static String stateName(String id, Facing facing, String key, String value) {
@@ -726,6 +793,24 @@ public final class VanillaBlocks {
     }
 
     // ---- blocks whose shape depends on the neighbours ----
+
+    private static final Aabb EVERYWHERE = new Aabb(-3.0E7D, -1.0E3D, -3.0E7D, 3.0E7D, 1.0E3D, 3.0E7D);
+
+    /** The collision boxes of the block at (x, y, z), block-local, in the order the game adds them. */
+    static List<Aabb> localCollisionBoxes(BlockType t, BlockWorld world, int x, int y, int z) {
+        List<Aabb> out = new ArrayList<Aabb>();
+        t.addCollisionBoxes(world, x, y, z, EVERYWHERE, out);
+        for (int i = 0; i < out.size(); i++) {
+            Aabb b = out.get(i);
+            out.set(i, new Aabb(b.minX - x, b.minY - y, b.minZ - z, b.maxX - x, b.maxY - y, b.maxZ - z));
+        }
+        return out;
+    }
+
+    /** Fence, pane and wall-like selection boxes: a centre column reaching out to each connected side. */
+    private static Aabb reach(double lo, double hi, double height, boolean n, boolean e, boolean s, boolean w) {
+        return new Aabb(w ? 0.0D : lo, 0.0D, n ? 0.0D : lo, e ? 1.0D : hi, height, s ? 1.0D : hi);
+    }
 
     /** {@code BlockChest}: the box reaches into a neighbouring chest of the same kind. */
     static final class Chest extends BlockType {
@@ -752,6 +837,12 @@ public final class VanillaBlocks {
                 b = world.getBlock(x + 1, y, z) == this ? EAST : SINGLE;
             }
             add(x, y, z, area, out, b);
+        }
+
+        /** {@code BlockChest.getBoundingBox} is the collision box. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            return localCollisionBoxes(this, world, x, y, z).get(0);
         }
     }
 
@@ -884,16 +975,55 @@ public final class VanillaBlocks {
                     return U;
             }
         }
+    
+        /**
+         * {@code BlockStairs.collisionRayTrace}: each collision box is traced, and the hit farthest from
+         * the end of the ray (the first one along it) wins.
+         */
+        @Override
+        Placement.Hit rayTrace(BlockWorld world, int x, int y, int z, double[] start, double[] end) {
+            Placement.Hit best = null;
+            double d1 = 0.0D;
+            for (Aabb b : localCollisionBoxes(this, world, x, y, z)) {
+                Placement.Hit h = Placement.rayTrace(x, y, z, start, end, b);
+                if (h != null) {
+                    double d0 = Placement.squareDistance(end, new double[] {h.hitX, h.hitY, h.hitZ});
+                    if (d0 > d1) {
+                        best = h;
+                        d1 = d0;
+                    }
+                }
+            }
+            return best;
+        }
     }
 
     /** {@code BlockFenceGate}: a fixed shape, but fences and walls connect to its sides. */
     static final class FenceGate extends BlockType {
+        private final Facing facing;
+
         FenceGate(String id, Facing facing, boolean open) {
             super(stateName(id, facing, "open", String.valueOf(open)),
                     open ? Collections.<Aabb>emptyList() : Collections.singletonList(facing.isXAxis()
                             ? new Aabb(0.375D, 0.0D, 0.0D, 0.625D, 1.5D, 1.0D)
                             : new Aabb(0.0D, 0.0D, 0.375D, 1.0D, 1.5D, 0.625D)),
                     0.6F, false, false, gateFaces(facing), 0);
+            this.facing = facing;
+        }
+
+        /** {@code BlockFenceGate.getBoundingBox}: lower when a cobblestone wall is at either side. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            boolean inWall = facing.isXAxis()
+                    ? isWall(world.getBlock(x, y, z - 1)) || isWall(world.getBlock(x, y, z + 1))
+                    : isWall(world.getBlock(x - 1, y, z)) || isWall(world.getBlock(x + 1, y, z));
+            double h = inWall ? 0.8125D : 1.0D;
+            return facing.isXAxis() ? new Aabb(0.375D, 0.0D, 0.0D, 0.625D, h, 1.0D)
+                    : new Aabb(0.0D, 0.0D, 0.375D, 1.0D, h, 0.625D);
+        }
+
+        private static boolean isWall(BlockType t) {
+            return blockId(t.name()).equals("minecraft:cobblestone_wall");
         }
 
         private static FaceShape[] gateFaces(Facing facing) {
@@ -947,11 +1077,21 @@ public final class VanillaBlocks {
                 add(x, y, z, area, out, WEST);
             }
         }
+
+        /** {@code BlockFence.getBoundingBox}: {@code BOUNDING_BOXES} by the connections, one block high. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            return reach(0.375D, 0.625D, 1.0D, connects(world, x, y, z, Facing.NORTH),
+                    connects(world, x, y, z, Facing.EAST), connects(world, x, y, z, Facing.SOUTH),
+                    connects(world, x, y, z, Facing.WEST));
+        }
     }
 
     /** {@code BlockWall}: one box, 1.5 high, picked by the connections. */
     static final class Wall extends BlockType {
         private static final Aabb[] CLIP = new Aabb[16];
+        /** {@code AABB_BY_INDEX}, the selection boxes: one block high, or 0.875 for a straight wall. */
+        private static final Aabb[] SELECT = new Aabb[16];
 
         static {
             double[][] b = {
@@ -964,6 +1104,7 @@ public final class VanillaBlocks {
             for (int i = 0; i < 16; i++) {
                 // AABB_BY_INDEX[i].setMaxY(1.5D)
                 CLIP[i] = new Aabb(b[i][0], 0.0D, b[i][1], b[i][2], 1.5D, b[i][3]);
+                SELECT[i] = new Aabb(b[i][0], 0.0D, b[i][1], b[i][2], i == 5 || i == 10 ? 0.875D : 1.0D, b[i][3]);
             }
         }
 
@@ -983,6 +1124,15 @@ public final class VanillaBlocks {
 
         @Override
         public void addCollisionBoxes(BlockWorld world, int x, int y, int z, Aabb area, List<Aabb> out) {
+            add(x, y, z, area, out, CLIP[index(world, x, y, z)]);
+        }
+
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            return SELECT[index(world, x, y, z)];
+        }
+
+        private static int index(BlockWorld world, int x, int y, int z) {
             int i = 0;
             // Bits by EnumFacing.getHorizontalIndex: south 0, west 1, north 2, east 3.
             if (connects(world, x, y, z, Facing.NORTH)) {
@@ -997,7 +1147,7 @@ public final class VanillaBlocks {
             if (connects(world, x, y, z, Facing.WEST)) {
                 i |= 2;
             }
-            add(x, y, z, area, out, CLIP[i]);
+            return i;
         }
     }
 
@@ -1037,6 +1187,14 @@ public final class VanillaBlocks {
             if (attaches(world, x, y, z, Facing.WEST)) {
                 add(x, y, z, area, out, WEST);
             }
+        }
+
+        /** {@code BlockPane.getBoundingBox}: {@code AABB_BY_INDEX} by the connections. */
+        @Override
+        public Aabb selectionBox(BlockWorld world, int x, int y, int z) {
+            return reach(0.4375D, 0.5625D, 1.0D, attaches(world, x, y, z, Facing.NORTH),
+                    attaches(world, x, y, z, Facing.EAST), attaches(world, x, y, z, Facing.SOUTH),
+                    attaches(world, x, y, z, Facing.WEST));
         }
     }
 }
