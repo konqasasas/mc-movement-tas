@@ -125,12 +125,14 @@ public final class ApproxSolver {
         }
         // No route the pilot flies end to end: search the stretches it cannot fly (ladders, vines,
         // posts, water) with the segment search, route by route, with up to half the budget.
+        // The route graph with the gaps no plain jump crosses left to the search, for the explorer.
+        Route open = best == null ? new Route(problem, 0, false, false, true) : null;
         if (best == null && System.getenv("GUIDE_ONLY") == null) {
-            long until = t0 + budgetMillis / 2;
+            long until = t0 + budgetMillis * 3 / 4;
             for (int i = 0; i < routes.size() && best == null && System.currentTimeMillis() < until; i++) {
                 if (!routes.get(i).found()) continue;
                 // Routes share the time by need: one that gets through stops the loop.
-                List<PlayerInput> in = new Bridge(problem, routes.get(i)).log(this::say)
+                List<PlayerInput> in = new Bridge(problem, routes.get(i)).explore(new Explore(problem, open).log(this::say)).log(this::say)
                     .run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
                 if (in == null) continue;
                 int ticks = Rollout.ticks(problem, in, new int[1]);
@@ -153,7 +155,7 @@ public final class ApproxSolver {
         // Still nothing: chain segments towards the goal by the route graph's cost to it, with the
         // gaps no plain jump crosses left to the search.
         if (best == null || System.getenv("GUIDE_ONLY") != null) {
-            Route open = new Route(problem, 0, false, false, true);
+            if (open == null) open = new Route(problem, 0, false, false, true);
             List<PlayerInput> in = System.getenv("GUIDE") != null ? new Guide(problem, open).log(this::say)
                 .run(t0 + budgetMillis * 9 / 10, Math.max(1000, Math.min(15_000, budgetMillis / 8)))
                 : new Explore(problem, open).log(this::say)

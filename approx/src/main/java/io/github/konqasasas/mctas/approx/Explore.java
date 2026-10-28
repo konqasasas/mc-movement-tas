@@ -115,6 +115,27 @@ final class Explore {
             Route.Surface c = route.support(s0.posX, s0.posZ, s0.posY - 1e-6, s0.posY + 1e-6);
             for (String part : route.chainToGoal(c, 80).split(" -> ")) say("explore: chain " + part);
         }
+        Node done = search(open, null, deadlineMillis, segmentMillis);
+        return done == null ? null : done.inputs;
+    }
+
+    /**
+     * From part way along: {@code inputs} from the spawn lead to {@code s}. Searches on to the first
+     * landing that {@code done} accepts (or into the goal), and returns the inputs from the spawn up to
+     * there; null when the deadline comes first or nothing is left.
+     */
+    List<PlayerInput> from(PlayerState s, List<PlayerInput> inputs, int lastToggle, int entry,
+                           java.util.function.Predicate<PlayerState> done, long deadlineMillis, long segmentMillis) {
+        PriorityQueue<Node> open = new PriorityQueue<Node>(Comparator.comparingDouble(n -> n.f));
+        open.add(new Node(s, new ArrayList<PlayerInput>(inputs), lastToggle, entry, 0, null));
+        Node n = search(open, done, deadlineMillis, segmentMillis);
+        return n == null ? null : n.inputs;
+    }
+
+    /** Best first from the nodes in {@code open}, until a node in the goal or one {@code done} accepts. */
+    private Node search(PriorityQueue<Node> open, java.util.function.Predicate<PlayerState> stop, long deadlineMillis,
+                        long segmentMillis) {
+        Region goal = problem.goal;
         Set<Route.Surface> closed = new HashSet<Route.Surface>();
         Set<Long> places = new HashSet<Long>();
         double[] h = route.costToGoal();
@@ -141,7 +162,7 @@ final class Explore {
                         (goal.minX + goal.maxX) / 2, (goal.minZ + goal.maxZ) / 2, deadlineMillis, segmentMillis);
                 if (g != null) {
                     Node done = advance(n, g, null);
-                    if (done != null) return done.inputs;
+                    if (done != null) return done;
                 }
             }
             List<Route.Surface> cands = candidates(s, n.on, closed, h);
@@ -164,7 +185,9 @@ final class Explore {
                     if (g == null) continue;
                     m = advance(n, g, c);
                 }
-                if (m != null) open.add(m);
+                if (m == null) continue;
+                if (stop != null && stop.test(m.state)) return m;
+                open.add(m);
                 landed++;
             }
             say("explore:   " + cands.size() + " candidates, " + landed + " landed" + (System.getenv("EXPLORE_DEBUG") != null ? " " + cands : ""));
@@ -173,10 +196,10 @@ final class Explore {
         return null;
     }
 
-    /** Surfaces not yet landed on within reach, lower in cost than here, cheapest first. */
     /** Of the last candidates, those reached by a bounce, with the slime block it lands on. */
     private final java.util.Map<Route.Surface, Route.Surface> via = new java.util.IdentityHashMap<Route.Surface, Route.Surface>();
 
+    /** Surfaces not yet landed on within reach, lower in cost than here, cheapest first. */
     private List<Route.Surface> candidates(PlayerState s, Route.Surface on, Set<Route.Surface> closed, double[] h) {
         via.clear();
         double here = route.costToGoalAt(s.posX, s.posY, s.posZ, 1e-3);
@@ -323,7 +346,9 @@ final class Explore {
                 o.sneak = true;
                 o.width = 4000;
             }
+            long t0 = System.currentTimeMillis();
             List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, budget, o);
+            if (System.getenv("EXPLORE_TIME") != null) say("explore:     segment pass " + pass + " budget " + budget + " took " + (System.currentTimeMillis() - t0) + " found " + segs.size());
             if (!segs.isEmpty()) return segs;
         }
         return java.util.Collections.emptyList();
