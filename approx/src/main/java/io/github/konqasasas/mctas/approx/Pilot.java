@@ -34,9 +34,14 @@ final class Pilot {
         int lastToggle;
         boolean finished;
         boolean failed;
+        /** For a failed run: how far from the waypoint it came down through the waypoint's height. */
+        double miss;
         /** The inputs played, when recorded. */
         List<PlayerInput> inputs;
     }
+
+    private static final int HOP_TICKS = Flight.landingTick(0);
+    private static final double LANDING_INSET = 0.2;
 
     private final Problem problem;
     private final Route route;
@@ -56,7 +61,7 @@ final class Pilot {
         if (record) r.inputs = new ArrayList<PlayerInput>();
         PlayerState s = start.copy();
         Region goal = problem.goal;
-        int stopStage = stage + landings >= route.waypoints.size() - 1 ? Integer.MAX_VALUE : stage + landings;
+        int stopStage = landings >= route.waypoints.size() - 1 - stage ? Integer.MAX_VALUE : stage + landings;
         double[] aim = new double[2];
         for (int k = 1; k <= maxTicks; k++) {
             PlayerInput a = decide(s, stage, aim);
@@ -68,6 +73,10 @@ final class Pilot {
                     return finish(r, s, k - 1, stage, entry, inStart, lastToggle);
                 }
                 lastToggle = t;
+            }
+            if (!ns.onGround && ns.posY < s.posY) {
+                double top = route.waypoints.get(stage).goal ? goal.minY : route.waypoints.get(stage).top;
+                if (s.posY >= top && ns.posY < top) r.miss = route.missDistance(stage, s.posX, s.posZ);
             }
             s = ns;
             if (record) r.inputs.add(a);
@@ -84,6 +93,7 @@ final class Pilot {
             }
             if (s.posY < problem.voidY || fallen(s, stage)) {
                 r.failed = true;
+                if (r.miss <= 0) r.miss = route.missDistance(stage, s.posX, s.posZ);
                 return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
         }
@@ -114,33 +124,63 @@ final class Pilot {
         double d = Math.sqrt(dx * dx + dz * dz);
         float heading = d > 1e-6 ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : velocityHeading(s);
         if (s.onGround || s.inWater) {
-            if (!w.needsJump) return PlayerInput.of(TickBeam.RUN, heading + 45F);
-            boolean supported = route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) != null;
-            int landing = Flight.landingTick(w.top - s.posY);
             double along = d > 1e-9 ? (s.motionX * dx + s.motionZ * dz) / d : 0;
-            boolean reaches = landing > 0 && Flight.jumpDistance(Math.max(0, along), landing - 1) >= d;
-            if (reaches || !supported) return PlayerInput.of(TickBeam.JUMP_W, heading);
-            return PlayerInput.of(TickBeam.RUN, heading + 45F);
+            if (w.needsJump) {
+                boolean supported = route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) != null;
+                int landing = Flight.landingTick(w.top - s.posY);
+                boolean reaches = landing > 0 && Flight.jumpDistance(Math.max(0, along), landing - 1) >= d;
+                if (reaches || !supported) return PlayerInput.of(TickBeam.JUMP_W, heading);
+            }
+            // Otherwise follow the route's ground. Sprint-jumping is faster than running: hop
+            // whenever the hop lands on this same ground short of the aim.
+            route.aimAlong(s.posX, s.posZ, stage, aim);
+            double ax = aim[0] - s.posX, az = aim[1] - s.posZ;
+            double ad = Math.sqrt(ax * ax + az * az);
+            float runHeading = ad > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
+            double runAlong = ad > 1e-9 ? (s.motionX * ax + s.motionZ * az) / ad : 0;
+            double hop = Flight.jumpDistance(Math.max(0, runAlong), HOP_TICKS - 1);
+            if (hop < d && ad > 1e-9 && route.support(s.posX + ax / ad * hop, s.posZ + az / ad * hop, s.posY - 1e-6, s.posY + 1e-6) != null) {
+                return PlayerInput.of(TickBeam.JUMP_W, runHeading);
+            }
+            return PlayerInput.of(TickBeam.RUN, runHeading + 45F);
         }
-        // In the air: where would the drift alone land, and should the keys push forward or brake?
+        // In the air: where would the drift alone come down through the waypoint's height, and can
+        // the keys still move that point onto the waypoint?
         double lowY = w.goal ? problem.goal.minY : w.top;
         double x = s.posX, y = s.posY, z = s.posZ, mx = s.motionX, my = s.motionY, mz = s.motionZ;
+        double accel = s.jumpMovementFactor, reach = 0, reachSpeed = 0;
+        boolean crosses = false;
         for (int k = 0; k < 40; k++) {
-            double py = y;
+            double ox = x, oz = z, oreach = reach, py = y;
+            reachSpeed += accel;
+            reach += reachSpeed;
+            reachSpeed *= 0.91;
             x += mx;
             y += my;
             z += mz;
             my = (my - 0.08) * 0.9800000190734863;
             mx *= 0.91;
             mz *= 0.91;
-            if (y < py && y <= lowY) break;
+            if (y < py && py >= lowY && y <= lowY) {
+                // Landing is decided by the position before this tick's horizontal move.
+                crosses = route.missDistance(stage, ox, oz) <= oreach;
+                x = ox;
+                z = oz;
+                break;
+            }
+            if (y < py && y < lowY) break;
         }
-        route.remaining(x, z, stage, aim);
+        if (!crosses) {
+            // Cannot make the waypoint from here (a hop along the run-up, say): keep over the route's ground.
+            route.aimAlong(s.posX, s.posZ, stage, aim);
+            double ax = aim[0] - s.posX, az = aim[1] - s.posZ;
+            float h = ax * ax + az * az > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
+            return PlayerInput.of(TickBeam.RUN, h + 45F);
+        }
+        // Steer the landing point a little inside the waypoint; once it is there, keep pushing on.
+        route.nearestInside(stage, x, z, LANDING_INSET, aim);
         double lx = aim[0] - x, lz = aim[1] - z;
-        if (lx * lx + lz * lz < 1e-6) {
-            // The drift already lands on the waypoint: push towards the next aim to carry speed on.
-            return PlayerInput.of(TickBeam.RUN, heading + 45F);
-        }
+        if (lx * lx + lz * lz < 0.05 * 0.05) return PlayerInput.of(TickBeam.RUN, heading + 45F);
         float steer = (float) Math.toDegrees(Math.atan2(-lx, lz));
         return PlayerInput.of(TickBeam.RUN, steer + 45F);
     }

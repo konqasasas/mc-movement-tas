@@ -87,10 +87,13 @@ public final class TickBeam {
     private final int width;
     private float[] offsets = DEFAULT_OFFSETS;
     private static final int RUN_UP_AFTER_FIRST_ENTRY = 40;
-    private static final int PILOT_POOL = 3;
+    private static final int PILOT_POOL = 2;
+    /** Run-up nodes further than this from the start box are ranked without a rollout. */
+    private static final double PILOT_RUN_UP_RANGE = 8.0;
     private static final int PILOT_LANDINGS = 2;
-    private static final int PILOT_TICKS = 120;
+    private static final int PILOT_TICKS = 80;
     private static final int PILOT_FAIL_TICKS = 100;
+    private static final double RUN_UP_TICK_WEIGHT = 0.05;
     private long deadline = Long.MAX_VALUE;
 
     public TickBeam(Problem problem, Route route, int width) {
@@ -197,6 +200,7 @@ public final class TickBeam {
             for (List<Node> children : expanded) {
                 for (Node c : children) {
                     if (c.entry != c.parent.entry) continue; // left the start box and came back
+                    if (c.tick > problem.maxTicks) continue;
                     PlayerState ns = c.state;
                     if (goal.contains(ns.posX, ns.posY, ns.posZ)) return better(result(c, e));
                     long key = key(c);
@@ -216,6 +220,7 @@ public final class TickBeam {
         if (pilotBest == null || (found != null && found.ticks <= pilotBestTicks)) return found;
         Pilot.Run r = pilot.play(pilotBest.state, pilotBest.tick, pilotBest.stage, pilotBest.entry, pilotBest.inStart,
             pilotBest.lastToggle, Integer.MAX_VALUE, problem.maxTicks - pilotBest.tick, true);
+        if (DEBUG != null) DEBUG.println("pilot best: node tick " + pilotBest.tick + " entry " + pilotBest.entry + " replay " + r.ticks + " finished " + r.finished + " end entry " + r.entry + " ticks " + pilotBestTicks);
         Result prefix = result(pilotBest, 0);
         List<PlayerInput> all = new ArrayList<PlayerInput>(prefix.inputs);
         all.addAll(r.inputs);
@@ -233,6 +238,11 @@ public final class TickBeam {
     }
 
     private void pilotScore(Node n) {
+        if (n.entry < 0 && startDistance(n.state) > PILOT_RUN_UP_RANGE) {
+            // Far down the run-up the policy has nothing to decide yet: keep the cheap score.
+            n.score += RUN_UP_TICK_WEIGHT * startDistance(n.state) / Route.RUN_SPEED;
+            return;
+        }
         Pilot.Run r = pilot.play(n.state, n.tick, n.stage, n.entry, n.inStart, n.lastToggle, PILOT_LANDINGS,
             Math.min(PILOT_TICKS, problem.maxTicks - n.tick), false);
         int endTick = n.tick + r.ticks;
@@ -247,9 +257,24 @@ public final class TickBeam {
             }
             return;
         }
-        Node end = new Node(null, null, r.end, r.entry, r.inStart, r.stage, r.lastToggle);
-        double est = estimate(end);
-        n.score = (r.entry >= 0 ? endTick - r.entry : 0) + est + (r.failed ? PILOT_FAIL_TICKS : 0);
+        double rest;
+        if (r.failed) {
+            // A miss: rank by how close it came, then by the route left from there.
+            rest = PILOT_FAIL_TICKS + MISS_TICKS_PER_BLOCK * r.miss + route.remaining(r.end.posX, r.end.posZ, r.stage, null) / Route.RUN_SPEED;
+        } else {
+            rest = estimate(new Node(null, null, r.end, r.entry, r.inStart, r.stage, r.lastToggle));
+        }
+        n.score = (r.entry >= 0 ? endTick - r.entry : 0) + rest;
+        // Before the start entry the run-up costs nothing, but dawdling should not win ties.
+        if (n.entry < 0) n.score += RUN_UP_TICK_WEIGHT * ((r.entry >= 0 ? r.entry : endTick) - n.tick);
+    }
+
+    /** Horizontal distance from the player to the start box. */
+    private double startDistance(PlayerState s) {
+        Region b = problem.start;
+        double dx = Math.max(0, Math.max(b.minX - s.posX, s.posX - b.maxX));
+        double dz = Math.max(0, Math.max(b.minZ - s.posZ, s.posZ - b.maxZ));
+        return Math.sqrt(dx * dx + dz * dz);
     }
 
     private static List<Node> best(java.util.Collection<Node> nodes, int width) {
@@ -273,7 +298,8 @@ public final class TickBeam {
         int t = n.tick + 1;
         PlayerState s = n.state;
         double[] aim = new double[2];
-        route.remaining(s.posX, s.posZ, n.stage, aim);
+        if (s.onGround) route.aimAlong(s.posX, s.posZ, n.stage, aim);
+        else route.remaining(s.posX, s.posZ, n.stage, aim);
         double dx = aim[0] - s.posX, dz = aim[1] - s.posZ;
         float heading;
         if (dx * dx + dz * dz > 1e-6) {

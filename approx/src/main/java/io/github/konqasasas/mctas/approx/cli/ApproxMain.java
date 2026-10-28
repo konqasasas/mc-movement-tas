@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.approx.cli;
 
 import io.github.konqasasas.mctas.approx.ApproxSolver;
+import io.github.konqasasas.mctas.approx.CourseGen;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.io.InputText;
 import io.github.konqasasas.mctas.problem.io.ProblemIO;
@@ -23,10 +24,25 @@ public final class ApproxMain {
     private static final String USAGE = String.join("\n",
         "usage:",
         "  mctas-approx solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet]",
+        "  mctas-approx gen <out-dir> <set-name> <first-seed> <count>",
         "",
         "Writes <id>.solution.json (and a .tas copy) per problem into out-dir. The budget is per problem.");
 
     public static void main(String[] args) throws IOException {
+        if (args.length == 5 && args[0].equals("gen")) {
+            Path out = Paths.get(args[1]);
+            Files.createDirectories(out);
+            long first = Long.parseLong(args[3]);
+            int count = Integer.parseInt(args[4]);
+            for (long seed = first; seed < first + count; seed++) {
+                int jumps = 5 + (int) (seed % 8);
+                String name = String.format("s%04d-%dj", seed, jumps);
+                String text = CourseGen.generate(args[2] + "/" + name, seed, jumps);
+                Files.write(out.resolve(name + ".problem.json"), text.getBytes(StandardCharsets.UTF_8));
+                System.out.println("wrote " + out.resolve(name + ".problem.json"));
+            }
+            return;
+        }
         if (args.length < 3 || !args[0].equals("solve")) {
             System.err.println(USAGE);
             System.exit(2);
