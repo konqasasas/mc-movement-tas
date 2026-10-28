@@ -100,8 +100,8 @@
   },
   "target": {
     "ticks": 33,
-    "kind": "upper_bound",
+    "kind": "optimal",
     "witness": "09-three-jumps.tas",
-    "note": "baseline beam search"
+    "note": "proven: the witness reaches the goal in 33 ticks and mctas-search bound proves no run is faster"
   }
 }

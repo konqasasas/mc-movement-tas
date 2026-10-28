@@ -66,14 +66,20 @@ public final class Aabb {
 
     /** {@code this} is the obstacle, {@code other} the moving box. */
     public double calculateXOffset(Aabb other, double offsetX) {
-        if (other.maxY > minY && other.minY < maxY && other.maxZ > minZ && other.minZ < maxZ) {
-            if (offsetX > 0.0D && other.maxX <= minX) {
-                double d1 = minX - other.maxX;
+        return calculateXOffset(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ, offsetX);
+    }
+
+    /** {@link #calculateXOffset(Aabb, double)} against the box with these bounds. */
+    double calculateXOffset(double oMinX, double oMinY, double oMinZ, double oMaxX, double oMaxY, double oMaxZ,
+                             double offsetX) {
+        if (oMaxY > minY && oMinY < maxY && oMaxZ > minZ && oMinZ < maxZ) {
+            if (offsetX > 0.0D && oMaxX <= minX) {
+                double d1 = minX - oMaxX;
                 if (d1 < offsetX) {
                     offsetX = d1;
                 }
-            } else if (offsetX < 0.0D && other.minX >= maxX) {
-                double d0 = maxX - other.minX;
+            } else if (offsetX < 0.0D && oMinX >= maxX) {
+                double d0 = maxX - oMinX;
                 if (d0 > offsetX) {
                     offsetX = d0;
                 }
@@ -83,14 +89,20 @@ public final class Aabb {
     }
 
     public double calculateYOffset(Aabb other, double offsetY) {
-        if (other.maxX > minX && other.minX < maxX && other.maxZ > minZ && other.minZ < maxZ) {
-            if (offsetY > 0.0D && other.maxY <= minY) {
-                double d1 = minY - other.maxY;
+        return calculateYOffset(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ, offsetY);
+    }
+
+    /** {@link #calculateYOffset(Aabb, double)} against the box with these bounds. */
+    double calculateYOffset(double oMinX, double oMinY, double oMinZ, double oMaxX, double oMaxY, double oMaxZ,
+                             double offsetY) {
+        if (oMaxX > minX && oMinX < maxX && oMaxZ > minZ && oMinZ < maxZ) {
+            if (offsetY > 0.0D && oMaxY <= minY) {
+                double d1 = minY - oMaxY;
                 if (d1 < offsetY) {
                     offsetY = d1;
                 }
-            } else if (offsetY < 0.0D && other.minY >= maxY) {
-                double d0 = maxY - other.minY;
+            } else if (offsetY < 0.0D && oMinY >= maxY) {
+                double d0 = maxY - oMinY;
                 if (d0 > offsetY) {
                     offsetY = d0;
                 }
@@ -100,14 +112,20 @@ public final class Aabb {
     }
 
     public double calculateZOffset(Aabb other, double offsetZ) {
-        if (other.maxX > minX && other.minX < maxX && other.maxY > minY && other.minY < maxY) {
-            if (offsetZ > 0.0D && other.maxZ <= minZ) {
-                double d1 = minZ - other.maxZ;
+        return calculateZOffset(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ, offsetZ);
+    }
+
+    /** {@link #calculateZOffset(Aabb, double)} against the box with these bounds. */
+    double calculateZOffset(double oMinX, double oMinY, double oMinZ, double oMaxX, double oMaxY, double oMaxZ,
+                             double offsetZ) {
+        if (oMaxX > minX && oMinX < maxX && oMaxY > minY && oMinY < maxY) {
+            if (offsetZ > 0.0D && oMaxZ <= minZ) {
+                double d1 = minZ - oMaxZ;
                 if (d1 < offsetZ) {
                     offsetZ = d1;
                 }
-            } else if (offsetZ < 0.0D && other.minZ >= maxZ) {
-                double d0 = maxZ - other.minZ;
+            } else if (offsetZ < 0.0D && oMinZ >= maxZ) {
+                double d0 = maxZ - oMinZ;
                 if (d0 > offsetZ) {
                     offsetZ = d0;
                 }

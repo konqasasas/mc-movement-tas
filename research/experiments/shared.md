@@ -1,4 +1,6 @@
-# 実験の登録簿
+# 実験の登録簿: 2026-10-28 の帯ルールより前
+
+帯ルールより前の番号(E-001〜E-099)の置き場で、新しい行は足しません。
 
 走らせる前に登録し、終わったら結果と F 番号を書き足します。条件をそろえて比べられるよう、コマンドはそのまま再実行できる形で書きます。
 
@@ -28,10 +30,5 @@
 | E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
 | E-023 | 2026-10-28 | stpt1 を人間の解から磨く | `mctas-approx solve problems/real/stpt1.problem.json out --budget 120 --seed stpt1-human187.tas` | 187 のまま、改善なし(98 秒) | F-026 |
 | E-024 | 2026-10-28 | F-024 の対応の悪化確認 | `mctas-approx gen /tmp/dev2 v1-dev2 9 16` を v2(`ce94d4a`)と `c41692a` で `--budget 20` | 14 問ずつ解け、2 問で良く 2 問で 1 ティック悪い | F-027 |
-| E-200 | 2026-10-28 | F-024 の対応の悪化確認(続き) | `mctas-approx gen` でシード 25〜120 を足し、v2 と新版を `--budget 20`(48 問)と `--budget 5`(64 問)で 1 本ずつ。`v1-holdout` を `--budget 30` で 3 回 | 調整用は悪化なし、報告用は s1002 を落とす | F-200 |
-| E-201 | 2026-10-28 | human6 の初回測定 | `mctas-approx solve problems/human6 out --budget 60 --quiet` を v2 と新版で、`mctas-problem score problems/human6 out-v2 out-v3` | どちらも 0/6 | F-201 |
-| E-202 | 2026-10-28 | human6 の解けない理由の種別 | 経路 6 種を引き、方策だけを走らせて、経路の有無・止まった通過点・止まり方だけを出す使い捨てのクラス(`Route`、`Pilot.play`) | 2 問は経路なし、4 問は方策が序盤で落ちる | F-202 |
-| E-203 | 2026-10-28 | 段差の跳び方を方策とビームに足す試み | `-Dbrakes`(ビームの手を足す)と `-Dsteps`(方策の規則)で `mctas-approx solve problems/real/stpt1.problem.json out --budget 60`、`PilotCheck -Dslack=1.0` で区間ごとのティック | 60 秒で改善なし、方策だけで 1 ティック速い | F-203 |
-| E-204 | 2026-10-28 | realdev/ex1 で経路が切れる場所 | `ROUTE_DEBUG=1 mctas-approx solve problems/realdev/ex1.problem.json out --budget 1` で届く面と届かない面を出し、切れ目の前後のブロックを問題ファイルで見る | z 289 で切れ、その先はつたの区間 | F-204 |
-| E-205 | 2026-10-28 | realdev の経路の切れ目 | `ROUTE_DEBUG=1 mctas-approx solve problems/realdev/exN.problem.json out --budget 1`、ex1 は切れ目の手前 (−44.5, 68, 287.5) から使い捨てのビーム(7 方向 × スプリント・ジャンプ・スニーク、幅 3000、3 ティックの規則あり) | 3 問とも切れる。ex1 はスニークとスプリントの交互で約 60 ティックで渡れる | F-205 |
-| E-206 | 2026-10-28 | realdev 6 問の失敗の種別 | 使い捨ての `Diag`(経路 6 種と方策だけの結果)と `PilotCheck -Dslack=0/1.0 -Dlast=N`、問題ファイルの止まった場所の前後のブロック | ex1 は 21/27 まで、ex2・ex3 は経路なし、ex4 は指定の誤り、ex5 は 14/14 で停止、ex6 は助走で規則違反 | F-206 |
+| E-025 | 2026-10-28 | stpt1 の段差区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique segment <stpt1.problem.json> <stpt1.tas> 103 0 8.5 65 12 0 --width 20000 --max 80`(B は `156 0 8.5 78 12 0`、C は `192 0 goal 0 0 0`。人間の解は 122、159、183) | 近似 36/37/47 → 25/26/39。人間 24/28/38 → 24/27/38 | F-029 |
+| E-026 | 2026-10-28 | 段差の踏み切りの窓 | 同じブランチで `mctas-technique window` | 高さ 1、走りで 0.79〜2.51。天井が 1 ブロック手前までなら後ろ向きのジャンプだけ | F-030 |

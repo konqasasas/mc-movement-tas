@@ -7,4 +7,12 @@ package io.github.konqasasas.mctas.physics;
 public interface BlockWorld {
 
     BlockType getBlock(int x, int y, int z);
+
+    /**
+     * False only when no block of this world is a {@link VanillaBlocks.Liquid}, so the water and lava
+     * checks of a tick can be skipped. True is always safe.
+     */
+    default boolean mayContainLiquid() {
+        return true;
+    }
 }
