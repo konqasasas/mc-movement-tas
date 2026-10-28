@@ -61,6 +61,11 @@ public final class HopBound {
          * tick (its own height and those up to 0.6 lower).
          */
         double[] stepFrom = new double[0];
+        /**
+         * How far above this top the highest top within a column of it is, up to 0.6 (NaN if none): a
+         * jump tick from here can step up onto it and then falls from there, landing a tick later.
+         */
+        double stepUp = Double.NaN;
         /** The fastest upward and downward motionY at the start of the first tick of a flight from here. */
         final double up, down;
 
@@ -178,6 +183,7 @@ public final class HopBound {
             Node n = new Node(SURFACE, b[0] - HALF, b[3] + HALF, b[2] - HALF, b[5] + HALF, b[4], b[4], up, -0.0784D);
             n.ceilingBoxes = ceilings(byColumn, (int) b[7], (int) b[8], b[4], ceilingReach);
             n.stepFrom = stepFrom(byColumn, (int) b[7], (int) b[8], b[4]);
+            n.stepUp = stepUp(byColumn, (int) b[7], (int) b[8], b[4]);
             add(n, (int) b[7], (int) b[8]);
         }
         for (double[] s : specials) {
@@ -268,6 +274,21 @@ public final class HopBound {
         int i = 0;
         for (double h : hs) out[i++] = h;
         return out;
+    }
+
+    private static double stepUp(Map<Long, List<double[]>> byColumn, int x, int z, double y) {
+        double best = Double.NaN;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                List<double[]> col = byColumn.get(key(x + dx, z + dz));
+                if (col == null) continue;
+                for (double[] b : col) {
+                    double h = b[4] - y;
+                    if (h > EPS && h <= STEP + EPS && !(h <= best)) best = h;
+                }
+            }
+        }
+        return best;
     }
 
     /** How fast the player hits the ground after falling {@code h} from rest: a slime block bounces this fast at most. */
@@ -524,8 +545,22 @@ public final class HopBound {
             if (Math.hypot(dx1, dz1) > far[Math.min(far.length - 1, Math.max(0, n - t + 1))]) continue;
             firstJump = n;
         }
-        if (firstJump < INF && Math.max(2, firstJump) <= last) return new int[] {Math.max(2, firstJump), last};
-        return new int[0];
+        int lo2 = INF, hi2 = -1;
+        if (firstJump < INF && Math.max(2, firstJump) <= last) {
+            lo2 = Math.max(2, firstJump);
+            hi2 = last;
+        }
+        // A jump tick that steps up onto a top up to 0.6 higher ends there with motionY 0, so it falls
+        // from that height and can land from the next tick on, like walking off a higher top: on a
+        // place no higher than that (b's lowest step-from top, or for a ladder, liquid or web its feet).
+        if (!Double.isNaN(a.stepUp) && lowest <= a.stepUp + EPS) {
+            double reachLo = lowest;
+            int m = 1;
+            while (m + 1 < far.length && a.stepUp - walkDrop(m) >= reachLo - EPS) m++;
+            lo2 = 2;
+            hi2 = Math.max(hi2, Math.min(far.length - 1, m + 1));
+        }
+        return hi2 >= lo2 ? new int[] {lo2, hi2} : new int[0];
     }
 
     // ---- forward search over end-of-tick positions ----
@@ -701,6 +736,11 @@ public final class HopBound {
         Map<Long, Oct> pending = new HashMap<Long, Oct>();
         Map<Long, Integer> pendingSpeed = new HashMap<Long, Integer>();
         PriorityQueue<long[]> queue = new PriorityQueue<long[]>((p, q) -> Long.compare(p[0], q[0]));
+        boolean startClear = true;
+        for (Node n : nodes) {
+            if (n.type == SPECIAL && n.x0 < start.x1 && n.x1 > start.x0 && n.z0 < start.z1 && n.z1 > start.z0
+                && n.yLo <= start.yHi && n.yHi >= start.yLo) startClear = false;
+        }
         int v0 = startSpeed >= 0 ? speedIndex(startSpeed, top) : top;
         long k0 = label(0, s, v0);
         pending.put(k0, places[s]);
@@ -727,7 +767,9 @@ public final class HopBound {
             if (++popped > 3000000) return 0;
             if (nbr[ai] == null) neighbours(ai, nbr, nbrRanges, s, step);
             Node a = nodes.get(ai);
-            boolean ground = a.type == SURFACE || ai == s && startSpeed >= 0;
+            // Between two anchors the player is in free air, so every hop but one from a start in a
+            // ladder, liquid or web is limited by the hop tables (its first tick in any regime).
+            boolean ground = ai != s || startSpeed >= 0 || startClear;
             for (int j = 0; j < nbr[ai].length; j++) {
                 int bi = nbr[ai][j];
                 Node b = nodes.get(bi);
