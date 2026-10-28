@@ -1,0 +1,20 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':physics')
+    implementation project(':problem')
+    implementation 'com.google.code.gson:gson:2.8.0'
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.approx.cli.ApproxMain'
+    applicationName = 'mctas-approx'
+    applicationDefaultJvmArgs = ['-Xmx4g']
+}
+
+run {
+    workingDir = rootProject.projectDir
+}
+

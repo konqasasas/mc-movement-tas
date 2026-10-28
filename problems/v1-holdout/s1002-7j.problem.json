@@ -1,0 +1,159 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1002-7j",
+  "title": "7 jumps, generated (seed 1002): ice, stone_stairs[facing=south,half=bottom], stone, stone_stairs[facing=north,half=bottom], stone, stone_stairs[facing=south,half=bottom], trapdoor[facing=north,half=bottom,open=false]",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          63,
+          4
+        ],
+        "to": [
+          0,
+          63,
+          4
+        ],
+        "block": "minecraft:ice"
+      },
+      {
+        "from": [
+          1,
+          63,
+          7
+        ],
+        "to": [
+          1,
+          63,
+          8
+        ],
+        "block": "minecraft:stone_stairs[facing=south,half=bottom]"
+      },
+      {
+        "from": [
+          1,
+          61,
+          12
+        ],
+        "to": [
+          1,
+          61,
+          12
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          61,
+          14
+        ],
+        "to": [
+          -1,
+          61,
+          14
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          -1,
+          59,
+          19
+        ],
+        "to": [
+          -1,
+          59,
+          19
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          60,
+          21
+        ],
+        "to": [
+          0,
+          60,
+          21
+        ],
+        "block": "minecraft:stone_stairs[facing=south,half=bottom]"
+      },
+      {
+        "from": [
+          2,
+          60,
+          26
+        ],
+        "to": [
+          2,
+          60,
+          27
+        ],
+        "block": "minecraft:trapdoor[facing=north,half=bottom,open=false]"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      1.7,
+      60.1875,
+      25.7
+    ],
+    "max": [
+      3.3,
+      60.1875,
+      28.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 680,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 77,
+    "kind": "upper_bound",
+    "witness": "s1002-7j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

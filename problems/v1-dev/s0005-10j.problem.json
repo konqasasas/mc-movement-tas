@@ -1,0 +1,198 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-dev/s0005-10j",
+  "title": "10 jumps, generated (seed 5): carpet, stone_slab[half=bottom], stone, sea_lantern, end_rod[facing=up], stone, stone_stairs[facing=north,half=bottom], stone, stone_slab[half=bottom], sea_lantern",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          2,
+          63,
+          5
+        ],
+        "to": [
+          2,
+          63,
+          5
+        ],
+        "block": "minecraft:carpet"
+      },
+      {
+        "from": [
+          0,
+          63,
+          9
+        ],
+        "to": [
+          0,
+          63,
+          9
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          13
+        ],
+        "to": [
+          -2,
+          63,
+          13
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          63,
+          16
+        ],
+        "to": [
+          0,
+          63,
+          16
+        ],
+        "block": "minecraft:sea_lantern"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          17
+        ],
+        "to": [
+          -2,
+          63,
+          17
+        ],
+        "block": "minecraft:end_rod[facing=up]"
+      },
+      {
+        "from": [
+          -4,
+          61,
+          22
+        ],
+        "to": [
+          -4,
+          61,
+          22
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -5,
+          59,
+          25
+        ],
+        "to": [
+          -5,
+          59,
+          26
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          -6,
+          58,
+          30
+        ],
+        "to": [
+          -6,
+          58,
+          31
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -8,
+          56,
+          36
+        ],
+        "to": [
+          -8,
+          56,
+          37
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          -6,
+          54,
+          42
+        ],
+        "to": [
+          -6,
+          54,
+          43
+        ],
+        "block": "minecraft:sea_lantern"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -6.3,
+      55.0,
+      41.7
+    ],
+    "max": [
+      -4.7,
+      55.0,
+      44.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 800,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 134,
+    "kind": "upper_bound",
+    "witness": "s0005-10j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-dev/s0003-8j",
+  "title": "8 jumps, generated (seed 3): anvil[facing=north], stone, iron_bars, daylight_detector, stone_stairs[facing=south,half=bottom], stone_stairs[facing=north,half=bottom], ice, stone_slab[half=top]",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          2,
+          63,
+          3
+        ],
+        "to": [
+          2,
+          63,
+          3
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      },
+      {
+        "from": [
+          3,
+          64,
+          6
+        ],
+        "to": [
+          3,
+          64,
+          7
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          3,
+          62,
+          11
+        ],
+        "to": [
+          3,
+          62,
+          11
+        ],
+        "block": "minecraft:iron_bars"
+      },
+      {
+        "from": [
+          2,
+          61,
+          14
+        ],
+        "to": [
+          2,
+          61,
+          14
+        ],
+        "block": "minecraft:daylight_detector"
+      },
+      {
+        "from": [
+          4,
+          61,
+          15
+        ],
+        "to": [
+          4,
+          61,
+          15
+        ],
+        "block": "minecraft:stone_stairs[facing=south,half=bottom]"
+      },
+      {
+        "from": [
+          5,
+          60,
+          20
+        ],
+        "to": [
+          5,
+          60,
+          20
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          7,
+          60,
+          23
+        ],
+        "to": [
+          7,
+          60,
+          24
+        ],
+        "block": "minecraft:ice"
+      },
+      {
+        "from": [
+          6,
+          59,
+          28
+        ],
+        "to": [
+          6,
+          59,
+          28
+        ],
+        "block": "minecraft:stone_slab[half=top]"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      5.7,
+      60.0,
+      27.7
+    ],
+    "max": [
+      7.3,
+      60.0,
+      29.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 720,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 88,
+    "kind": "upper_bound",
+    "witness": "s0003-8j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

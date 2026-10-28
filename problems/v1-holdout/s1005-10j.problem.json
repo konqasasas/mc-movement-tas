@@ -1,0 +1,198 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1005-10j",
+  "title": "10 jumps, generated (seed 1005): anvil[facing=north], stone_stairs[facing=north,half=bottom], stone, end_rod[facing=up], stone, stone_slab[half=bottom], skull[facing=up], stone_slab[half=bottom], trapdoor[facing=north,half=bottom,open=false], end_rod[facing=up]",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          63,
+          3
+        ],
+        "to": [
+          -1,
+          63,
+          3
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      },
+      {
+        "from": [
+          0,
+          63,
+          7
+        ],
+        "to": [
+          0,
+          63,
+          7
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          1,
+          62,
+          11
+        ],
+        "to": [
+          1,
+          62,
+          11
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          60,
+          14
+        ],
+        "to": [
+          1,
+          60,
+          14
+        ],
+        "block": "minecraft:end_rod[facing=up]"
+      },
+      {
+        "from": [
+          -1,
+          60,
+          16
+        ],
+        "to": [
+          -1,
+          60,
+          17
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          60,
+          22
+        ],
+        "to": [
+          -3,
+          60,
+          22
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          -4,
+          58,
+          26
+        ],
+        "to": [
+          -4,
+          58,
+          27
+        ],
+        "block": "minecraft:skull[facing=up]"
+      },
+      {
+        "from": [
+          -4,
+          58,
+          30
+        ],
+        "to": [
+          -4,
+          58,
+          30
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          -4,
+          59,
+          34
+        ],
+        "to": [
+          -4,
+          59,
+          34
+        ],
+        "block": "minecraft:trapdoor[facing=north,half=bottom,open=false]"
+      },
+      {
+        "from": [
+          -2,
+          59,
+          36
+        ],
+        "to": [
+          -2,
+          59,
+          37
+        ],
+        "block": "minecraft:end_rod[facing=up]"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -1.925,
+      60.0,
+      36.075
+    ],
+    "max": [
+      -1.075,
+      60.0,
+      37.925
+    ]
+  },
+  "limits": {
+    "maxTicks": 800,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 113,
+    "kind": "upper_bound",
+    "witness": "s1005-10j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

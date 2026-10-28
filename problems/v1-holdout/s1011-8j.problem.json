@@ -1,0 +1,172 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1011-8j",
+  "title": "8 jumps, generated (seed 1011): stone, iron_bars, carpet, trapdoor[facing=north,half=bottom,open=false], glass_pane, stone_stairs[facing=north,half=bottom], glass_pane, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          65,
+          3
+        ],
+        "to": [
+          1,
+          65,
+          3
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          2,
+          66,
+          5
+        ],
+        "to": [
+          2,
+          66,
+          5
+        ],
+        "block": "minecraft:iron_bars"
+      },
+      {
+        "from": [
+          2,
+          64,
+          8
+        ],
+        "to": [
+          2,
+          64,
+          8
+        ],
+        "block": "minecraft:carpet"
+      },
+      {
+        "from": [
+          4,
+          63,
+          11
+        ],
+        "to": [
+          4,
+          63,
+          11
+        ],
+        "block": "minecraft:trapdoor[facing=north,half=bottom,open=false]"
+      },
+      {
+        "from": [
+          2,
+          63,
+          13
+        ],
+        "to": [
+          2,
+          63,
+          13
+        ],
+        "block": "minecraft:glass_pane"
+      },
+      {
+        "from": [
+          0,
+          62,
+          15
+        ],
+        "to": [
+          0,
+          62,
+          15
+        ],
+        "block": "minecraft:stone_stairs[facing=north,half=bottom]"
+      },
+      {
+        "from": [
+          1,
+          62,
+          17
+        ],
+        "to": [
+          1,
+          62,
+          17
+        ],
+        "block": "minecraft:glass_pane"
+      },
+      {
+        "from": [
+          2,
+          63,
+          20
+        ],
+        "to": [
+          2,
+          63,
+          20
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      1.7,
+      64.0,
+      19.7
+    ],
+    "max": [
+      3.3,
+      64.0,
+      21.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 720,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 67,
+    "kind": "upper_bound",
+    "witness": "s1011-8j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

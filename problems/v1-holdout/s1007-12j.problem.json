@@ -1,0 +1,224 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1007-12j",
+  "title": "12 jumps, generated (seed 1007): glass_pane, stone, stone, enchanting_table, stone, stone, daylight_detector, skull[facing=up], stone_slab[half=bottom], stone, carpet, sea_lantern",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          64,
+          2
+        ],
+        "to": [
+          1,
+          64,
+          2
+        ],
+        "block": "minecraft:glass_pane"
+      },
+      {
+        "from": [
+          1,
+          65,
+          4
+        ],
+        "to": [
+          1,
+          65,
+          4
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          63,
+          9
+        ],
+        "to": [
+          -1,
+          63,
+          9
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          63,
+          11
+        ],
+        "to": [
+          1,
+          63,
+          11
+        ],
+        "block": "minecraft:enchanting_table"
+      },
+      {
+        "from": [
+          0,
+          63,
+          14
+        ],
+        "to": [
+          0,
+          63,
+          14
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          64,
+          17
+        ],
+        "to": [
+          0,
+          64,
+          17
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          64,
+          21
+        ],
+        "to": [
+          0,
+          64,
+          21
+        ],
+        "block": "minecraft:daylight_detector"
+      },
+      {
+        "from": [
+          2,
+          64,
+          23
+        ],
+        "to": [
+          2,
+          64,
+          23
+        ],
+        "block": "minecraft:skull[facing=up]"
+      },
+      {
+        "from": [
+          0,
+          65,
+          26
+        ],
+        "to": [
+          0,
+          65,
+          26
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          2,
+          64,
+          31
+        ],
+        "to": [
+          2,
+          64,
+          31
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          3,
+          64,
+          36
+        ],
+        "to": [
+          3,
+          64,
+          37
+        ],
+        "block": "minecraft:carpet"
+      },
+      {
+        "from": [
+          1,
+          64,
+          40
+        ],
+        "to": [
+          1,
+          64,
+          40
+        ],
+        "block": "minecraft:sea_lantern"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      0.7,
+      65.0,
+      39.7
+    ],
+    "max": [
+      2.3,
+      65.0,
+      41.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 880,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 129,
+    "kind": "upper_bound",
+    "witness": "s1007-12j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

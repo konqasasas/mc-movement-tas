@@ -1,0 +1,205 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1006-11j",
+  "title": "11 jumps, generated (seed 1006): soul_sand, skull[facing\u003dup], daylight_detector, end_rod[facing\u003dup], stone_slab[half\u003dbottom], soul_sand, stone_slab[half\u003dbottom], packed_ice, trapdoor[facing\u003dnorth,half\u003dbottom,open\u003dfalse], stone, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          4
+        ],
+        "to": [
+          -2,
+          63,
+          5
+        ],
+        "block": "minecraft:soul_sand"
+      },
+      {
+        "from": [
+          -3,
+          62,
+          7
+        ],
+        "to": [
+          -3,
+          62,
+          7
+        ],
+        "block": "minecraft:skull[facing\u003dup]"
+      },
+      {
+        "from": [
+          -4,
+          61,
+          11
+        ],
+        "to": [
+          -4,
+          61,
+          12
+        ],
+        "block": "minecraft:daylight_detector"
+      },
+      {
+        "from": [
+          -5,
+          61,
+          13
+        ],
+        "to": [
+          -5,
+          61,
+          13
+        ],
+        "block": "minecraft:end_rod[facing\u003dup]"
+      },
+      {
+        "from": [
+          -5,
+          62,
+          16
+        ],
+        "to": [
+          -5,
+          62,
+          17
+        ],
+        "block": "minecraft:stone_slab[half\u003dbottom]"
+      },
+      {
+        "from": [
+          -6,
+          60,
+          20
+        ],
+        "to": [
+          -6,
+          60,
+          20
+        ],
+        "block": "minecraft:soul_sand"
+      },
+      {
+        "from": [
+          -7,
+          61,
+          21
+        ],
+        "to": [
+          -7,
+          61,
+          21
+        ],
+        "block": "minecraft:stone_slab[half\u003dbottom]"
+      },
+      {
+        "from": [
+          -6,
+          61,
+          25
+        ],
+        "to": [
+          -6,
+          61,
+          25
+        ],
+        "block": "minecraft:packed_ice"
+      },
+      {
+        "from": [
+          -4,
+          60,
+          28
+        ],
+        "to": [
+          -4,
+          60,
+          29
+        ],
+        "block": "minecraft:trapdoor[facing\u003dnorth,half\u003dbottom,open\u003dfalse]"
+      },
+      {
+        "from": [
+          -4,
+          59,
+          32
+        ],
+        "to": [
+          -4,
+          59,
+          32
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          59,
+          36
+        ],
+        "to": [
+          -3,
+          59,
+          36
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -3.3,
+      60.0,
+      35.7
+    ],
+    "max": [
+      -1.7,
+      60.0,
+      37.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 840,
+    "voidY": 0.0
+  }
+}

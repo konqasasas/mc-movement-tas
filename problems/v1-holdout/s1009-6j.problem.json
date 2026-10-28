@@ -1,0 +1,140 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1009-6j",
+  "title": "6 jumps, generated (seed 1009): stone, stone, anvil[facing\u003dnorth], stone, sea_lantern, sea_lantern",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          65,
+          1
+        ],
+        "to": [
+          -2,
+          65,
+          1
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          66,
+          3
+        ],
+        "to": [
+          -4,
+          66,
+          4
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -6,
+          65,
+          9
+        ],
+        "to": [
+          -6,
+          65,
+          9
+        ],
+        "block": "minecraft:anvil[facing\u003dnorth]"
+      },
+      {
+        "from": [
+          -8,
+          66,
+          11
+        ],
+        "to": [
+          -8,
+          66,
+          12
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -10,
+          65,
+          17
+        ],
+        "to": [
+          -10,
+          65,
+          17
+        ],
+        "block": "minecraft:sea_lantern"
+      },
+      {
+        "from": [
+          -11,
+          63,
+          20
+        ],
+        "to": [
+          -11,
+          63,
+          21
+        ],
+        "block": "minecraft:sea_lantern"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -11.3,
+      64.0,
+      19.7
+    ],
+    "max": [
+      -9.7,
+      64.0,
+      22.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 640,
+    "voidY": 0.0
+  }
+}
