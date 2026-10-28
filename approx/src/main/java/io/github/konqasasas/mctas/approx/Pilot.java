@@ -153,11 +153,15 @@ final class Pilot {
         return Float.NaN;
     }
 
-    /** Something right ahead above step height that a jump clears, with room above it. */
-    private boolean stepAhead(PlayerState s, float heading) {
+    /**
+     * Right ahead, a surface of the route still to come, above step height and low enough for a
+     * jump, with room above it.
+     */
+    private boolean stepAhead(PlayerState s, int stage, float heading) {
         double fx = -Math.sin(Math.toRadians(heading)), fz = Math.cos(Math.toRadians(heading));
-        double x = s.posX + fx * 0.35, z = s.posZ + fz * 0.35;
-        return route.solidAt(x, s.posY + 0.6, z, s.posY + 1.2, 0.29) && !route.solidAt(x, s.posY + 1.3, z, s.posY + 3.05, 0.29);
+        double x = s.posX + fx * 0.65, z = s.posZ + fz * 0.65;
+        Route.Surface c = route.support(x, z, s.posY + 0.6, s.posY + 1.25);
+        return c != null && route.ahead(stage, c) && !route.solidAt(s.posX + fx * 0.35, s.posY + 1.3, s.posZ + fz * 0.35, c.top + 1.8, 0.29);
     }
 
     /** In ladders or vines, sneak once the feet are this little above the platform ahead. */
@@ -183,8 +187,8 @@ final class Pilot {
             // it towards the nearer side where the body fits past it.
             float side = sidestep(s, heading);
             if (!Float.isNaN(side)) return PlayerInput.of(TickBeam.RUN, side + 45F);
-            // Stopped against a step a jump clears: jump.
-            if (s.collidedHorizontally && stepAhead(s, heading)) return PlayerInput.of(TickBeam.JUMP_W, heading);
+            // Stopped against a step of the route that a jump clears: jump.
+            if (s.collidedHorizontally && stepAhead(s, stage, heading)) return PlayerInput.of(TickBeam.JUMP_W, heading);
         }
         if (s.onGround || s.inWater) {
             double along = d > 1e-9 ? (s.motionX * dx + s.motionZ * dz) / d : 0;

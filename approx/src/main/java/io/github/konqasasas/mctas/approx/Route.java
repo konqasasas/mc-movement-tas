@@ -335,6 +335,13 @@ public final class Route {
         aim[1] = pz[a];
     }
 
+    /** The surface is on the route at or after the waypoint before {@code stage}. */
+    boolean ahead(int stage, Surface c) {
+        int from = stage == 0 ? 0 : waypoints.get(stage - 1).firstChainIndex;
+        for (int i = from; i < chain.size(); i++) if (chain.get(i) == c) return true;
+        return false;
+    }
+
     public boolean found() {
         return chain.size() > 1;
     }
