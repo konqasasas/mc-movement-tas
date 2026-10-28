@@ -68,8 +68,9 @@ public final class PlayerState implements Cloneable {
     public boolean prevUse;
     /**
      * Set for good once the player did something the engine does not model, such as right-clicking a
-     * door or a chest, looking through a block whose selection box is not modelled, or placing a block
-     * the server may refuse ({@link Placement}). Later ticks
+     * door or a chest, looking through a block whose selection box is not modelled, placing a block
+     * the server may refuse ({@link Placement}), or letting go of sneak under a ceiling too low to stand
+     * up. Later ticks
      * are not to be trusted; a search should drop such a state.
      */
     public boolean unsupportedAction;
