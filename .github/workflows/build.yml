@@ -1,0 +1,38 @@
+# Runs the whole Gradle build (compile and every test) on each pull request and each push to main.
+# The oracle module needs the 1.12.2 server jar, which is never committed, so its tasks skip themselves
+# here; the vanilla goldens in physics still check the engine against the game's code. EngineBuildTest
+# fails when physics or problem sources changed without ./gradlew :problem:writeEngineBuild.
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and test
+        run: ./gradlew build --no-daemon
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '*/build/reports/tests/'
+          retention-days: 7
