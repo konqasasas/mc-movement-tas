@@ -401,7 +401,7 @@ final class Course {
      * a to the centre of cell c, outside both (a thin probe, so a ladder's own box or the wall it hangs
      * on does not count).
      */
-    static final double WALL_PROBE = Double.parseDouble(System.getProperty("planner.wallProbe", "0.25"));
+    static final double WALL_PROBE = 0.25;
 
     private boolean wallToCell(int[] c, double x, double z, double base, Surface a) {
         double tx = c[0] + 0.5, tz = c[2] + 0.5;
