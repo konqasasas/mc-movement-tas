@@ -5,6 +5,8 @@ import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.Spawn;
