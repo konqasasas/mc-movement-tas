@@ -30,3 +30,4 @@ problem/build/install/mctas-problem/bin/mctas-problem score problems/v0 out/ --m
 | --- | --- | --- |
 | v1 | `b73a506` | 経路 3 本、方策による先読み、ティック単位のビーム。エンジン名 `approx-beam` |
 | v2 | `ce94d4a` | 磨き込み(助走と着地前からの再探索)。エンジン名 `approx-beam-v2` |
+| v3 | `3e81672` | 天井・段差・開いたトラップドアへの対応(立てる面の 9 点判定、ジャンプの軌道で見た壁の判定と判定なしの経路、3 つ先までの着地判定、段差の手前で跳ぶ)。エンジン名 `approx-beam-v3`。調整用 112 問では v2 以上だが、`v1-holdout` で s1002 を落とす(F-200、ユーザーの判断で採用) |
