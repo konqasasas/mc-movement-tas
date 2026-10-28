@@ -9122,14 +9122,6 @@
    {
     "from": [
      -63,
-     151,
-     -46
-    ],
-    "block": "minecraft:stone_slab[half=bottom]"
-   },
-   {
-    "from": [
-     -63,
      173,
      -106
     ],

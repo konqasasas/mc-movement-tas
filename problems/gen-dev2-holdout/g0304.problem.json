@@ -6723,14 +6723,6 @@
     "from": [
      38,
      96,
-     -15
-    ],
-    "block": "minecraft:spruce_fence"
-   },
-   {
-    "from": [
-     38,
-     96,
      -13
     ],
     "block": "minecraft:skull[facing=up]"

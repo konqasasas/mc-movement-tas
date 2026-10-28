@@ -7731,14 +7731,6 @@
     "from": [
      1,
      151,
-     174
-    ],
-    "block": "minecraft:quartz_block"
-   },
-   {
-    "from": [
-     1,
-     151,
      175
     ],
     "block": "minecraft:skull[facing=up]"
