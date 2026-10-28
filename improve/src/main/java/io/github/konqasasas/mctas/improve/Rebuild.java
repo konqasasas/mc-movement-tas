@@ -26,6 +26,14 @@ final class Rebuild {
     int maxWindow = 80;
     /** Milliseconds per search per 1000 of beam width. */
     long millisPer1000 = 1500;
+    /**
+     * Chance of a deep rebuild: the full set of view offsets and {@link #deepWidth}, as wide as the
+     * WS8 searches that beat the human on stpt1 (F-029). Slow (tens of seconds), so rare.
+     */
+    double deepChance = 0.1;
+    int deepWidth = 20000;
+    /** {@code System.nanoTime()} after which no search may run; 0 for none. */
+    long deadlineNanos;
 
     private static final float[][] OFFSET_SETS = {
             {0, 10, -10, 45, -45},
@@ -40,9 +48,11 @@ final class Rebuild {
         if (goal - lo < 4) return null;
         int a = lo + rnd.nextInt(goal - lo - 2);
         boolean toGoal = goal - a <= 100 && rnd.nextDouble() < 0.3;
-        int len = toGoal ? goal - a : Math.min(goal - a, 6 + (int) (Math.pow(rnd.nextDouble(), 1.5) * (maxWindow - 6)));
+        boolean deep = rnd.nextDouble() < deepChance;
+        int len = toGoal ? goal - a : Math.min(goal - a, deep ? 15 + rnd.nextInt(46)
+                : 6 + (int) (Math.pow(rnd.nextDouble(), 1.5) * (maxWindow - 6)));
         int b = a + len;
-        SegmentSearch.Options o = options(c, rnd);
+        SegmentSearch.Options o = options(c, rnd, deep);
         o.maxTicks = len + 1;
         PlayerState entry = cur.states[a];
         Exit exit;
@@ -82,7 +92,7 @@ final class Rebuild {
         int c2 = b + len2;
         PlayerState from = r.end;
         int at = a + r.ticks();
-        SegmentSearch.Options o = options(c, rnd);
+        SegmentSearch.Options o = options(c, rnd, false);
         o.width = Math.min(o.width, 3000);
         o.maxTicks = len2 + 2;
         Exit exit;
@@ -112,15 +122,16 @@ final class Rebuild {
         return best;
     }
 
-    private SegmentSearch.Options options(Course c, Random rnd) {
+    private SegmentSearch.Options options(Course c, Random rnd, boolean deep) {
         SegmentSearch.Options o = new SegmentSearch.Options();
-        o.width = (int) Math.round(300 * Math.pow(maxWidth / 300.0, rnd.nextDouble()));
+        o.width = deep ? deepWidth : (int) Math.round(300 * Math.pow(maxWidth / 300.0, rnd.nextDouble()));
         o.bucketCap = Math.max(40, o.width / 15);
-        o.offsets = OFFSET_SETS[rnd.nextInt(OFFSET_SETS.length)];
+        o.offsets = deep ? OFFSET_SETS[2] : OFFSET_SETS[rnd.nextInt(OFFSET_SETS.length)];
         o.voidY = c.problem.voidY;
         o.results = 16;
         o.extraTicks = 1;
         o.deadlineNanos = System.nanoTime() + Math.max(300, millisPer1000 * o.width / 1000) * 1_000_000L;
+        if (deadlineNanos != 0) o.deadlineNanos = Math.min(o.deadlineNanos, deadlineNanos);
         return o;
     }
 

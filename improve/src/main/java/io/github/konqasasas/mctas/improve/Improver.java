@@ -47,6 +47,7 @@ public final class Improver {
     private final Course course;
     private final Options o;
     private final List<Run> pool = new ArrayList<Run>();
+    private final List<Run> seeds = new ArrayList<Run>();
     private Run best;
     private final Stats stats = new Stats();
     private Consumer<Run> onBest = r -> { };
@@ -78,6 +79,9 @@ public final class Improver {
         if (r.valid) {
             int limit = r.startTick + o.runupSlack;
             if (course.maxStartTick == Integer.MAX_VALUE || course.maxStartTick < limit) course.maxStartTick = limit;
+            synchronized (this) {
+                seeds.add(r);
+            }
             offer(r, null);
         }
         return r;
@@ -89,7 +93,13 @@ public final class Improver {
         Thread[] ts = new Thread[o.threads];
         for (int i = 0; i < ts.length; i++) {
             final long seed = o.seed * 1_000_003L + i;
-            ts[i] = new Thread(() -> work(new Random(seed), deadlineNanos), "improve-" + i);
+            final Run home;
+            synchronized (this) {
+                List<Run> sorted = new ArrayList<Run>(seeds);
+                sorted.sort((p, q) -> p.betterThan(q) ? -1 : q.betterThan(p) ? 1 : 0);
+                home = sorted.get(i % sorted.size());
+            }
+            ts[i] = new Thread(() -> work(new Random(seed), home, deadlineNanos), "improve-" + i);
             ts[i].setDaemon(true);
             ts[i].start();
         }
@@ -97,14 +107,22 @@ public final class Improver {
         return best();
     }
 
-    private void work(Random rnd, long deadline) {
+    /**
+     * One worker. Each worker has a home lineage that starts from one of the seeds (island model):
+     * when it restarts it goes back to its home run or, half the time, to a population run. Seeds
+     * that are worse than the best one so keep being improved on their own, and crossover can join
+     * them with the others later.
+     */
+    private void work(Random rnd, Run home, long deadline) {
         Rebuild rebuild = new Rebuild();
         rebuild.maxWidth = o.maxWidth;
         rebuild.maxWindow = o.maxWindow;
+        rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
         double[] spent = new double[Move.values().length];
-        Run cur = sample(rnd);
+        Run cur = home;
+        boolean onHome = true;
         double[] hist = new double[o.history];
         Arrays.fill(hist, cur.fitness());
         long step = 0;
@@ -140,9 +158,11 @@ public final class Improver {
             }
             if (cur.betterThan(curBest)) {
                 curBest = cur;
+                if (onHome && cur.betterThan(home)) home = cur;
                 sinceImproved = 0;
             } else if (++sinceImproved > o.patience) {
-                cur = sample(rnd);
+                onHome = rnd.nextBoolean();
+                cur = onHome ? home : sample(rnd);
                 curBest = cur;
                 Arrays.fill(hist, cur.fitness());
                 sinceImproved = 0;
