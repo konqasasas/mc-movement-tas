@@ -2,7 +2,7 @@
 # Left out, shape depends on the neighbours (hand-written or unsupported): 
 # Left out, teleports or tile-entity shape: minecraft:portal minecraft:end_portal minecraft:end_gateway minecraft:piston_extension
 props	minecraft:activator_rail	
-minecraft:activator_rail	3f19999a	0	0	0	0	888888	
+minecraft:activator_rail	3f19999a	0	0	0	16	888888	
 props	minecraft:anvil	facing
 minecraft:anvil[facing=east]	3f19999a	0	0	1	16	888888	0x0.0p0,0x0.0p0,0x1.0p-3,0x1.0p0,0x1.0p0,0x1.cp-1
 minecraft:anvil[facing=north]	3f19999a	0	0	1	16	888888	0x1.0p-3,0x0.0p0,0x0.0p0,0x1.cp-1,0x1.0p0,0x1.0p0
@@ -129,7 +129,7 @@ minecraft:gold_block	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1
 props	minecraft:gold_ore	
 minecraft:gold_ore	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
 props	minecraft:golden_rail	
-minecraft:golden_rail	3f19999a	0	0	0	0	888888	
+minecraft:golden_rail	3f19999a	0	0	0	16	888888	
 props	minecraft:grass	
 minecraft:grass	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
 props	minecraft:grass_path	
@@ -273,7 +273,7 @@ minecraft:quartz_block	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0
 props	minecraft:quartz_ore	
 minecraft:quartz_ore	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
 props	minecraft:rail	
-minecraft:rail	3f19999a	0	0	0	0	888888	
+minecraft:rail	3f19999a	0	0	0	16	888888	
 props	minecraft:red_flower	
 minecraft:red_flower	3f19999a	0	0	0	16	888888	
 props	minecraft:red_glazed_terracotta	
