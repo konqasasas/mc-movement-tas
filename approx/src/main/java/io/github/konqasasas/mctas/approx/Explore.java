@@ -172,7 +172,7 @@ final class Explore {
                 if (System.currentTimeMillis() >= deadlineMillis) break;
                 // Onto a surface, or into a ladder, vine or water block.
                 Exit e = c.climb ? Exit.box(c.x, c.y, c.z, c.x + 1, c.y + 1 - 1e-9, c.z + 1)
-                        : Exit.landing(new Target(c.minX, c.maxX, c.minZ, c.maxZ, c.top));
+                        : Exit.landing(target(c));
                 Route.Surface slime = via.get(c);
                 Node m;
                 if (slime != null) {
@@ -180,10 +180,22 @@ final class Explore {
                     m = bounce(n, since, slime, e, c, deadlineMillis, k < WIDE ? segmentMillis : 0);
                     if (m == null) continue;
                 } else {
-                    Technique.Segment g = segment(s, since, e, c.cx(), c.cz(), deadlineMillis,
-                            k < WIDE ? segmentMillis : 0);
-                    if (g == null) continue;
-                    m = advance(n, g, c);
+                    // Up a ladder or vine: to the top of it in one go when that works, a block a node is slow.
+                    Route.Surface t = c.climb && !Route.isWater(problem.world.getBlock(c.x, c.y, c.z)) ? route.climbTop(c) : c;
+                    Technique.Segment g = null;
+                    if (t != c && !closed.contains(t)) {
+                        g = segment(s, since, Exit.box(t.x, t.y, t.z, t.x + 1, t.y + 1 - 1e-9, t.z + 1), t.cx(), t.cz(),
+                                deadlineMillis, k < WIDE ? segmentMillis : 0);
+                        if (g != null) c = t;
+                    }
+                    if (g == null) g = segment(s, since, e, c.cx(), c.cz(), deadlineMillis, k < WIDE ? segmentMillis : 0);
+                    if (g != null) {
+                        m = advance(n, g, c);
+                    } else if (k < WIDE && n.on != null && !n.on.climb) {
+                        m = runUp(n, e, c, deadlineMillis);
+                    } else {
+                        continue;
+                    }
                 }
                 if (m == null) continue;
                 if (stop != null && stop.test(m.state)) return m;
@@ -216,7 +228,8 @@ final class Explore {
             // Further down a drop, as far as the jump carries.
             if (gap > (dy < -1 ? Math.min(FAR, Math.max(REACH, route.jumpReach(dy))) : REACH)) continue;
             // The next block of the same floor is no step worth a search: the next one may be.
-            if (!c.climb && Math.abs(dy) < 0.01 && gap < 2.0) continue;
+            // (Only along a floor: a row of posts or wall tops a block apart is a row of jumps.)
+            if (!c.climb && Math.abs(dy) < 0.01 && gap < 2.0 && floorTo(s, c)) continue;
             if (dy < -8 || dy > 8 || (dy > RISE && !route.climbAidNear(s.posX, s.posY, s.posZ, c))) continue;
             out.add(c);
             keys.add(new double[] {hc + gap / Route.RUN_SPEED, out.size() - 1});
@@ -253,6 +266,63 @@ final class Explore {
             if (k <= PER_TOP) best.add(c);
         }
         return best;
+    }
+
+    /**
+     * Back to the far side of the surface underfoot, standing nearly still, then the jump from there:
+     * a landing short of a post or wall top often has too little room left for the run-up.
+     */
+    private Node runUp(Node n, Exit exit, Route.Surface c, long deadlineMillis) {
+        PlayerState s = n.state;
+        Target on = target(n.on);
+        // A block back from the middle, away from the landing, as far as the surface reaches.
+        double dx = c.cx() - n.on.cx(), dz = c.cz() - n.on.cz(), d = Math.hypot(dx, dz);
+        if (d < 1e-6) return null;
+        double bx = Math.max(on.minX + 0.15, Math.min(on.maxX - 0.15, n.on.cx() - dx / d));
+        double bz = Math.max(on.minZ + 0.15, Math.min(on.maxZ - 0.15, n.on.cz() - dz / d));
+        if (Math.hypot(bx - s.posX, bz - s.posZ) < 0.15) return null;
+        // Walk there and let friction stop the player, no sprinting.
+        boolean narrow = n.on.maxX - n.on.minX < 1.5 || n.on.maxZ - n.on.minZ < 1.5;
+        List<PlayerInput> walk = new ArrayList<PlayerInput>();
+        PlayerState w = s;
+        for (int t = 0; t < 40; t++) {
+            double ex = bx - w.posX, ez = bz - w.posZ, v = Math.hypot(w.motionX, w.motionZ);
+            if (Math.hypot(ex, ez) < 0.2 && v < 0.02) break;
+            boolean go = Math.hypot(ex, ez) > v * 2.2 + 0.05;
+            // Sneaking on a post or wall top, which holds the player at its edge.
+            PlayerInput a = PlayerInput.of((go ? PlayerInput.W : 0) | (narrow ? PlayerInput.SNEAK : 0),
+                    (float) Math.toDegrees(Math.atan2(-ex, ez)));
+            w = Physics.tick(problem.world, w, a);
+            walk.add(a);
+            if (!w.onGround || Math.abs(w.posY - n.on.top) > 1e-6) {
+                say("explore:     no run-up back to (" + fmt(bx) + ", " + fmt(bz) + ") for " + c + ": off at tick " + t + " (" + fmt(w.posX) + ", " + fmt(w.posY) + ", " + fmt(w.posZ) + ") from (" + fmt(s.posX) + ", " + fmt(s.posZ) + ") v " + fmt(s.motionX) + "," + fmt(s.motionZ) + " g " + s.onGround);
+                return null;
+            }
+        }
+        Node b = advance(n, walk, n.on);
+        if (b == null) return null;
+        int since = Math.max(0, Math.min(1000, b.inputs.size() - b.lastToggle));
+        Technique.Segment j = segment(b.state, since, exit, c.cx(), c.cz(), deadlineMillis, 0);
+        say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") to " + c + (j == null ? " failed" : " in " + j.inputs.size() + " ticks"));
+        return j == null ? null : advance(b, j, c);
+    }
+
+    /**
+     * Where the feet may be to stand on {@code c}: its footprint (grown by the half width) less a
+     * sliver, since a landing on the very edge counts as on the ground for that one tick only.
+     */
+    static Target target(Route.Surface c) {
+        return new Target(c.minX + 0.02, c.maxX - 0.02, c.minZ + 0.02, c.maxZ - 0.02, c.top);
+    }
+
+    /** True when the floor under the player runs on to {@code c}'s centre at the same height. */
+    private boolean floorTo(PlayerState s, Route.Surface c) {
+        double dx = c.cx() - s.posX, dz = c.cz() - s.posZ;
+        int n = (int) Math.ceil(Math.hypot(dx, dz) / 0.25);
+        for (int i = 1; i < n; i++) {
+            if (route.support(s.posX + dx * i / n, s.posZ + dz * i / n, c.top - 1e-6, c.top + 1e-6) == null) return false;
+        }
+        return true;
     }
 
     /** A bounce off {@code slime} that lands by {@code exit}: two segments, the second from the bounce. */
@@ -310,11 +380,15 @@ final class Explore {
 
     /** The node after playing a segment from {@code n}; null when it breaks the toggle rule. */
     private Node advance(Node n, Technique.Segment g, Route.Surface on) {
+        return advance(n, g.inputs, on);
+    }
+
+    private Node advance(Node n, List<PlayerInput> g, Route.Surface on) {
         PlayerState s = n.state;
         int lastToggle = n.lastToggle, entry = n.entry, tick = n.inputs.size();
         boolean inStart = problem.start.contains(s.posX, s.posY, s.posZ);
         List<PlayerInput> inputs = new ArrayList<PlayerInput>(n.inputs);
-        for (PlayerInput a : g.inputs) {
+        for (PlayerInput a : g) {
             tick++;
             PlayerState ns = Physics.tick(problem.world, s, a);
             if (ToggleRule.toggles(s, ns)) {

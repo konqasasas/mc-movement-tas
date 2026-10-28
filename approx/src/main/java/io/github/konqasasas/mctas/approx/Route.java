@@ -872,6 +872,29 @@ public final class Route {
         return out;
     }
 
+    /**
+     * The highest ladder or vine block reached from {@code c} by climbing, straight up or a block
+     * aside (a zigzag), cheapest way first; {@code c} itself when nothing is above it.
+     */
+    Surface climbTop(Surface c) {
+        Surface top = c;
+        while (true) {
+            Surface next = null;
+            for (int[] d : new int[][] {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                List<Integer> list = graphByColumn.get(col(top.x + d[0], top.z + d[1]));
+                if (list == null) continue;
+                for (int i : list) {
+                    Surface u = graph.get(i);
+                    if (!u.climb || u.y != top.y + 1 || waterAt(u)) continue;
+                    if (next == null || (d[0] == 0 && d[1] == 0) || cost(u) < cost(next)) next = u;
+                }
+                if (next != null && next.x == top.x && next.z == top.z) break;
+            }
+            if (next == null) return top;
+            top = next;
+        }
+    }
+
     /** A ladder, vine or water block within a block of the player, at heights from the feet up to {@code b}'s top. */
     boolean climbAidNear(double x, double y, double z, Surface b) {
         int x0 = (int) Math.floor(x) - 1, x1 = (int) Math.floor(x) + 1;
