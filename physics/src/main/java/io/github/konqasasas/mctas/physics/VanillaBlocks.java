@@ -1,11 +1,19 @@
 package io.github.konqasasas.mctas.physics;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -156,9 +164,103 @@ public final class VanillaBlocks {
             props(id);
             put(new Pane(id), null);
         }
+        for (String id : new String[] {"minecraft:wooden_door", "minecraft:spruce_door", "minecraft:birch_door",
+                "minecraft:jungle_door", "minecraft:acacia_door", "minecraft:dark_oak_door", "minecraft:iron_door"}) {
+            props(id, "facing", "half", "hinge", "open");
+            for (String facing : HORIZONTAL) {
+                for (String half : new String[] {"lower", "upper"}) {
+                    for (String hinge : new String[] {"left", "right"}) {
+                        for (String open : BOOL) {
+                            put(new Door(id, Facing.valueOf(facing.toUpperCase(java.util.Locale.ROOT)), half.equals("upper"),
+                                    hinge.equals("right"), open.equals("true")), null);
+                        }
+                    }
+                }
+            }
+        }
+        props("minecraft:chorus_plant");
+        put(new ChorusPlant().notBlockingMovement(), null);
+        CODED_IDS = Collections.unmodifiableSet(new HashSet<String>(PROPERTIES.keySet()));
+        loadTable();
+    }
+
+    /** Block ids with hand-written entries above; every other id comes from {@link #TABLE}. */
+    private static final Set<String> CODED_IDS;
+
+    /**
+     * Every other 1.12.2 block whose collision depends only on its own state, written from the game by
+     * {@code :oracle:writeBlockTable}. One line per state: name, slipperiness (float bits, hex), normal
+     * cube, air, blocks movement, flags, the six face shapes as {@link FaceShape} ordinals, and the boxes
+     * as {@code minX,minY,minZ,maxX,maxY,maxZ} in hex doubles separated by {@code ;}. Lines starting with
+     * {@code props} give the property keys kept in the names of a block id.
+     */
+    static final String TABLE = "/io/github/konqasasas/mctas/physics/vanilla-blocks.tsv";
+
+    private static void loadTable() {
+        InputStream in = VanillaBlocks.class.getResourceAsStream(TABLE);
+        if (in == null) {
+            return;
+        }
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            try {
+                String line;
+                while ((line = r.readLine()) != null) {
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        continue;
+                    }
+                    String[] f = line.split("\t", -1);
+                    if (f[0].equals("props")) {
+                        props(f[1], f[2].isEmpty() ? new String[0] : f[2].split(","));
+                        continue;
+                    }
+                    FaceShape[] faces = new FaceShape[6];
+                    for (int i = 0; i < 6; i++) {
+                        faces[i] = FaceShape.values()[f[6].charAt(i) - '0'];
+                    }
+                    List<Aabb> boxes = new ArrayList<Aabb>();
+                    if (f.length > 7 && !f[7].isEmpty()) {
+                        for (String b : f[7].split(";")) {
+                            String[] c = b.split(",");
+                            boxes.add(new Aabb(Double.parseDouble(c[0]), Double.parseDouble(c[1]), Double.parseDouble(c[2]),
+                                    Double.parseDouble(c[3]), Double.parseDouble(c[4]), Double.parseDouble(c[5])));
+                        }
+                    }
+                    BlockType t = new BlockType(f[0], boxes, Float.intBitsToFloat((int) Long.parseLong(f[1], 16)),
+                            f[2].equals("1"), f[3].equals("1"), faces, Integer.parseInt(f[5]));
+                    if (f[4].equals("0") && !t.isAir()) {
+                        t.notBlockingMovement();
+                    }
+                    BY_NAME.put(t.name(), t);
+                }
+            } finally {
+                r.close();
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("cannot read " + TABLE, e);
+        }
+    }
+
+    /** True if the entries of this block id are written by hand here rather than read from {@link #TABLE}. */
+    public static boolean isCoded(String blockId) {
+        return CODED_IDS.contains(blockId);
     }
 
     private VanillaBlocks() {
+    }
+
+    /**
+     * The name with the properties a saved or sent block keeps. A door half stores only some of its
+     * properties (the lower half facing and open, the upper half the hinge), so the client can receive
+     * a placed door with the others changed; for every other block this is the name itself.
+     */
+    public static String storedName(BlockType t) {
+        if (!(t instanceof Door)) {
+            return t.name();
+        }
+        Door d = (Door) t;
+        return d.upper ? new Door(d.id, Facing.NORTH, true, d.rightHinge, false).name()
+                : new Door(d.id, d.facing, false, false, d.open).name();
     }
 
     /** The block state with this name, or null if the engine cannot model it. */
@@ -457,7 +559,7 @@ public final class VanillaBlocks {
             if (side == Facing.UP) {
                 return true;
             }
-            if (t == BlockType.ICE) {
+            if (t.isIceMaterial()) {
                 // Material.ICE; packed ice has a material of its own.
                 return false;
             }
@@ -512,6 +614,110 @@ public final class VanillaBlocks {
         static double[] normalize(double[] v) {
             double d0 = (double) McMath.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
             return d0 < 1.0E-4D ? new double[3] : new double[] {v[0] / d0, v[1] / d0, v[2] / d0};
+        }
+    }
+
+    /**
+     * {@code BlockDoor}: one panel whose side depends on facing, open and hinge. The lower half stores
+     * facing and open, the upper half the hinge; each takes the others from the other half when that is
+     * the same door.
+     */
+    static final class Door extends BlockType {
+        private static final Aabb SOUTH_AABB = new Aabb(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.1875D);
+        private static final Aabb NORTH_AABB = new Aabb(0.0D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D);
+        private static final Aabb WEST_AABB = new Aabb(0.8125D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+        private static final Aabb EAST_AABB = new Aabb(0.0D, 0.0D, 0.0D, 0.1875D, 1.0D, 1.0D);
+
+        private final String id;
+        private final Facing facing;
+        private final boolean upper;
+        private final boolean rightHinge;
+        private final boolean open;
+
+        Door(String id, Facing facing, boolean upper, boolean rightHinge, boolean open) {
+            super(id + "[facing=" + facing.id() + ",half=" + (upper ? "upper" : "lower") + ",hinge="
+                    + (rightHinge ? "right" : "left") + ",open=" + open + "]",
+                    Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+            this.id = id;
+            this.facing = facing;
+            this.upper = upper;
+            this.rightHinge = rightHinge;
+            this.open = open;
+        }
+
+        @Override
+        public void addCollisionBoxes(BlockWorld world, int x, int y, int z, Aabb area, List<Aabb> out) {
+            Facing f = facing;
+            boolean o = open;
+            boolean right = rightHinge;
+            BlockType other = world.getBlock(x, y + (upper ? -1 : 1), z);
+            if (other instanceof Door && ((Door) other).id.equals(id)) {
+                Door d = (Door) other;
+                if (upper) {
+                    f = d.facing;
+                    o = d.open;
+                } else {
+                    right = d.rightHinge;
+                }
+            }
+            Aabb b;
+            switch (f) {
+                case SOUTH:
+                    b = !o ? SOUTH_AABB : (right ? EAST_AABB : WEST_AABB);
+                    break;
+                case WEST:
+                    b = !o ? WEST_AABB : (right ? SOUTH_AABB : NORTH_AABB);
+                    break;
+                case NORTH:
+                    b = !o ? NORTH_AABB : (right ? WEST_AABB : EAST_AABB);
+                    break;
+                default:
+                    b = !o ? EAST_AABB : (right ? NORTH_AABB : SOUTH_AABB);
+            }
+            add(x, y, z, area, out, b);
+        }
+    }
+
+    /** {@code BlockChorusPlant}: a core with an arm towards each chorus plant or flower, and down to end stone. */
+    static final class ChorusPlant extends BlockType {
+        private static final Aabb CORE = new Aabb(0.1875D, 0.1875D, 0.1875D, 0.8125D, 0.8125D, 0.8125D);
+        private static final Aabb WEST = new Aabb(0.0D, 0.1875D, 0.1875D, 0.1875D, 0.8125D, 0.8125D);
+        private static final Aabb EAST = new Aabb(0.8125D, 0.1875D, 0.1875D, 1.0D, 0.8125D, 0.8125D);
+        private static final Aabb UP = new Aabb(0.1875D, 0.8125D, 0.1875D, 0.8125D, 1.0D, 0.8125D);
+        private static final Aabb DOWN = new Aabb(0.1875D, 0.0D, 0.1875D, 0.8125D, 0.1875D, 0.8125D);
+        private static final Aabb NORTH = new Aabb(0.1875D, 0.1875D, 0.0D, 0.8125D, 0.8125D, 0.1875D);
+        private static final Aabb SOUTH = new Aabb(0.1875D, 0.1875D, 0.8125D, 0.8125D, 0.8125D, 1.0D);
+
+        ChorusPlant() {
+            super("minecraft:chorus_plant", Collections.<Aabb>emptyList(), 0.6F, false, false, ALL_UNDEFINED, 0);
+        }
+
+        private static boolean connects(BlockType t) {
+            return t instanceof ChorusPlant || blockId(t.name()).equals("minecraft:chorus_flower");
+        }
+
+        @Override
+        public void addCollisionBoxes(BlockWorld world, int x, int y, int z, Aabb area, List<Aabb> out) {
+            BlockType below = world.getBlock(x, y - 1, z);
+            add(x, y, z, area, out, CORE);
+            if (connects(world.getBlock(x - 1, y, z))) {
+                add(x, y, z, area, out, WEST);
+            }
+            if (connects(world.getBlock(x + 1, y, z))) {
+                add(x, y, z, area, out, EAST);
+            }
+            if (connects(world.getBlock(x, y + 1, z))) {
+                add(x, y, z, area, out, UP);
+            }
+            if (connects(below) || below.name().equals("minecraft:end_stone")) {
+                add(x, y, z, area, out, DOWN);
+            }
+            if (connects(world.getBlock(x, y, z - 1))) {
+                add(x, y, z, area, out, NORTH);
+            }
+            if (connects(world.getBlock(x, y, z + 1))) {
+                add(x, y, z, area, out, SOUTH);
+            }
         }
     }
 

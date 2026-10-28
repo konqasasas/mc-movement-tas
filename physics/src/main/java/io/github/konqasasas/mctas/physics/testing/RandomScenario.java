@@ -177,7 +177,10 @@ public final class RandomScenario {
         List<BlockType> all = new ArrayList<BlockType>(VanillaBlocks.all());
         all.remove(BlockType.AIR);
         for (java.util.Iterator<BlockType> it = all.iterator(); it.hasNext(); ) {
-            if (it.next() instanceof VanillaBlocks.Liquid) {
+            BlockType t = it.next();
+            // Unstable blocks fall, grow or get powered by the player in the real game, so a course of them
+            // would not stay as built.
+            if (t instanceof VanillaBlocks.Liquid || t.isExcept(BlockType.UNSTABLE)) {
                 it.remove();
             }
         }

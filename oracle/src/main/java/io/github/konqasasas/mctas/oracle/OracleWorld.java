@@ -67,8 +67,37 @@ final class OracleWorld extends World {
         return state == null ? Blocks.AIR.getDefaultState() : state;
     }
 
+    /** Replaces one block, for tests that build many small layouts in one world. */
+    void set(BlockPos pos, IBlockState state) {
+        if (state.getBlock() == Blocks.AIR) {
+            blocks.remove(pos.toImmutable());
+        } else {
+            blocks.put(pos.toImmutable(), state);
+        }
+    }
+
+    void clear() {
+        blocks.clear();
+    }
+
+    @Override
+    public net.minecraft.tileentity.TileEntity getTileEntity(BlockPos pos) {
+        // A placed shulker box always has its tile entity, closed unless someone opens it.
+        if (getBlockState(pos).getBlock() instanceof net.minecraft.block.BlockShulkerBox) {
+            return new net.minecraft.tileentity.TileEntityShulkerBox();
+        }
+        return null;
+    }
+
     @Override
     public List<Entity> getEntitiesWithinAABBExcludingEntity(Entity entityIn, AxisAlignedBB bb) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public <T extends Entity> List<T> getEntitiesWithinAABB(Class<? extends T> clazz, AxisAlignedBB aabb,
+                                                           Predicate<? super T> filter) {
+        // Buttons, pressure plates and tripwires look for entities on them; there are none.
         return Collections.emptyList();
     }
 

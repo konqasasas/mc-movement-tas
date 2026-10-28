@@ -24,6 +24,7 @@ tasks.withType(JavaCompile).configureEach {
 
 // The headless engine is compiled into the mod so it can be checked live against the real player.
 sourceSets.main.java.srcDir '../physics/src/main/java'
+sourceSets.main.resources.srcDir '../physics/src/main/resources'
 
 unimined.useGlobalCache = false
 

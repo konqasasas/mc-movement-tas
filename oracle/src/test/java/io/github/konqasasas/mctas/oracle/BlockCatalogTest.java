@@ -43,6 +43,19 @@ public class BlockCatalogTest {
                 assertEquals(t + " lava", s.getMaterial() == Material.LAVA, ((VanillaBlocks.Liquid) t).isLava());
             }
             assertEquals(t + " piston exception", exceptWithPiston(s.getBlock()), t.isExcept(BlockType.EXCEPT_PISTON));
+            assertEquals(t + " ice material", s.getMaterial() == Material.ICE,
+                    t.isIceMaterial());
+        }
+    }
+
+    /** A state sent to the client as its id comes back with the same stored name. */
+    @Test
+    public void storedNamesSurviveTheNetwork() {
+        for (BlockType t : VanillaBlocks.all()) {
+            IBlockState s = VanillaStates.of(t);
+            IBlockState back = net.minecraft.block.Block.BLOCK_STATE_IDS.getByValue(net.minecraft.block.Block.BLOCK_STATE_IDS.get(s));
+            assertEquals(t + " after the network", VanillaBlocks.storedName(t),
+                    VanillaBlocks.storedName(VanillaBlocks.require(nameOf(back))));
         }
     }
 
@@ -106,24 +119,43 @@ public class BlockCatalogTest {
         }
     }
 
-    /** Boxes and faces of a block among random neighbours, two blocks out so stairs see their neighbours' shapes. */
+    /** Boxes and faces of a block among random neighbours, two blocks out horizontally so stairs see their neighbours' shapes. */
     @Test
     public void boxesAndFacesMatchVanillaAmongRandomNeighbours() {
-        List<BlockType> all = new ArrayList<BlockType>(VanillaBlocks.all());
-        Random r = new Random(1);
+        compareAmongRandomNeighbours(new ArrayList<BlockType>(VanillaBlocks.all()), 1, 20000);
+    }
+
+    /** Doors and chorus plants with the blocks their shapes depend on, so the pairings come up often. */
+    @Test
+    public void doorsAndChorusPlantsMatchVanilla() {
+        List<BlockType> palette = new ArrayList<BlockType>();
+        for (BlockType t : VanillaBlocks.all()) {
+            String id = VanillaBlocks.blockId(t.name());
+            if (id.endsWith("_door") || id.startsWith("minecraft:chorus_") || id.equals("minecraft:end_stone")) {
+                palette.add(t);
+            }
+        }
+        compareAmongRandomNeighbours(palette, 3, 20000);
+    }
+
+    private static void compareAmongRandomNeighbours(List<BlockType> all, long seed, int trials) {
+        Random r = new Random(seed);
         AxisAlignedBB everything = new AxisAlignedBB(-100, -100, -100, 100, 400, 100);
         Aabb everythingE = new Aabb(-100, -100, -100, 100, 400, 100);
-        for (int trial = 0; trial < 20000; trial++) {
+        for (int trial = 0; trial < trials; trial++) {
             SparseBlockWorld w = new SparseBlockWorld();
             // Few kinds per trial, so connections between like blocks are common.
             List<BlockType> pick = new ArrayList<BlockType>();
             for (int i = 0; i < 1 + r.nextInt(4); i++) {
                 pick.add(all.get(r.nextInt(all.size())));
             }
+            // Three layers, so doors find their other half and chorus plants their vertical arms.
             for (int x = -2; x <= 2; x++) {
-                for (int z = -2; z <= 2; z++) {
-                    if (r.nextInt(4) != 0) {
-                        w.setBlock(x, 64, z, pick.get(r.nextInt(pick.size())));
+                for (int y = 63; y <= 65; y++) {
+                    for (int z = -2; z <= 2; z++) {
+                        if (r.nextInt(4) != 0) {
+                            w.setBlock(x, y, z, pick.get(r.nextInt(pick.size())));
+                        }
                     }
                 }
             }

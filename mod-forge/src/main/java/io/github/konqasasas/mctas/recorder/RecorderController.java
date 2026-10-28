@@ -5,6 +5,7 @@ import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -78,6 +79,10 @@ public final class RecorderController {
     private String runFirstMismatch;
     /** A screen opened during a scripted run: someone used the game window, so the run is not left to the script. */
     private boolean runScreenOpened;
+    /** The first course block that changed during the run, or null. */
+    private String runWorldChange;
+    /** The world's randomTickSpeed before the fuzz set it to 0, restored when the fuzz stops. */
+    private volatile String savedRandomTickSpeed;
     private int runPausedTicks;
 
     // fuzz
@@ -241,6 +246,12 @@ public final class RecorderController {
                 if (entityNearby(p)) {
                     runEntityTicks++;
                 }
+                if (mode == Mode.FUZZ && runWorldChange == null) {
+                    String changed = firstCourseChange();
+                    if (changed != null) {
+                        runWorldChange = "tick " + tick + " " + changed;
+                    }
+                }
                 String field = sim.firstDifference(real);
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
@@ -297,6 +308,7 @@ public final class RecorderController {
         runEntityTicks = 0;
         runFirstMismatch = null;
         runScreenOpened = false;
+        runWorldChange = null;
         runPausedTicks = 0;
         phase = Phase.RUN;
         log.println("# run " + label);
@@ -311,6 +323,10 @@ public final class RecorderController {
             runsInvalid++;
         } else if (runScreenOpened) {
             result = "INVALID: a screen (menu, chat, inventory) was opened during the run";
+            runsInvalid++;
+        } else if (runWorldChange != null) {
+            // Trampled farmland, a block that fell or got powered: the engine's world stays as built.
+            result = "INVALID: the course changed during the run, first at " + runWorldChange;
             runsInvalid++;
         } else if (runEntityTicks > 0) {
             // The engine has no other entities; mobs push the player (collideWithNearbyEntities).
@@ -375,6 +391,11 @@ public final class RecorderController {
     private void buildOnServer(IntegratedServer server, java.util.UUID id, RandomScenario sc) {
         final WorldServer ws = server.getWorld(0);
         final IBlockState air = Blocks.AIR.getDefaultState();
+        // No random ticks: grass spreading, crops growing, snow and ice melting would change the course.
+        if (savedRandomTickSpeed == null) {
+            savedRandomTickSpeed = ws.getGameRules().getString("randomTickSpeed");
+        }
+        ws.getGameRules().setOrCreateGameRule("randomTickSpeed", "0");
         for (int x = originX - FUZZ_RADIUS; x <= originX + FUZZ_RADIUS; x++) {
             for (int z = originZ - FUZZ_RADIUS; z <= originZ + FUZZ_RADIUS; z++) {
                 for (int y = FUZZ_MIN_Y; y <= FUZZ_MAX_Y; y++) {
@@ -402,24 +423,35 @@ public final class RecorderController {
     }
 
     private boolean scenarioBuiltOnClient() {
-        final boolean[] ok = {true};
+        return firstCourseChange() == null;
+    }
+
+    /** The first course block that the client world does not show as built, as "x y z: built -> now", or null. */
+    private String firstCourseChange() {
+        final String[] first = {null};
         final ClientWorldBlocks check = new ClientWorldBlocks(mc.world);
         scenario.world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                if (ok[0] && check.getBlock(x + originX, y, z + originZ) != type) {
-                    ok[0] = false;
+                if (first[0] == null) {
+                    BlockType now = check.getBlock(x + originX, y, z + originZ);
+                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
+                        first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
+                    }
                 }
             }
         });
-        return ok[0];
+        return first[0];
     }
 
     private static IBlockState vanilla(BlockType type) {
         return VanillaStates.of(type);
     }
 
-    /** The fuzz mode makes the player invulnerable on the server so falls do not end the session. */
+    /**
+     * The fuzz mode makes the player invulnerable on the server so falls do not end the session, and
+     * turns random ticks off; this undoes both.
+     */
     private void restoreDamage() {
         final IntegratedServer server = mc.getIntegratedServer();
         if (server == null || mc.player == null || mode != Mode.FUZZ) {
@@ -432,6 +464,10 @@ public final class RecorderController {
                 EntityPlayerMP mp = server.getPlayerList().getPlayerByUUID(id);
                 if (mp != null) {
                     mp.capabilities.disableDamage = false;
+                }
+                if (savedRandomTickSpeed != null) {
+                    server.getWorld(0).getGameRules().setOrCreateGameRule("randomTickSpeed", savedRandomTickSpeed);
+                    savedRandomTickSpeed = null;
                 }
             }
         });
