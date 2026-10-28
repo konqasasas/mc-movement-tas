@@ -22,3 +22,5 @@
 | E-016 | 2026-10-28 | v1 の目標タイム作り | 同じビルドで `--budget 120` を `v1-dev` と `v1-holdout` に | v1-holdout の 30 秒の解は 9 問中 6 問で 120 秒と同じ、残りは +1〜+4 | F-016 |
 | E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
 | E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
+| E-025 | 2026-10-28 | stpt1 の段差区間の局所探索 | ブランチ `claude/project-thread-usu2am` で `mctas-technique segment <stpt1.problem.json> <stpt1.tas> 103 0 8.5 65 12 0 --width 20000 --max 80`(B は `156 0 8.5 78 12 0`、C は `192 0 goal 0 0 0`。人間の解は 122、159、183) | 近似 36/37/47 → 25/26/39。人間 24/28/38 → 24/27/38 | F-029 |
+| E-026 | 2026-10-28 | 段差の踏み切りの窓 | 同じブランチで `mctas-technique window` | 高さ 1、走りで 0.79〜2.51。天井が 1 ブロック手前までなら後ろ向きのジャンプだけ | F-030 |
