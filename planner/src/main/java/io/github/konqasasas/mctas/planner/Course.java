@@ -207,7 +207,9 @@ final class Course {
                     double pz = i / 3 == 0 ? minZ : i / 3 == 1 ? (minZ + maxZ) / 2 : maxZ;
                     if (hasRoom(x, y, z, px, top, pz)) rooms++;
                 }
-                if (rooms == 0) return;
+                // A thin top (an open trapdoor, a pane) can still be stood on overhanging its edge, out
+                // of the way of what is above it: look for room on the grid below.
+                if (rooms == 0 && Math.min(maxX - minX, maxZ - minZ) >= 0.5) return;
                 if (rooms == 9) {
                     out.add(new Surface(out.size(), x, y, z, top, minX, minZ, maxX, maxZ));
                     return;
@@ -388,6 +390,9 @@ final class Course {
             for (int bx = (int) Math.floor(px - 0.3); bx <= (int) Math.floor(px + 0.3); bx++) {
                 for (int bz = (int) Math.floor(pz - 0.3); bz <= (int) Math.floor(pz + 0.3); bz++) {
                     for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                        // The ladders of the body are climbed through, not walls (a ladder's box sticks out
+                        // at the corner the player leaves past).
+                        if (climbable(bx, y, bz)) continue;
                         world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
                     }
                 }
@@ -418,6 +423,9 @@ final class Course {
             for (int bx = (int) Math.floor(px - WALL_PROBE); bx <= (int) Math.floor(px + WALL_PROBE); bx++) {
                 for (int bz = (int) Math.floor(pz - WALL_PROBE); bz <= (int) Math.floor(pz + WALL_PROBE); bz++) {
                     for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
+                        // The ladders of the body are climbed through, not walls (a ladder's box sticks out
+                        // at the corner the player leaves past).
+                        if (climbable(bx, y, bz)) continue;
                         world.getBlock(bx, y, bz).addCollisionBoxes(world, bx, y, bz, probe, hit);
                     }
                 }

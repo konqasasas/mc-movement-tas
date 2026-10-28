@@ -3,6 +3,9 @@ package io.github.konqasasas.mctas.search.bound;
 import io.github.konqasasas.mctas.physics.testing.Slow;
 import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.Physics;
+import io.github.konqasasas.mctas.physics.PlayerInput;
+import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
 import io.github.konqasasas.mctas.physics.testing.Slow;
@@ -34,8 +37,9 @@ import static org.junit.Assert.fail;
 
 /**
  * The hop bound is never above a known run, nor, from a landing, above what the run took from
- * there; and on random courses (full blocks, every shape, liquids) the bound between two states of
- * a random run is never above the ticks the run took between them.
+ * there or (from the start) what it took to get there; and on random courses (full blocks, every
+ * shape, liquids) the bound between two states of a random run is never above the ticks the run
+ * took between them.
  */
 public class HopBoundTest {
 
@@ -63,6 +67,10 @@ public class HopBoundTest {
                         if (s.onGround) {
                             int lb = hb.ticksFromGround(s.posX, s.box.minY, s.posZ);
                             assertTrue(p.id + " tick " + t + ": " + lb + " > " + (res.goalTick - t), lb <= res.goalTick - t);
+                            if (t > res.startTick) {
+                                int early = hb.ticksFromStart(s.posX, s.box.minY, s.posZ);
+                                assertTrue(p.id + " tick " + t + ": from start " + early + " > " + (t - res.startTick), early <= t - res.startTick);
+                            }
                         }
                         s = model.tick(s, in.get(t));
                     }
@@ -112,6 +120,33 @@ public class HopBoundTest {
             }
         }
         assertTrue(checked > 100);
+    }
+
+    /**
+     * A jump next to a half slab steps up onto it during the jump tick (the jump's 0.42 is below the
+     * slab's 0.5, so the move collides and steps up) and lands on the next tick: one air tick after a
+     * jump, with the jump's boost.
+     */
+    @Test
+    public void aJumpOntoAHalfSlabLandsOnTheNextTick() {
+        SparseBlockWorld world = new SparseBlockWorld();
+        world.fill(-2, 0, -2, 2, 0, 20, VanillaBlocks.require("minecraft:stone"));
+        world.fill(-2, 1, 6, 2, 1, 8, VanillaBlocks.require("minecraft:stone_slab[half=bottom]"));
+        List<PlayerState> path = new ArrayList<PlayerState>();
+        // Two ticks of running up to the slab, then the jump (from a top, not the start box).
+        PlayerState s = PlayerState.standing(0.5, 1, 5.0, 0);
+        path.add(s);
+        for (int t = 0; t < 4; t++) {
+            int keys = PlayerInput.W | PlayerInput.SPRINT | (t >= 2 ? PlayerInput.JUMP : 0);
+            s = Physics.tick(world, s, PlayerInput.of(keys, 0));
+            path.add(s);
+        }
+        PlayerState a = path.get(0), b = path.get(4);
+        assertTrue("the run lands on the slab a tick after the jump: " + b, b.onGround && !path.get(3).onGround && path.get(2).onGround && b.posY == 1.5);
+        Problem p = new Problem("slab", "", world, new Spawn(new Vec3(a.posX, a.posY, a.posZ), 0, 0),
+            box(a.posX, a.posY, a.posZ), box(b.posX, b.posY, b.posZ), 400, -64, null);
+        assertTrue("air ticks after a jump " + new SpeedBound(p).airTicks, new SpeedBound(p).airTicks == 1);
+        assertTrue("bound above the run", segment(p, path, 0, 4) >= 0);
     }
 
     /**
