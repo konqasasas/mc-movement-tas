@@ -29,4 +29,4 @@ problem/build/install/mctas-problem/bin/mctas-problem score problems/v0 out/ --m
 | 版 | コミット | 中身 |
 | --- | --- | --- |
 | v1 | `b73a506` | 経路 3 本、方策による先読み、ティック単位のビーム。エンジン名 `approx-beam` |
-| v2 | (この PR) | 磨き込み(助走と着地前からの再探索)。エンジン名 `approx-beam-v2` |
+| v2 | `ce94d4a` | 磨き込み(助走と着地前からの再探索)。エンジン名 `approx-beam-v2` |
