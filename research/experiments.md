@@ -16,4 +16,4 @@
 | E-010 | 2026-10-28 | サーバー側の設置判定の実機一致 | 実機で `/mctas fuzz place 30`、エンジンビルド 6da35fe357332c3e | 一致 18、不一致 0、INVALID 3(1 本は予測どおりのサーバー拒否)、ラン間の位置戻し 1 | F-013 |
 | E-011 | 2026-10-28 | 低い天井の扱いを入れた後の実機一致 | 実機で `/mctas fuzz place 30`、エンジンビルド 7022a7360e3cf9fd、原点 4 -36 | 一致 17、不一致 0、INVALID 4(3 本は予定どおりの `unsupportedAction`)。シード 29 の開始直後にサーバーの位置戻しが 3 回(原因は未特定。物理のずれではない) | F-013 |
 | E-012 | 2026-10-28 | セーブの数値 ID の表の実機照合 | 実機で `/mctas checkids`(PR #24 の mod) | プロパティの違い 0。空気かどうかが 15 組違い、表を直した | F-014, F-015, F-016 |
-| E-013 | 2026-10-28 | セーブ取り込みとゲーム内書き出しの一致、取り込んだ問題の実機再生 | 同じ場所を `mctas-problem import`(セーブ)と `/mctas mark`・`/mctas export`(ゲーム内)で書き出し、`mctas-problem diffworld` で比べる。その問題で `mctas-problem search` の解をマップのコピーで `/mctas replay` | 未実施 | F-015 |
+| E-013 | 2026-10-28 | セーブ取り込みとゲーム内書き出しの一致、取り込んだ問題の実機再生 | 同じ場所を `mctas-problem import`(セーブ)と `/mctas mark`・`/mctas export`(ゲーム内)で書き出し、`mctas-problem diffworld` で比べる。その問題で `mctas-problem search` の解をマップのコピーで `/mctas replay` | 比較は一致(13 ブロック、ファイルも同じ)。再生は未実施 | F-015, F-017 |
