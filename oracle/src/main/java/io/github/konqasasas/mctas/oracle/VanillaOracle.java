@@ -344,6 +344,10 @@ public final class VanillaOracle {
         beforeUpdate(input);
         syncEquipment();
         player.onUpdate();
+        if (!player.isSneaking() && player.height == 1.65F) {
+            // Stuck short under a ceiling; the server may stand up where the client cannot.
+            unsupportedAction = true;
+        }
         onUpdateWalkingPlayer();
         return snapshot();
     }

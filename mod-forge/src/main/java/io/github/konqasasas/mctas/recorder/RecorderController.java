@@ -75,6 +75,10 @@ public final class RecorderController {
     private static final int FUZZ_MAX_Y = 72;
     private static final int SETTLE_TICKS = 15;
     private static final int SETTLE_TIMEOUT = 100;
+    /** What a run that set {@code PlayerState.unsupportedAction} did. */
+    private static final String UNSUPPORTED = "the inputs did something the engine does not model (right-clicked a"
+            + " block that opens or toggles, placed a block the server may refuse, or let go of sneak under a"
+            + " low ceiling)";
     /** Largest area the replay mode clears, in blocks. */
     private static final long REPLAY_MAX_VOLUME = 4000000L;
 
@@ -330,7 +334,7 @@ public final class RecorderController {
                 tick++;
                 boolean judged = mode == Mode.REPLAY
                         && judge.observe(new Vec3(real.posX, real.posY, real.posZ));
-                // After an unmodelled right-click (a door opened, a chest's screen) the game and the engine part.
+                // After something the engine does not model (a door opened, a refused block) the game and the engine part.
                 if (mode != Mode.RECORD && (judged || tick >= inputs.size() || runUnsupportedTick >= 0)) {
                     endRun();
                     // Leave RUN first, or stop() would close the finished run a second time.
@@ -447,8 +451,7 @@ public final class RecorderController {
         }
         String result;
         if (runUnsupportedTick >= 0) {
-            result = "INVALID: at tick " + runUnsupportedTick + " the inputs right-clicked a block that opens or"
-                    + " toggles, which the engine does not model";
+            result = "INVALID: at tick " + runUnsupportedTick + " " + UNSUPPORTED;
             runsInvalid++;
         } else if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
@@ -605,8 +608,7 @@ public final class RecorderController {
             notes.add("the player did not start exactly at the spawn");
         }
         if (runUnsupportedTick >= 0) {
-            notes.add("stopped at tick " + runUnsupportedTick + ": the inputs right-clicked a block that opens or"
-                    + " toggles, which the engine does not model");
+            notes.add("stopped at tick " + runUnsupportedTick + ": " + UNSUPPORTED);
         }
         if (!blocks.unsupported().isEmpty()) {
             notes.add("touched unsupported blocks " + blocks.unsupported());

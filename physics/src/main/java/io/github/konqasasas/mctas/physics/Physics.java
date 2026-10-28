@@ -161,6 +161,12 @@ public final class Physics {
             s.setPosition(cx, s.posY, cz);
         }
         updateSize(world, s);
+        if (!s.isSneaking() && s.height == 1.65F) {
+            // Released sneak under a low ceiling: the client stays short, but the server checks for room
+            // at the position it was last sent and may stand its player up, then pull the client back
+            // when the taller box hits the ceiling (F-013).
+            s.unsupportedAction = true;
+        }
 
         // EntityPlayerSP.onUpdate, after super.onUpdate: what the server is told.
         Placement.afterMove(s);
