@@ -1,5 +1,6 @@
 package io.github.konqasasas.mctas.problem.cli;
 
+import io.github.konqasasas.mctas.physics.EngineBuild;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 import io.github.konqasasas.mctas.problem.baseline.BeamSearch;
@@ -28,7 +29,7 @@ import java.util.List;
 public final class Main {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-problem time <problem.json> <inputs.tas|solution.json> [--trace] [--solution out.json] [--pkc out.json]",
+        "  mctas-problem time <problem.json> <inputs.tas|solution.json> [--trace] [--strict] [--solution out.json] [--pkc out.json]",
         "  mctas-problem check <problem-dir>",
         "  mctas-problem search <problem.json> <out.tas> [--beam N] [--horizon T] [--yaws a,b,c] [--via x,y,z;x,y,z]");
 
@@ -54,12 +55,22 @@ public final class Main {
         Problem problem = ProblemIO.read(problemFile);
         List<TickInput> inputs = readInputs(Paths.get(args[2]), problem);
         boolean trace = false;
+        boolean strict = false;
         Path solutionOut = null;
         Path pkcOut = null;
         for (int i = 3; i < args.length; i++) {
             if (args[i].equals("--trace")) trace = true;
+            else if (args[i].equals("--strict")) strict = true;
             else if (args[i].equals("--solution")) solutionOut = Paths.get(args[++i]);
             else if (args[i].equals("--pkc")) pkcOut = Paths.get(args[++i]);
+        }
+        if (args[2].endsWith(".json")) {
+            String warning = SolutionIO.buildMismatch(
+                    SolutionIO.readEngineBuild(new String(Files.readAllBytes(Paths.get(args[2])), StandardCharsets.UTF_8)));
+            if (warning != null) {
+                System.err.println((strict ? "refused: " : "warning: ") + warning);
+                if (strict) return 3;
+            }
         }
         PhysicsModel model = new PhysicsModel(problem);
         RunResult r = Evaluator.run(problem, model, inputs);
@@ -71,6 +82,7 @@ public final class Main {
             }
         }
         System.out.println("problem: " + problem.id);
+        System.out.println("engineBuild: " + EngineBuild.ID);
         System.out.println("status: " + r.status.name().toLowerCase());
         if (r.finished()) {
             System.out.println("startTick: " + r.startTick);
