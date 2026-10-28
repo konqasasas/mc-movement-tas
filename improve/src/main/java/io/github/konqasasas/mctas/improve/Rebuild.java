@@ -119,6 +119,25 @@ final class Rebuild {
 
     static final boolean DEBUG = System.getenv("MCTAS_IMPROVE_DEBUG") != null;
 
+    /** Start repairs where the run drifts from the old one, not where it fails ({@link #drift}). */
+    boolean useDrift = true;
+    /** How far (blocks) the run may be from the old run's state {@code shift} ticks on before it counts as drifted. */
+    static final double DRIFT = 1.0;
+
+    /**
+     * The first tick after {@code joint} where {@code run} is more than {@link #DRIFT} from the old run
+     * {@code shift} ticks later, or {@code run.length}. A run that wanders off and ends without the
+     * goal fails only when its inputs run out, long after it went wrong.
+     */
+    static int drift(Run run, Run old, int joint, int shift) {
+        for (int t = joint; t <= run.length && t + shift < old.states.length && t + shift <= old.goalTick; t++) {
+            PlayerState a = run.states[t], b = old.states[t + shift];
+            double dx = a.posX - b.posX, dy = a.posY - b.posY, dz = a.posZ - b.posZ;
+            if (dx * dx + dy * dy + dz * dz > DRIFT * DRIFT) return t;
+        }
+        return run.length;
+    }
+
     /** Most repair rounds after one splice. */
     int maxRepairs = 4;
 
@@ -133,7 +152,7 @@ final class Rebuild {
         Run run = failed;
         int goal = cur.goalTick;
         for (int round = 0; round < maxRepairs && !run.valid; round++) {
-            int f = run.length;
+            int f = useDrift ? Math.min(run.length, drift(run, cur, joint, shift)) : run.length;
             int s = Math.max(joint, f - (5 + rnd.nextInt(26)));
             if (s >= run.states.length) break;
             int tO = s + shift + 15 + rnd.nextInt(26);
