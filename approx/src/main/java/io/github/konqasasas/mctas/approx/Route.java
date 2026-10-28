@@ -367,7 +367,7 @@ public final class Route {
         if (a.climb || b.climb) return climbCost(a, b, jumps);
         double dy = b.top - a.top;
         double d = centreDist(a, b);
-        if (walkable(a, b)) return d / RUN_SPEED;
+        if (walkable(a, b)) return !throughWalls && wallBetween(a, b) ? -1 : d / RUN_SPEED;
         double gap = rectGap(a, b);
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
         if (!throughWalls && obstructed(a, b)) return -1;
@@ -467,6 +467,28 @@ public final class Route {
             if (!hit.isEmpty()) return true;
         }
         return false;
+    }
+
+    /**
+     * A wall between two neighbouring surfaces that the player walks across: something solid
+     * above step height on the line between their centres, and on the lines 0.4 to either side.
+     */
+    private boolean wallBetween(Surface a, Surface b) {
+        double ax = a.cx(), az = a.cz(), bx = b.cx(), bz = b.cz();
+        double dx = bx - ax, dz = bz - az, n = Math.hypot(dx, dz);
+        if (n < EPS) return false;
+        double y0 = Math.max(a.top, b.top) + 0.6, y1 = Math.max(a.top, b.top) + 1.7;
+        int steps = Math.max(1, (int) Math.ceil(n / 0.25));
+        for (double off : new double[] {0, -0.4, 0.4}) {
+            double ox = -dz / n * off, oz = dx / n * off;
+            boolean blocked = false;
+            for (int i = 1; i < steps && !blocked; i++) {
+                double px = ax + ox + dx * i / steps, pz = az + oz + dz * i / steps;
+                blocked = solidAt(px, y0, pz, y1, PROBE);
+            }
+            if (!blocked) return false;
+        }
+        return true;
     }
 
     /** Feet height per tick of a jump from {@code from} until it comes down to {@code to}. */
@@ -701,6 +723,14 @@ public final class Route {
                     room = hasRoom(world, x, y, z, px, top, pz);
                 }
                 if (!room) return;
+                // A wall on a side above step height keeps the centre 0.3 inside that edge instead
+                // of 0.3 outside it, so the route does not run the body into a trunk or a post.
+                double lo = top + 0.6, hi = top + 1.8;
+                if (blocks(world, minX - 0.3, lo, minZ, minX, hi, maxZ)) minX += 0.6;
+                if (blocks(world, maxX, lo, minZ, maxX + 0.3, hi, maxZ)) maxX -= 0.6;
+                if (blocks(world, minX, lo, minZ - 0.3, maxX, hi, minZ)) minZ += 0.6;
+                if (blocks(world, minX, lo, maxZ, maxX, hi, maxZ + 0.3)) maxZ -= 0.6;
+                if (minX > maxX + 0.6 - 1e-9 || minZ > maxZ + 0.6 - 1e-9) return;
                 out.add(new Surface(x, y, z, top, minX, minZ, maxX, maxZ));
             }
         });
@@ -715,6 +745,20 @@ public final class Route {
             for (int xx = (int) Math.floor(x - half); xx <= (int) Math.floor(x + half); xx++) {
                 for (int zz = (int) Math.floor(z - half); zz <= (int) Math.floor(z + half); zz++) {
                     problem.world.getBlock(xx, yy, zz).addCollisionBoxes(problem.world, xx, yy, zz, box, hit);
+                }
+            }
+        }
+        return !hit.isEmpty();
+    }
+
+    /** Any collision box in the given box (shrunk a hair so touching faces do not count). */
+    private static boolean blocks(SparseBlockWorld world, double x0, double y0, double z0, double x1, double y1, double z1) {
+        Aabb box = new Aabb(x0 + 1e-4, y0, z0 + 1e-4, x1 - 1e-4, y1, z1 - 1e-4);
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int yy = (int) Math.floor(y0) - 1; yy <= (int) Math.floor(y1); yy++) {
+            for (int xx = (int) Math.floor(x0); xx <= (int) Math.floor(x1); xx++) {
+                for (int zz = (int) Math.floor(z0); zz <= (int) Math.floor(z1); zz++) {
+                    world.getBlock(xx, yy, zz).addCollisionBoxes(world, xx, yy, zz, box, hit);
                 }
             }
         }
