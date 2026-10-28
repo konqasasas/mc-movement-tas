@@ -30,3 +30,12 @@ test {
     inputs.dir rootProject.file('physics/src/main')
     inputs.dir rootProject.file('problem/src/main')
 }
+
+tasks.register('bench', JavaExec) {
+    description = 'Single-thread engine speed (ticks/s), heap per state and result checksums (-Pproblems=a.json,b.json, -Prounds).'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.konqasasas.mctas.problem.cli.Bench'
+    workingDir = rootProject.projectDir
+    maxHeapSize = '6g'
+    args = ["--rounds=${findProperty('rounds') ?: '4'}", findProperty('problems') ?: 'problems/v1-full/s2007-12j.problem.json,problems/place/01-pillar-2.problem.json']
+}
