@@ -61,8 +61,8 @@
   },
   "target": {
     "ticks": 26,
-    "kind": "upper_bound",
+    "kind": "optimal",
     "witness": "01-run-10.tas",
-    "note": "baseline beam search"
+    "note": "proven: the witness reaches the goal in 26 ticks and mctas-search bound proves no run is faster"
   }
 }

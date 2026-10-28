@@ -99,9 +99,9 @@
     "voidY": 0.0
   },
   "target": {
-    "ticks": 35,
+    "ticks": 33,
     "kind": "upper_bound",
     "witness": "10-three-jumps-zigzag.tas",
-    "note": "baseline beam search"
+    "note": "beam search on the exact physics (mctas-search beam); keeps the 3-tick sprint/sneak toggle gap"
   }
 }

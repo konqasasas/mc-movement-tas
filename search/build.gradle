@@ -1,0 +1,17 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':problem')
+    implementation project(':physics')
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.search.cli.Main'
+    applicationName = 'mctas-search'
+}
+
+run {
+    workingDir = rootProject.projectDir
+}
