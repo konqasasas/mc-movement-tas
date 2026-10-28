@@ -15,7 +15,7 @@ import java.util.Set;
  * best with {@link Refiner}, until the time budget runs out or a wider beam stops paying off.
  */
 public final class ApproxSolver {
-    public static final String ENGINE = "approx-beam-v4";
+    public static final String ENGINE = "approx-beam-v5";
     /** Reach to spare on route jumps, one route per value. */
     static final double[] SLACKS = {0, 0.5, 1.0};
 
@@ -121,6 +121,33 @@ public final class ApproxSolver {
                 bestTicks = ticks;
                 foundAt = System.currentTimeMillis() - t0;
                 say("route " + i + " pilot: " + ticks + " ticks");
+            }
+        }
+        // No route the pilot flies end to end: search the stretches it cannot fly (ladders, vines,
+        // posts, water) with the segment search, route by route, with up to half the budget.
+        if (best == null) {
+            long until = t0 + budgetMillis / 2;
+            for (int i = 0; i < routes.size() && best == null && System.currentTimeMillis() < until; i++) {
+                if (!routes.get(i).found()) continue;
+                // Routes share the time by need: one that gets through stops the loop.
+                List<PlayerInput> in = new Bridge(problem, routes.get(i)).log(this::say)
+                    .run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
+                if (in == null) continue;
+                int ticks = Rollout.ticks(problem, in, new int[1]);
+                if (ticks < 0) continue;
+                best = in;
+                bestTicks = ticks;
+                pilotTicks[i] = ticks;
+                foundAt = System.currentTimeMillis() - t0;
+                say("route " + i + " bridged: " + ticks + " ticks");
+                long left = deadline - System.currentTimeMillis();
+                Refiner.Outcome o = new Refiner(problem, routes.get(i)).deadline(System.currentTimeMillis() + left / 4).improve(best, bestTicks);
+                if (o.ticks < bestTicks) {
+                    best = o.inputs;
+                    bestTicks = o.ticks;
+                    foundAt = System.currentTimeMillis() - t0;
+                    say("refined: " + bestTicks + " ticks at " + foundAt + " ms");
+                }
             }
         }
         if (seed != null) {

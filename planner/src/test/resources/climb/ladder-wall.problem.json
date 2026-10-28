@@ -1,0 +1,13 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "climb/ladder-wall", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [-1, 64, -30], "to": [1, 64, 2], "block": "minecraft:stone"},
+    {"from": [-1, 65, 3], "to": [1, 70, 3], "block": "minecraft:stone"},
+    {"from": [0, 65, 2], "to": [0, 69, 2], "block": "minecraft:ladder[facing=north]"},
+    {"from": [-1, 70, 4], "to": [1, 70, 9], "block": "minecraft:stone"}
+  ]},
+  "spawn": {"pos": [0.5, 65.0, -20.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [-1.0, 60.0, -10.0], "max": [2.0, 70.0, -9.0]},
+  "goal": {"min": [-0.3, 71.0, 8.7], "max": [1.3, 71.0, 10.3]},
+  "limits": {"maxTicks": 600, "voidY": 50.0}
+}

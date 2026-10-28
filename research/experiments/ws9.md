@@ -4,3 +4,9 @@
 
 | 番号 | 日付 | 目的 | 条件・コマンド | 結果 | 知見 |
 | --- | --- | --- | --- | --- | --- |
+| E-500 | 2026-10-28 | 開発用セットでの成績 | `mctas-planner solve <dir> out --budget 60`(threads 1、4 並列)を v1-dev、problems/real(stpt1, test1)、自作 tower-dev(`tools/towergen/towergen.py out tower-dev 1 8`)で。`mctas-problem score` | v1-dev 8/8(6 問が上限以下)、stpt1 204、test1 88、tower-dev 7/8 | F-500 |
+| E-501 | 2026-10-28 | はしごで止まる原因 | `PLANNER_DEBUG=1 mctas-planner solve towerx-dev/t0004 --budget 90`(`towergen.py out towerx-dev 1 4 --segments 40 --decor 600 --floor`)、見積もりに登りの時間を足す前と後 | 止まる位置が見積もり残り 54.7 → 36.0 | F-501 |
+| E-502 | 2026-10-28 | つたの区間 | realdev/ex1 を 120〜300 秒、まとまりの辺と `ClimbStep` の有無で | 解なし → 488〜522 | F-502 |
+| E-503 | 2026-10-28 | 壁越しの辺 | realdev/ex3 の見積もりと止まる位置、入出の壁判定の有無で | 見積もり 89 → 135 | F-503 |
+| E-504 | 2026-10-28 | 柵で分かれる台 | realdev/ex5 の見積もりと止まる位置、足場の分割の有無で | 見積もり 164 → 186、止まる位置 113 → 35 | F-504 |
+| E-505 | 2026-10-28 | 報告用セット(調整なし) | v1-holdout を 60 秒(threads 1、4 並列)、human6 を 300 秒(threads 2、2 並列)。この PR の最終版で 1 回だけ | holdout 12/12(7 問が上限以下)、human6 prism 595・tohell 734、ほか解なし | F-500 |
