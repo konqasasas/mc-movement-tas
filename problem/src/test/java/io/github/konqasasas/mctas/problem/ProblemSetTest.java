@@ -44,6 +44,20 @@ public class ProblemSetTest {
         assertEquals(2, checkWitnesses(Paths.get("..", "problems", "real")));
     }
 
+    @Test
+    public void human6HasAHumanTimeOnEveryCourse() throws IOException {
+        int n = 0;
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(Paths.get("..", "problems", "human6"), "*.problem.json")) {
+            for (Path f : ds) {
+                Problem p = ProblemIO.read(f);
+                assertTrue(p.id, p.id.startsWith("human6/"));
+                assertEquals(p.id, Target.Kind.HUMAN_BENCHMARK, p.target.kind);
+                n++;
+            }
+        }
+        assertEquals(6, n);
+    }
+
     private static int checkWitnesses(Path dir) throws IOException {
         return checkWitnesses(dir, true);
     }

@@ -75,7 +75,7 @@
 | `start`, `goal` | はい | `min` と `max` で与える直方体(実数) |
 | `limits.maxTicks` | いいえ | スポーンから数えた最大ティック数。既定 1200 |
 | `limits.voidY` | いいえ | これより下に落ちたら失敗。既定 -64 |
-| `target` | いいえ | 既知の目標タイム。`kind` は `upper_bound`(これ以下で解ける)か `optimal`(最適と証明済み)。`witness` はその入力列ファイル(問題ファイルからの相対パス) |
+| `target` | いいえ | 既知の目標タイム。`kind` は `upper_bound`(これ以下で解ける)、`optimal`(最適と証明済み)、`human_benchmark`(人間の上位記録。上界でも最適でもなく、witness はない)のどれか。`witness` はその入力列ファイル(問題ファイルからの相対パス) |
 | `rules` | いいえ | `autoJump` は `false` だけを許します(1.12.2 の自動ジャンプはオフ前提) |
 | `player` | いいえ | v2 のみ。下記。v1 では空でなければなりません |
 

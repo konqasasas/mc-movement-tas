@@ -82,7 +82,7 @@ final class Score {
             List<String> row = new ArrayList<String>();
             row.add(problem.id);
             Target t = problem.target;
-            row.add(t == null ? "-" : t.ticks + (t.kind == Target.Kind.OPTIMAL ? " opt" : " ub"));
+            row.add(t == null ? "-" : t.ticks + (t.kind == Target.Kind.OPTIMAL ? " opt" : t.kind == Target.Kind.HUMAN_BENCHMARK ? " human" : " ub"));
             List<Cell> cells = new ArrayList<Cell>();
             for (Map<String, Path> m : byId) {
                 Cell c = new Cell();
@@ -117,6 +117,7 @@ final class Score {
                     int d = c.ticks - t.ticks;
                     if (d <= 0) atTarget[i]++;
                     s += d == 0 ? " (=)" : d > 0 ? " (+" + d + ")" : " (" + d + ")";
+                    if (t.kind == Target.Kind.HUMAN_BENCHMARK) s += " " + percent(c.ticks, t.ticks);
                 }
                 if (c.millis >= 0) s += " " + seconds(c.millis);
                 if (c.toggleViolation) s += " !";
@@ -140,11 +141,16 @@ final class Score {
         rows.add(total);
         print(header, rows, markdown);
         System.out.println("(=) at target, (+n) slower, (-n) faster than the target; ! breaks the toggle rule (README)");
+        System.out.println("human targets: a top human time, not a bound; n% is the solution's ticks over it (100% ties it)");
         if (failures > 0) {
             System.out.println("ERROR: " + failures + " solution(s) beat a target marked optimal");
             return 1;
         }
         return 0;
+    }
+
+    private static String percent(int ticks, int target) {
+        return Math.round(100.0 * ticks / target) + "%";
     }
 
     private static String seconds(long millis) {

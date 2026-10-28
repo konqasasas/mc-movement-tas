@@ -144,8 +144,10 @@ final class Pilot {
                 boolean supported = route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) != null;
                 int landing = Flight.landingTick(w.top - s.posY);
                 boolean reaches = landing > 0 && Flight.jumpDistance(Math.max(0, along), landing - 1) >= d;
-                // Up against a step too high to walk onto: jump now.
-                boolean blocked = w.top - s.posY > 0.6 && (s.collidedHorizontally || route.missDistance(stage, s.posX, s.posZ) < 0.35);
+                // Up against the next step and it is too high to walk onto: jump now. A wall further
+                // from the step is something else in the way, and jumping onto it can strand us.
+                double miss = route.missDistance(stage, s.posX, s.posZ);
+                boolean blocked = w.top - s.posY > 0.6 && (miss < 0.35 || s.collidedHorizontally && miss < 1.2);
                 if (reaches || !supported || blocked) return PlayerInput.of(TickBeam.JUMP_W, heading);
             }
             // Otherwise follow the route's ground. Sprint-jumping is faster than running: hop

@@ -330,26 +330,59 @@ public final class Route {
     }
 
     /**
-     * Something in the way at body height on the straight line between two surfaces' centres: a
-     * wall or a step that the jump would run into. The route then has to go over it as a surface.
+     * Something in the way of the body on the straight line between two surfaces' centres: a wall
+     * or a step that the jump would run into. The route then has to go over it as a surface. Over
+     * the gap the feet follow a jump arc from one top to the other, so a low block that the jump
+     * clears does not count, and neither does a block that a line 0.4 to either side passes.
      */
     private boolean obstructed(Surface a, Surface b) {
-        double base = Math.max(a.top, b.top);
-        double ax = a.cx(), az = a.cz(), bx = b.cx(), bz = b.cz();
+        double dx = b.cx() - a.cx(), dz = b.cz() - a.cz(), n = Math.hypot(dx, dz);
+        if (n < EPS) return false;
+        for (double off : new double[] {0, -0.4, 0.4}) {
+            double ox = -dz / n * off, oz = dx / n * off;
+            if (!blockedLine(a, b, a.cx() + ox, a.cz() + oz, b.cx() + ox, b.cz() + oz)) return false;
+        }
+        return true;
+    }
+
+    private boolean blockedLine(Surface a, Surface b, double ax, double az, double bx, double bz) {
         double len = Math.hypot(bx - ax, bz - az);
         int steps = Math.max(1, (int) Math.ceil(len / 0.25));
+        int leave = 0, enter = steps;
+        while (leave + 1 < steps && a.contains(ax + (bx - ax) * (leave + 1) / steps, az + (bz - az) * (leave + 1) / steps)) leave++;
+        while (enter - 1 > leave && b.contains(ax + (bx - ax) * (enter - 1) / steps, az + (bz - az) * (enter - 1) / steps)) enter--;
+        double[] arc = jumpArc(a.top, b.top);
         List<Aabb> hit = new ArrayList<Aabb>();
-        for (int i = 1; i < steps; i++) {
+        for (int i = leave + 1; i < enter; i++) {
             double px = ax + (bx - ax) * i / steps, pz = az + (bz - az) * i / steps;
-            if (a.contains(px, pz) || b.contains(px, pz)) continue;
-            Aabb probe = new Aabb(px - 0.1, base + 0.55, pz - 0.1, px + 0.1, base + 1.2, pz + 0.1);
+            double t = (arc.length - 1) * (i - leave) / (double) (enter - leave);
+            int k = (int) t;
+            double feet = k + 1 < arc.length ? arc[k] + (arc[k + 1] - arc[k]) * (t - k) : arc[k];
+            Aabb probe = new Aabb(px - 0.1, feet + 0.1, pz - 0.1, px + 0.1, feet + 1.7, pz + 0.1);
             int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
-            for (int yy = (int) Math.floor(base + 0.55) - 1; yy <= (int) Math.floor(base + 1.2); yy++) {
+            for (int yy = (int) Math.floor(feet + 0.1) - 1; yy <= (int) Math.floor(feet + 1.7); yy++) {
                 problem.world.getBlock(bxI, yy, bzI).addCollisionBoxes(problem.world, bxI, yy, bzI, probe, hit);
             }
             if (!hit.isEmpty()) return true;
         }
         return false;
+    }
+
+    /** Feet height per tick of a jump from {@code from} until it comes down to {@code to}. */
+    private static double[] jumpArc(double from, double to) {
+        List<Double> ys = new ArrayList<Double>();
+        double y = from, vy = 0.42;
+        ys.add(y);
+        while (ys.size() < 60) {
+            y += vy;
+            vy = (vy - 0.08) * 0.98;
+            if (vy < 0 && y <= to) break;
+            ys.add(y);
+        }
+        ys.add(Math.max(to, y));
+        double[] out = new double[ys.size()];
+        for (int i = 0; i < out.length; i++) out[i] = ys.get(i);
+        return out;
     }
 
     private double goalCost(Surface a, JumpTable jumps) {
