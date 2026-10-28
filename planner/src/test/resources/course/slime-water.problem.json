@@ -1,0 +1,14 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "course/slime-water", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 12], "block": "minecraft:stone"},
+    {"from": [-2, 65, -10], "to": [2, 73, 0], "block": "minecraft:stone"},
+    {"from": [-2, 65, 3], "to": [2, 65, 4], "block": "minecraft:slime"},
+    {"from": [-1, 72, 6], "to": [1, 72, 7], "block": "minecraft:water[level=0]"},
+    {"from": [-2, 65, 8], "to": [2, 72, 12], "block": "minecraft:stone"}
+  ]},
+  "spawn": {"pos": [0.5, 74.0, -5.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [-2.0, 74.0, -3.0], "max": [3.0, 80.0, -2.5]},
+  "goal": {"min": [-2.0, 73.0, 10.0], "max": [3.0, 73.0, 12.0]},
+  "limits": {"maxTicks": 600, "voidY": 50.0}
+}

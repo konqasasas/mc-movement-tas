@@ -13,3 +13,5 @@
 | E-506 | 2026-10-28 | realdev(調整用)の版 v2 | `runset.sh realdev out 120 3`(threads 1、3 並列)、`mctas-problem score` | ex1 515、ex2 387、ex5 383、ex6 453、ex3・ex4v2 解なし(4/6)。途中の最良は ex2 379、ex5 371 | F-505、F-508 |
 | E-507 | 2026-10-28 | ex3 の切れ目 | `Dbg9`(台ごとの見積もり)で、水のつながり・平らなゴール・スライムの辺の有無を比べる | 切れ目は z 257(水の階段)と z 264(スライム)。前者は解消、後者は残る | F-506、F-507、F-509 |
 | E-508 | 2026-10-28 | v2 の dev 回帰 | E-500 と同じ条件 | v1-dev 8/8(52, 72, 89, 111, 131, 102, 144, 52 で v1 と同じ)、stpt1 201(v1 204)、test1 88、tower-dev 8/8(v1 7/8) | — |
+| E-509 | 2026-10-28 | 版 v2 の節目(human6、調整なし) | v2(7fcf917)で human6 の残り 4 問(remaining, poseidon, rampart, verdure)を 300 秒(threads 1、2 並列)、1 回だけ | remaining 328(人の記録 312、105%)。poseidon・rampart・verdure は解なし(v1 と同じく A* が止まる) | — |
+| E-510 | 2026-10-28 | realdev(調整用)の版 v3 | `regress.sh`: realdev を 120 秒(threads 1、3 並列)、v1-dev・tower-dev を 60 秒(4 並列)、stpt1・test1 を 60 秒(2 並列)。`mctas-problem score` | realdev 6/6 の回あり(ex1 515、ex2 351、ex3 524、ex4 377、ex5 377、ex6 450)。ex5 は 120 秒ちょうどで見つかる境目で、4 回中 2 回解けた(380、377)。dev は v2 と同じ(v1-dev 8/8 で同じタイム、stpt1 201、test1 88、tower-dev 8/8) | F-510、F-511、F-512 |

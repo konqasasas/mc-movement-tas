@@ -35,6 +35,17 @@ final class ClimbStep implements Move {
     final java.util.Set<Long> body;
 
     ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path, java.util.Set<Long> body) {
+        this(entry, exit, top, region, jumpAt, path, body, null);
+    }
+
+    /**
+     * A point to run to before the entry cell, or null: in front of the open side of a body set in a
+     * slot, which the straight way to the entry would hit the side of.
+     */
+    final double[] via;
+
+    ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path, java.util.Set<Long> body, double[] via) {
+        this.via = via;
         this.body = body;
         this.path = path;
         this.entry = entry;
@@ -79,7 +90,7 @@ final class ClimbStep implements Move {
     }
 
     /** In a cell of the body: the feet in one, or the part of the box that feels water touching one. */
-    private boolean inBody(Run r) {
+    boolean inBody(Run r) {
         if (body.contains(Course.key((int) Math.floor(r.s.posX), (int) Math.floor(r.s.posY), (int) Math.floor(r.s.posZ)))) return true;
         if (!r.s.inWater) return false;
         for (int x = (int) Math.floor(r.s.posX - 0.3); x <= (int) Math.floor(r.s.posX + 0.3); x++) {
@@ -115,6 +126,10 @@ final class ClimbStep implements Move {
         if (leg == 0) {
             tx = entry[0] + 0.5;
             tz = entry[2] + 0.5;
+            if (via != null && Math.hypot(tx - r.s.posX, tz - r.s.posZ) > Math.hypot(tx - via[0], tz - via[1]) + 0.1) {
+                tx = via[0];
+                tz = via[1];
+            }
         } else if (leg == 1) {
             // Up a ladder: push into the block it hangs on, which is what climbs, and keep in the
             // ladder's column: when the drift along the ladder would carry the player out, steer back.
@@ -166,6 +181,7 @@ final class ClimbStep implements Move {
     @Override
     public String toString() {
         return String.format("climb via (%d %d %d)-(%d %d %d) onto top %.2f, jump at %d",
-            entry[0], entry[1], entry[2], exit[0], exit[1], exit[2], top, jumpAt);
+            entry[0], entry[1], entry[2], exit[0], exit[1], exit[2], top, jumpAt)
+            + (via == null ? "" : String.format(" by (%.2f, %.2f)", via[0], via[1]));
     }
 }

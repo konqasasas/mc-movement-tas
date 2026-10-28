@@ -38,6 +38,12 @@ final class Step implements Move {
      * is further from the aim than it is, then at the aim.
      */
     final double[] via;
+    /**
+     * A bounce on the way, or null: the slime blocks' extent (minX, maxX, minZ, maxZ) and top. Until
+     * the player bounces, the step lands on the slime at {@link #via} as if that were its aim, then it
+     * steers the rest of the flight at the aim.
+     */
+    final double[] bounce;
 
     Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt) {
         this(aimX, aimY, aimZ, region, strafe, jumpAt, 0F);
@@ -48,6 +54,11 @@ final class Step implements Move {
     }
 
     Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt, float jumpTurn, double[] via) {
+        this(aimX, aimY, aimZ, region, strafe, jumpAt, jumpTurn, via, null);
+    }
+
+    Step(double aimX, double aimY, double aimZ, double[] region, int strafe, int jumpAt, float jumpTurn, double[] via, double[] bounce) {
+        this.bounce = bounce;
         this.via = via;
         this.jumpTurn = jumpTurn;
         this.region = region;
@@ -59,19 +70,19 @@ final class Step implements Move {
     }
 
     Step withJump(int j) {
-        return new Step(aimX, aimY, aimZ, region, strafe, j, jumpTurn, via);
+        return new Step(aimX, aimY, aimZ, region, strafe, j, jumpTurn, via, bounce);
     }
 
     Step withStrafe(int s) {
-        return new Step(aimX, aimY, aimZ, region, s, jumpAt, jumpTurn, via);
+        return new Step(aimX, aimY, aimZ, region, s, jumpAt, jumpTurn, via, bounce);
     }
 
     Step withJumpTurn(float t) {
-        return new Step(aimX, aimY, aimZ, region, strafe, jumpAt, t, via);
+        return new Step(aimX, aimY, aimZ, region, strafe, jumpAt, t, via, bounce);
     }
 
     Step withAim(double x, double z) {
-        return new Step(x, aimY, z, region, strafe, jumpAt, jumpTurn, via);
+        return new Step(x, aimY, z, region, strafe, jumpAt, jumpTurn, via, bounce);
     }
 
     static float heading(double fromX, double fromZ, double toX, double toZ) {
@@ -85,8 +96,16 @@ final class Step implements Move {
      * and pushes towards the miss, so that the landing closes in on the aim instead of overshooting.
      */
     PlayerInput move(Run r) {
+        return move(r, false);
+    }
+
+    /** The input for a tick, {@code bounced} once the player has bounced off the slime of {@link #bounce}. */
+    PlayerInput move(Run r, boolean bounced) {
+        boolean toSlime = bounce != null && !bounced;
+        double aimX = toSlime ? via[0] : this.aimX, aimZ = toSlime ? via[1] : this.aimZ, aimY = toSlime ? bounce[4] : this.aimY;
+        double[] region = toSlime ? bounce : this.region;
         double tx = aimX, tz = aimZ;
-        if (viaFirst(r)) {
+        if (bounce == null && viaFirst(r)) {
             tx = via[0];
             tz = via[1];
         } else if (!r.s.onGround && !r.course.onLadder(r.s)) {
@@ -156,14 +175,18 @@ final class Step implements Move {
 
     /** The jump input: facing the aim, so that the sprint-jump boost points there. */
     PlayerInput jump(Run r) {
-        boolean v = viaFirst(r);
+        boolean v = bounce != null || viaFirst(r);
         float h = heading(r.s.posX, r.s.posZ, v ? via[0] : aimX, v ? via[1] : aimZ) + jumpTurn;
         return r.legal(new PlayerInput(PlayerInput.W | PlayerInput.SPRINT | PlayerInput.JUMP, h, r.s.rotationPitch));
     }
 
     /** Flies until landing (or the run ends), recording the inputs. */
     void air(Run r, List<PlayerInput> out) {
-        for (int i = 0; i < MAX_AIR && (!r.s.onGround || bounced(r)) && !r.over(); i++) tick(r, move(r), out);
+        boolean off = false;
+        for (int i = 0; i < MAX_AIR && (!r.s.onGround || bounced(r)) && !r.over(); i++) {
+            tick(r, move(r, off), out);
+            off |= bounced(r);
+        }
         if ((!r.s.onGround || bounced(r)) && !r.over()) r.dead = true;
     }
 
@@ -216,6 +239,6 @@ final class Step implements Move {
     @Override
     public String toString() {
         return String.format("aim(%.2f,%.2f) strafe %d jump %d turn %.1f", aimX, aimZ, strafe, jumpAt, jumpTurn)
-            + (via == null ? "" : String.format(" via(%.2f,%.2f)", via[0], via[1]));
+            + (via == null ? "" : String.format(bounce == null ? " via(%.2f,%.2f)" : " bounce(%.2f,%.2f)", via[0], via[1]));
     }
 }

@@ -94,6 +94,7 @@ public final class PlannerSolver {
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
+            if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
             if (p == null) continue;
             best = p;
             foundAt = System.currentTimeMillis() - t0;

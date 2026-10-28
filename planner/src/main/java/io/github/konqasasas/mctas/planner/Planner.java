@@ -66,6 +66,8 @@ final class Planner {
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
+    /** Time spent in each maneuver (with {@link #DEBUG}). */
+    final Map<String, Long> maneuverNanos = new java.util.TreeMap<String, Long>();
     int expanded, generated;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
@@ -74,6 +76,7 @@ final class Planner {
         this.course = course;
         maneuvers.add(new ClimbManeuver());
         maneuvers.add(new HoleManeuver());
+        maneuvers.add(new BounceClimbManeuver());
     }
 
     Planner add(Maneuver m) {
@@ -114,7 +117,11 @@ final class Planner {
             succ.clear();
             List<double[]> aims = aims(n.run);
             expandParallel(steps, n.run, aims, succ);
-            for (Maneuver m : maneuvers) m.expand(n.run, aims, succ);
+            for (Maneuver m : maneuvers) {
+                long t0 = DEBUG ? System.nanoTime() : 0;
+                m.expand(n.run, aims, succ);
+                if (DEBUG) maneuverNanos.merge(m.getClass().getSimpleName(), System.nanoTime() - t0, Long::sum);
+            }
             int[] why = new int[4];
             for (Maneuver.Successor x : succ) {
                 generated++;
@@ -318,7 +325,13 @@ final class Planner {
                 for (Course.Surface a : course.platforms.get(here)) {
                     Course.Surface sl = a.bounceVia.get(b);
                     if (sl == null) continue;
-                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sl.cx(), sl.cz()});
+                    // Land with the centre well over the slime, at its point nearest the foothold.
+                    double[] e = course.slimeExtent(sl);
+                    double in = BounceClimbManeuver.LAND_IN;
+                    double sx0 = e[0] + in, sx1 = e[1] - in, sz0 = e[2] + in, sz1 = e[3] - in;
+                    double sx = clamp(nx, Math.min(sx0 + 0.1, (sx0 + sx1) / 2), Math.max(sx1 - 0.1, (sx0 + sx1) / 2));
+                    double sz = clamp(nz, Math.min(sz0 + 0.1, (sz0 + sz1) / 2), Math.max(sz1 - 0.1, (sz0 + sz1) / 2));
+                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sx, sz, sx0, sx1, sz0, sz1, sl.top});
                     break;
                 }
             }
