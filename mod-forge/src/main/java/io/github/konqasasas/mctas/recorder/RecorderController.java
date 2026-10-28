@@ -308,11 +308,11 @@ public final class RecorderController {
                         beginRun("seed " + seed);
                     }
                 } else if (settleCount >= SETTLE_TIMEOUT && mode == Mode.REPLAY) {
-                    log.println("# the world or the player did not settle at the spawn");
+                    log.println("# the world or the player did not settle at the spawn: " + whyNotSettled(p, reported));
                     stop("the player did not come to rest at the spawn, or the world was not built");
                 } else if (settleCount >= SETTLE_TIMEOUT) {
                     runsInvalid++;
-                    log.println("# seed " + seed + ": course or player did not settle, skipped");
+                    log.println("# seed " + seed + ": course or player did not settle, skipped: " + whyNotSettled(p, reported));
                     advanceFuzz();
                 }
                 return;
@@ -764,6 +764,11 @@ public final class RecorderController {
                 ws.setBlockState(new BlockPos(x + ox, y, z + oz), vanilla(type), 2);
             }
         });
+        // Placing a block can schedule a tick for it (BlockFalling.onBlockAdded, fire, liquids): a floating
+        // anvil or concrete powder would then fall and the course never settle. The engine's world never
+        // changes, so drop every tick scheduled in the box.
+        ws.getPendingBlockUpdates(new net.minecraft.world.gen.structure.StructureBoundingBox(
+                box[0], box[1], box[2], box[3] + 1, box[4] + 1, box[5] + 1), true);
         EntityPlayerMP mp = server.getPlayerList().getPlayerByUUID(id);
         if (mp != null) {
             if (invulnerable) {
@@ -799,6 +804,29 @@ public final class RecorderController {
             mp.inventory.setInventorySlotContents(i, st);
         }
         mp.inventoryContainer.detectAndSendChanges();
+    }
+
+    /** Which of the settle conditions still fails, for the log. */
+    private String whyNotSettled(EntityPlayerSP p, boolean reported) {
+        List<String> why = new java.util.ArrayList<String>();
+        if (!p.onGround) {
+            why.add("player not on the ground at " + p.posX + " " + p.posY + " " + p.posZ);
+        }
+        String changed = firstCourseChange();
+        if (changed != null) {
+            why.add("course block differs at " + changed);
+        }
+        if (runHotbar != null) {
+            PlayerState h = new PlayerState();
+            PlayerSnapshot.readPlacement(p, h);
+            if (!h.hotbar.equals(runHotbar)) {
+                why.add("hotbar " + h.hotbar + " is not " + runHotbar);
+            }
+        }
+        if (!reported) {
+            why.add("position resend not yet aligned");
+        }
+        return why.isEmpty() ? "unknown" : String.join("; ", why);
     }
 
     private boolean scenarioBuiltOnClient() {

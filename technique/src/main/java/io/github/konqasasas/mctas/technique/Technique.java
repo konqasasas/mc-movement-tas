@@ -146,6 +146,7 @@ public final class Technique {
         o.voidY = b.voidY;
         o.results = b.results;
         o.cells = b.cells;
+        o.extraActions = b.extraActions;
         return o;
     }
 }

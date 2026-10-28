@@ -1,0 +1,12 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e03-skulls", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 2], "to": [0, 65, 2], "block": "minecraft:skull[facing=up]"}, 
+    {"from": [0, 65, 5], "to": [0, 65, 5], "block": "minecraft:stone"}, 
+    {"from": [0, 66, 5], "to": [0, 66, 5], "block": "minecraft:skull[facing=up]"}, 
+    {"from": [0, 65, 8], "to": [0, 66, 8], "block": "minecraft:stone"}, 
+    {"from": [0, 67, 8], "to": [0, 67, 8], "block": "minecraft:skull[facing=up]"}, 
+    {"from": [0, 65, 11], "to": [0, 67, 11], "block": "minecraft:stone"}, 
+    {"from": [0, 68, 11], "to": [0, 68, 11], "block": "minecraft:skull[facing=up]"}, 
+    {"from": [0, 65, 14], "to": [0, 68, 14], "block": "minecraft:stone"}, 
+    {"from": [0, 69, 14], "to": [0, 69, 14], "block": "minecraft:skull[facing=up]"}, 
+    {"from": [-1, 65, 17], "to": [1, 69, 20], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 70, 18], "max": [2, 70, 21]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

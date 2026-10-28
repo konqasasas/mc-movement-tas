@@ -1,0 +1,16 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "course/hole", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [-3, 64, -1], "to": [3, 64, 12], "block": "minecraft:stone"},
+    {"from": [-3, 68, -1], "to": [3, 68, 5], "block": "minecraft:stone"},
+    {"from": [0, 68, 2], "to": [1, 68, 3], "block": "minecraft:iron_bars"},
+    {"from": [-4, 69, -2], "to": [4, 71, -2], "block": "minecraft:glass"},
+    {"from": [-4, 69, 6], "to": [4, 71, 6], "block": "minecraft:glass"},
+    {"from": [-4, 69, -1], "to": [-4, 71, 5], "block": "minecraft:glass"},
+    {"from": [4, 69, -1], "to": [4, 71, 5], "block": "minecraft:glass"}
+  ]},
+  "spawn": {"pos": [-1.5, 69.0, 0.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [-3.0, 68.0, 1.0], "max": [4.0, 72.0, 1.5]},
+  "goal": {"min": [-1.0, 65.0, 10.0], "max": [2.0, 66.0, 11.0]},
+  "limits": {"maxTicks": 600, "voidY": 50.0}
+}

@@ -1,0 +1,14 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "course/water-stairs", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [3, 64, 2], "block": "minecraft:stone"},
+    {"from": [0, 65, 1], "to": [0, 65, 1], "block": "minecraft:water[level=0]"},
+    {"from": [1, 67, 2], "to": [1, 67, 2], "block": "minecraft:water[level=0]"},
+    {"from": [1, 69, 2], "to": [1, 69, 2], "block": "minecraft:water[level=0]"},
+    {"from": [-2, 69, 3], "to": [3, 69, 6], "block": "minecraft:stone"}
+  ]},
+  "spawn": {"pos": [0.5, 65.0, -5.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [-2.0, 60.0, -3.0], "max": [3.0, 70.0, -2.5]},
+  "goal": {"min": [-1.0, 70.0, 5.0], "max": [2.0, 70.0, 6.0]},
+  "limits": {"maxTicks": 600, "voidY": 50.0}
+}
