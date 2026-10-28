@@ -45,12 +45,15 @@ public final class StepWindow {
 
     static final BlockType STONE = io.github.konqasasas.mctas.problem.world.Blocks.byId("minecraft:stone");
     static final BlockType SLAB = io.github.konqasasas.mctas.problem.world.Blocks.byId("minecraft:stone_slab[half=bottom]");
+    static final BlockType BOTTOM_TRAPDOOR = io.github.konqasasas.mctas.problem.world.Blocks.byId(
+            "minecraft:iron_trapdoor[facing=north,half=bottom,open=false]");
 
     /** Height of the floor's top face. */
     static final int FLOOR = 10;
 
     /**
-     * The world: floor top at {@link #FLOOR} over z -40..40, step of height h (0.5 or whole blocks) from
+     * The world: floor top at {@link #FLOOR} over z -40..40, step of height h (0.5, 0.1875 with a closed
+     * bottom trapdoor, or whole blocks) from
      * z face.
      */
     static SparseBlockWorld world(double h, int face, double ceilingGap, int ceilingEnd) {
@@ -58,7 +61,8 @@ public final class StepWindow {
         w.fill(-3, FLOOR - 1, -40, 3, FLOOR - 1, 40, STONE);
         int full = (int) Math.floor(h);
         if (full > 0) w.fill(-3, FLOOR, face, 3, FLOOR + full - 1, 40, STONE);
-        if (h - full > 0) w.fill(-3, FLOOR + full, face, 3, FLOOR + full, 40, SLAB);
+        if (h - full == 0.1875) w.fill(-3, FLOOR + full, face, 3, FLOOR + full, 40, BOTTOM_TRAPDOOR);
+        else if (h - full > 0) w.fill(-3, FLOOR + full, face, 3, FLOOR + full, 40, SLAB);
         if (ceilingGap > 0) {
             int cy = FLOOR + (int) Math.round(ceilingGap);
             w.fill(-3, cy, -40, 3, cy, face - ceilingEnd - 1, STONE);

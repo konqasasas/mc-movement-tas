@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.search.bound;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.problem.Problem;
@@ -30,7 +32,7 @@ import static org.junit.Assert.fail;
  */
 public class SpeedBoundTest {
 
-    private static final String[] SETS = {"v0", "v1-dev"};
+    private static final String[] SETS = {"v0", "v1-dev", "fall", "place"};
 
     @Test
     public void neverAboveTheKnownRuns() throws IOException {
@@ -45,6 +47,7 @@ public class SpeedBoundTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void everyWitnessStateNeedsNoMoreThanItTook() throws IOException {
         int checked = 0;
         for (String set : SETS) {
@@ -109,7 +112,7 @@ public class SpeedBoundTest {
                     }
                 }
             }
-            assertTrue(p.id + ": too few jumps", jumps > 20);
+            if (p.inventory.isEmpty()) assertTrue(p.id + ": too few jumps", jumps > 20);
         }
     }
 

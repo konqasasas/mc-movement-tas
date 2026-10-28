@@ -41,6 +41,9 @@ public final class TechniqueMain {
             case "corner":
                 corner(args);
                 break;
+            case "trapdoor":
+                trapdoor(args);
+                break;
             case "window":
                 window(args);
                 break;
@@ -78,13 +81,15 @@ public final class TechniqueMain {
                 + "        ticks to cover 20 blocks under ceilings 2, 2.5, 3 high and none: run, jump chain, search\n"
                 + "  mctas-technique corner [width]\n"
                 + "        the fastest 90-degree turn on paths 1 to 3 blocks wide over a drop\n"
+                + "  mctas-technique trapdoor [width]\n"
+                + "        ticks to cross a row of open trapdoors (a thin wall 1 high) at steady sprint\n"
                 + "  mctas-technique window\n"
                 + "        prints the clean jump distances for climbing a step");
     }
 
     /** Prints the clean jump windows for step heights, ceilings, entry speeds and takeoffs as Markdown. */
     private static void window(String[] a) {
-        double[] heights = {0.5, 1.0};
+        double[] heights = {0.5, 1.0, 1.1875};
         String[] entries = {"run 3", "run 40", "landing 6"};
         System.out.println("| step | ceiling | entry | stride (next tick) | takeoff | clean front-to-face distances (landing ticks) |");
         System.out.println("| --- | --- | --- | --- | --- | --- |");
@@ -96,7 +101,7 @@ public final class TechniqueMain {
                     PlayerState s = ep[0].equals("run") ? StepWindow.runUp(n) : StepWindow.landing(n);
                     for (StepWindow.Takeoff to : StepWindow.Takeoff.values()) {
                         List<StepWindow.Jump> js = StepWindow.sweep(h, ce < 0 ? 0 : 2, Math.max(ce, 0), s, to, 4.0, 0.02);
-                        System.out.printf("| %.1f | %s | %s | %.4f | %s | %s |%n", h,
+                        System.out.printf("| %s | %s | %s | %.4f | %s | %s |%n", h,
                                 ce < 0 ? "none" : "gap 2, ends " + ce + " before", e, StepWindow.stride(s), to, ranges(js));
                     }
                 }
@@ -148,6 +153,18 @@ public final class TechniqueMain {
     }
 
     /** Prints the ticks to cover 20 blocks under ceilings of several heights: run, jump chain, search. */
+    private static void trapdoor(String[] a) {
+        SegmentSearch.Options o = new SegmentSearch.Options();
+        o.maxTicks = 60;
+        if (a.length > 1) o.width = Integer.parseInt(a[1]);
+        System.out.println("| open trapdoor | search |");
+        System.out.println("| --- | --- |");
+        for (String f : new String[] {null, "north", "south"}) {
+            System.out.printf("| %s | %d |%n", f == null ? "none" : f,
+                    io.github.konqasasas.mctas.technique.TrapdoorBench.search(f, o));
+        }
+    }
+
     private static void ceiling(String[] a) {
         SegmentSearch.Options o = new SegmentSearch.Options();
         o.maxTicks = 100;
@@ -156,7 +173,7 @@ public final class TechniqueMain {
         double dist = 20;
         System.out.println("| ceiling | run | jump on every landing | search |");
         System.out.println("| --- | --- | --- | --- |");
-        for (double gap : new double[] {2, 2.5, 3, 0}) {
+        for (double gap : new double[] {1.8125, 2, 2.5, 2.8125, 3, 0}) {
             System.out.printf("| %s | %d | %d | %d |%n", gap == 0 ? "none" : "" + gap,
                     io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, false),
                     io.github.konqasasas.mctas.technique.CeilingBench.policy(gap, dist, true),

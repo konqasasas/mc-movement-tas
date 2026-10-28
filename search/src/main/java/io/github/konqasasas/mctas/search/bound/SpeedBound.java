@@ -34,6 +34,9 @@ import java.util.TreeSet;
  * height, and nothing but a slime block sets motionY above the jump's 0.42. With slime blocks in the
  * world there is no vertical bound.
  *
+ * <p>With blocks in the hotbar, the world can gain any block: then the bound allows ice and slime
+ * everywhere and a ceiling over every take-off.
+ *
  * <p>Assumes no potion effects and that the player is never inside a block (so
  * {@code pushOutOfBlocks} never fires; the physics flags the one way into a block, standing up
  * under a low ceiling, as unsupported).
@@ -96,7 +99,13 @@ public final class SpeedBound {
                 if (n.startsWith("minecraft:slime")) liquid[2] = true;
             }
         });
-        slime = liquid[2];
+        // Blocks in the hotbar can be placed anywhere: any slipperiness, slime, and a ceiling over any take-off.
+        boolean placing = !problem.inventory.isEmpty();
+        if (placing) {
+            slips.add(0.8F);
+            slips.add(0.98F);
+        }
+        slime = liquid[2] || placing;
         for (float s : slips) {
             float f6 = s * 0.91F;
             double accel = 0.13D * (double) (0.16277136F / (f6 * f6 * f6)) * ROT;
@@ -110,7 +119,7 @@ public final class SpeedBound {
         // The places to look at around a take-off: as far as the player can get in the air.
         double v = 0;
         for (double x : vmax) v = Math.max(v, x);
-        airTicks = new JumpArcs(problem.world, (int) Math.ceil(MAX_AIR * (v + AIR_ACCEL)) + 2).fewest();
+        airTicks = placing ? 1 : new JumpArcs(problem.world, (int) Math.ceil(MAX_AIR * (v + AIR_ACCEL)) + 2).fewest();
         vmax = fastest(airTicks);
     }
 
@@ -371,10 +380,22 @@ public final class SpeedBound {
          * Returns the air ticks after the jump tick, at most {@link #MAX_AIR}.
          */
         static int arc(double g, TreeSet<Double> floors, boolean ladder, boolean web) {
+            int a = arc(g, floors, ladder, web, MAX_AIR + 1);
+            return a < 0 ? MAX_AIR : Math.min(a, MAX_AIR);
+        }
+
+        /** The air ticks of the plain jump arc under ceiling {@code g} onto one of {@code floors}, or {@link HopBound#INF}. */
+        static int arcOrNone(double g, TreeSet<Double> floors) {
+            int a = arc(g, floors, false, false, 400);
+            return a < 0 ? HopBound.INF : a;
+        }
+
+        /** {@link #arc(double, TreeSet, boolean, boolean)} looking {@code limit} ticks ahead; -1 when nothing lands. */
+        private static int arc(double g, TreeSet<Double> floors, boolean ladder, boolean web, int limit) {
             // States: height, motionY, in a web.
             Set<List<Double>> states = new HashSet<List<Double>>();
             states.add(java.util.Arrays.asList(0.0, (double) 0.42F, 0.0));
-            for (int tick = 1; tick <= MAX_AIR + 1; tick++) {
+            for (int tick = 1; tick <= limit; tick++) {
                 Set<List<Double>> nextStates = new HashSet<List<Double>>();
                 for (List<Double> st : states) {
                     double y = st.get(0), my = st.get(1);
@@ -417,7 +438,7 @@ public final class SpeedBound {
                 }
                 states = nextStates;
             }
-            return MAX_AIR;
+            return -1;
         }
 
         private static double round(double v) {

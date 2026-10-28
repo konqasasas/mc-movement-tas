@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.technique;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -28,6 +30,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void segmentsReplayToTheirExitAndKeepTheToggleGap() {
         SparseBlockWorld w = stepUnderCeiling();
         PlayerState entry = sprinting(25.0);
@@ -62,6 +65,7 @@ public class TechniqueTest {
     }
 
     @Test
+    @Category(Slow.class)
     public void searchBeatsRunningIntoTheStep() {
         // Holding W+A into the face and jumping on contact (what a naive policy does) versus the search.
         SparseBlockWorld w = stepUnderCeiling();
@@ -164,5 +168,13 @@ public class TechniqueTest {
         assertTrue(s.onGround);
         assertEquals(f + 3.5, s.posY, 1e-9);
         assertTrue("ticks " + segs.get(0).ticks(), segs.get(0).ticks() <= 80);
+    }
+
+    /** A closed top trapdoor one block up leaves 1.8125 of headroom: the jump chain beats a 2-high ceiling. */
+    @Test
+    public void trapdoorCeilingIsTheFastestJumpChain() {
+        int trapdoor = CeilingBench.policy(1.8125, 20, true);
+        int stone = CeilingBench.policy(2, 20, true);
+        assertTrue(trapdoor + " vs " + stone, trapdoor > 0 && trapdoor < stone);
     }
 }
