@@ -346,7 +346,23 @@ public final class LowerBound {
             xs.add(r.x0);
             xs.add(r.x1);
         }
+        if (System.getenv("MCTAS_XSTEP") != null) {
+            double step = Double.parseDouble(System.getenv("MCTAS_XSTEP"));
+            double[] base = toArray(xs);
+            for (int i = 0; i + 1 < base.length; i++) {
+                double a = Math.max(base[i], st.minX - 2), b = Math.min(base[i + 1], st.maxX + 2);
+                for (double c = a + step; c < b - step / 2; c += step) xs.add(c);
+            }
+        }
         xCuts = toArray(xs);
+        if (System.getenv("MCTAS_ZSTEP") != null) {
+            double step = Double.parseDouble(System.getenv("MCTAS_ZSTEP"));
+            double[] base = toArray(zs);
+            for (int i = 0; i + 1 < base.length; i++) {
+                double a = Math.max(base[i], st.minZ - 2), b = Math.min(base[i + 1], st.maxZ + 2);
+                for (double c = a + step; c < b - step / 2; c += step) zs.add(c);
+            }
+        }
         zCuts = toArray(zs);
     }
 
