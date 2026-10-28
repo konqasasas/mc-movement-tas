@@ -1,0 +1,13 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e07-slot-ladder-posts", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [-2, 65, 3], "to": [2, 71, 4], "block": "minecraft:stone"}, 
+    {"from": [-1, 65, 2], "to": [-1, 71, 2], "block": "minecraft:stone"}, 
+    {"from": [1, 65, 2], "to": [1, 71, 2], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 2], "to": [0, 71, 2], "block": "minecraft:ladder[facing=north]"}, 
+    {"from": [0, 64, 7], "to": [0, 70, 7], "block": "minecraft:stone"}, 
+    {"from": [0, 71, 7], "to": [0, 71, 7], "block": "minecraft:spruce_fence"}, 
+    {"from": [1, 64, 10], "to": [1, 70, 10], "block": "minecraft:stone"}, 
+    {"from": [1, 71, 10], "to": [1, 71, 10], "block": "minecraft:spruce_fence"}, 
+    {"from": [0, 64, 13], "to": [0, 70, 13], "block": "minecraft:stone"}, 
+    {"from": [0, 71, 13], "to": [0, 71, 13], "block": "minecraft:spruce_fence"}, 
+    {"from": [-1, 64, 16], "to": [1, 72, 19], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 73, 17], "max": [2, 73, 20]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

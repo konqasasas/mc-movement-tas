@@ -1,0 +1,14 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e01-stairs", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [-1, 65, 2], "to": [1, 65, 2], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 65, 3], "to": [1, 65, 3], "block": "minecraft:stone"}, 
+    {"from": [-1, 66, 3], "to": [1, 66, 3], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 65, 4], "to": [1, 66, 4], "block": "minecraft:stone"}, 
+    {"from": [-1, 67, 4], "to": [1, 67, 4], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 65, 5], "to": [1, 67, 5], "block": "minecraft:stone"}, 
+    {"from": [-1, 68, 5], "to": [1, 68, 5], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 65, 6], "to": [1, 68, 6], "block": "minecraft:stone"}, 
+    {"from": [-1, 69, 6], "to": [1, 69, 6], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 65, 7], "to": [1, 69, 7], "block": "minecraft:stone"}, 
+    {"from": [-1, 70, 7], "to": [1, 70, 7], "block": "minecraft:stone_brick_stairs[facing=north,half=bottom]"}, 
+    {"from": [-1, 64, 8], "to": [1, 70, 11], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 71, 10], "max": [2, 71, 12]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

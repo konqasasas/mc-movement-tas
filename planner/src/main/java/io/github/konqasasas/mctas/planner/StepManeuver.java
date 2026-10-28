@@ -31,7 +31,7 @@ final class StepManeuver implements Maneuver {
         for (double[] aim : aims) {
             for (int strafe : STRAFES) {
                 if (!from.s.onGround) {
-                    Step st = new Step(aim[0], aim[2], aim[1], region(aim), strafe, Step.NO_JUMP, 0F, via(aim));
+                    Step st = new Step(aim[0], aim[2], aim[1], region(aim), strafe, Step.NO_JUMP, 0F, via(aim), bounce(aim));
                     Run r = from.copy();
                     List<PlayerInput> in = new ArrayList<PlayerInput>();
                     st.play(r, in);
@@ -46,14 +46,18 @@ final class StepManeuver implements Maneuver {
     private void ground(Run from, double[] aim, int strafe, List<Successor> out) {
         Course c = from.course;
         int platform = c.platformAt(from.s);
-        Step walk = new Step(aim[0], aim[2], aim[1], region(aim), strafe, Step.NO_JUMP, 0F, via(aim));
+        Step walk = new Step(aim[0], aim[2], aim[1], region(aim), strafe, Step.NO_JUMP, 0F, via(aim), bounce(aim));
+        // A corner on this platform (Planner#addCorner): the walk stops when it gets there.
+        Step corner = aim.length == 8 ? walk.withJump(Step.CORNER) : null;
         Run r = from.copy();
         Run prev = null;
         List<PlayerInput> in = new ArrayList<PlayerInput>();
         boolean jumpedPrev = false;
         for (int k = 0; ; k++) {
-            double reach = c.reach.reach(aim[2] - r.s.posY);
-            double d = Math.hypot(aim[0] - r.s.posX, aim[1] - r.s.posZ);
+            // A bounce first lands on the slime: branch the jumps by how far that is.
+            boolean b = aim.length >= 14;
+            double reach = c.reach.reach((b ? aim[13] : aim[2]) - r.s.posY);
+            double d = b ? Math.hypot(aim[7] - r.s.posX, aim[8] - r.s.posZ) : Math.hypot(aim[0] - r.s.posX, aim[1] - r.s.posZ);
             boolean branch = k == 0 || d <= reach + far || reach < 0;
             if (branch) jump(r, in, aim, strafe, k, out);
             jumpedPrev = branch;
@@ -76,6 +80,10 @@ final class StepManeuver implements Maneuver {
                 out.add(new Successor(walk, r, in));
                 return;
             }
+            if (corner != null && corner.atCorner(r)) {
+                out.add(new Successor(corner, r, in));
+                return;
+            }
         }
     }
 
@@ -84,12 +92,17 @@ final class StepManeuver implements Maneuver {
         return aim.length >= 9 ? new double[] {aim[7], aim[8]} : null;
     }
 
+    /** The slime of a bounce aim (entries 9 to 13: where to land, and its top), or null. */
+    static double[] bounce(double[] aim) {
+        return aim.length >= 14 ? java.util.Arrays.copyOfRange(aim, 9, 14) : null;
+    }
+
     static double[] region(double[] aim) {
         return aim.length >= 7 ? new double[] {aim[3], aim[4], aim[5], aim[6]} : null;
     }
 
     private static void jump(Run r0, List<PlayerInput> prefix, double[] aim, int strafe, int k, List<Successor> out) {
-        Step st = new Step(aim[0], aim[2], aim[1], region(aim), strafe, k, 0F, via(aim));
+        Step st = new Step(aim[0], aim[2], aim[1], region(aim), strafe, k, 0F, via(aim), bounce(aim));
         Run r = r0.copy();
         List<PlayerInput> in = new ArrayList<PlayerInput>(prefix);
         Step.tick(r, st.jump(r), in);

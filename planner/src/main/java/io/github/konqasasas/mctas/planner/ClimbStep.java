@@ -20,6 +20,8 @@ final class ClimbStep implements Move {
     /** The foothold's feet area: minX, maxX, minZ, maxZ. */
     final double[] region;
     final int jumpAt;
+    /** {@link #jumpAt} for a jump on the last ground tick before running off the edge. */
+    static final int EDGE = Integer.MAX_VALUE;
     /** The cells from the entry to the exit, each touching the next, or null to head straight for the exit. */
     final List<int[]> path;
 
@@ -35,6 +37,17 @@ final class ClimbStep implements Move {
     final java.util.Set<Long> body;
 
     ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path, java.util.Set<Long> body) {
+        this(entry, exit, top, region, jumpAt, path, body, null);
+    }
+
+    /**
+     * A point to run to before the entry cell, or null: in front of the open side of a body set in a
+     * slot, which the straight way to the entry would hit the side of.
+     */
+    final double[] via;
+
+    ClimbStep(int[] entry, int[] exit, double top, double[] region, int jumpAt, List<int[]> path, java.util.Set<Long> body, double[] via) {
+        this.via = via;
         this.body = body;
         this.path = path;
         this.entry = entry;
@@ -59,10 +72,17 @@ final class ClimbStep implements Move {
             if (leg == 0 && in && (body == null || inBody(r))) leg = 1;
             // Off at the exit, or where the climb stops near it (a ceiling over the ladder).
             boolean stuck = in && !r.s.inWater && t > 0 && r.s.posY - lastY < 0.01 && r.s.posY > exit[1] - 1;
-            if (leg == 1 && (atExit(r) || stuck || (!in && left && r.s.posY > exit[1] + 0.5))) leg = 2;
+            // Not while stepping across a zigzag of ladders, where the climb stalls for a tick or two.
+            if (leg == 1 && (atExit(r) || stuck || (!in && left && r.s.posY > exit[1] + 0.5)) && zigzag(r, c.push(exit)) == null) leg = 2;
             lastY = r.s.posY;
             if (path != null) while (next < path.size() - 1 && touches(r, path.get(next))) next++;
             PlayerInput a = r.legal(path != null && leg == 1 ? swim(r, path.get(Math.min(next, path.size() - 1)), in) : control(r, ground, leg, in));
+            if (jumpAt == EDGE && leg == 0 && r.s.onGround && !in && (a.keys & PlayerInput.JUMP) == 0) {
+                // Jump on the last tick on the ground: the furthest take-off towards the entry.
+                Run probe = r.copy();
+                probe.step(a);
+                if (!probe.s.onGround) a = r.legal(new PlayerInput(a.keys | PlayerInput.JUMP, a.yaw, a.pitch));
+            }
             r.step(a);
             out.add(a);
             if (r.dead || r.done()) return;
@@ -79,7 +99,7 @@ final class ClimbStep implements Move {
     }
 
     /** In a cell of the body: the feet in one, or the part of the box that feels water touching one. */
-    private boolean inBody(Run r) {
+    boolean inBody(Run r) {
         if (body.contains(Course.key((int) Math.floor(r.s.posX), (int) Math.floor(r.s.posY), (int) Math.floor(r.s.posZ)))) return true;
         if (!r.s.inWater) return false;
         for (int x = (int) Math.floor(r.s.posX - 0.3); x <= (int) Math.floor(r.s.posX + 0.3); x++) {
@@ -115,16 +135,26 @@ final class ClimbStep implements Move {
         if (leg == 0) {
             tx = entry[0] + 0.5;
             tz = entry[2] + 0.5;
+            if (via != null && Math.hypot(tx - r.s.posX, tz - r.s.posZ) > Math.hypot(tx - via[0], tz - via[1]) + 0.1) {
+                tx = via[0];
+                tz = via[1];
+            }
         } else if (leg == 1) {
             // Up a ladder: push into the block it hangs on, which is what climbs, and keep in the
             // ladder's column: when the drift along the ladder would carry the player out, steer back.
             double[] push = r.course.push(exit);
             tx = exit[0] + 0.5 + push[0];
             tz = exit[2] + 0.5 + push[1];
-            if (in && (push[0] != 0 || push[1] != 0)) {
+            double[] zig = in || !r.s.onGround ? zigzag(r, push) : null;
+            if (zig != null) {
+                if (push[0] != 0) tz = zig[0];
+                else tx = zig[0];
+            }
+            if ((in || zig != null) && (push[0] != 0 || push[1] != 0)) {
                 double e = push[0] != 0 ? r.s.posZ - tz : r.s.posX - tx, v = push[0] != 0 ? r.s.motionZ : r.s.motionX;
                 double ahead = e + 3 * v;
-                double side = Math.abs(ahead) > 0.15 ? -Math.signum(ahead) : -e;
+                double tol = zig != null ? 0.01 : 0.15;
+                double side = Math.abs(ahead) > tol ? -Math.signum(ahead) : -e;
                 if (push[0] != 0) {
                     tx = exit[0] + 0.5 + 0.3 * push[0];
                     tz = r.s.posZ + side;
@@ -132,7 +162,7 @@ final class ClimbStep implements Move {
                     tz = exit[2] + 0.5 + 0.3 * push[1];
                     tx = r.s.posX + side;
                 }
-                if (Math.abs(ahead) <= 0.15) {
+                if (Math.abs(ahead) <= tol) {
                     tx = push[0] != 0 ? exit[0] + 0.5 + push[0] : tx;
                     tz = push[1] != 0 ? exit[2] + 0.5 + push[1] : tz;
                 }
@@ -157,15 +187,47 @@ final class ClimbStep implements Move {
                 return new PlayerInput(keys, yaw, 0F);
             }
             boolean sneak = d > 0.3 && above > -0.5 && above < d + 0.5;
+            // Caught the ladder before touching it (falling into its cell): sneak holds the height
+            // until the push against it climbs.
+            if (r.s.motionY < 0 && !r.s.collidedHorizontally && above < 0) sneak = true;
             if (r.s.onGround) sneak = false;
             return new PlayerInput(PlayerInput.W | (sneak ? PlayerInput.SNEAK : PlayerInput.SPRINT), yaw, 0F);
         }
         return new PlayerInput(PlayerInput.W | PlayerInput.SPRINT, yaw, 0F);
     }
 
+    /**
+     * Where to hold the player along the wall when the ladder above the feet is not straight up but one
+     * column over (single ladders zigzagging up a wall, L-504): in the feet's column, right at the
+     * edge towards that ladder ({@link #ZIG_EDGE} inside), so that it is caught as soon as the feet rise to it. Null
+     * when the ladder goes straight up (or the body is not known).
+     */
+    static final double ZIG_EDGE = 0.01;
+    /** How far past the edge to steer when stepping over to the ladder beside the feet (decisively: the fall has begun). */
+    static final double ZIG_OVER = 0.3;
+
+    private double[] zigzag(Run r, double[] push) {
+        if (body == null) return null;
+        int fx = (int) Math.floor(r.s.posX), fy = (int) Math.floor(r.s.posY), fz = (int) Math.floor(r.s.posZ);
+        boolean alongX = push[0] == 0;
+        if (!body.contains(Course.key(fx, fy, fz))) {
+            // Risen out of the ladder: step over to the one beside the feet.
+            for (int d = -1; d <= 1; d += 2) {
+                if (body.contains(Course.key(alongX ? fx + d : fx, fy, alongX ? fz : fz + d))) return new double[] {(alongX ? fx : fz) + (d > 0 ? 1 + ZIG_OVER : -ZIG_OVER)};
+            }
+            return null;
+        }
+        if (fy >= exit[1] || body.contains(Course.key(fx, fy + 1, fz))) return null;
+        for (int d = -1; d <= 1; d += 2) {
+            if (body.contains(Course.key(alongX ? fx + d : fx, fy + 1, alongX ? fz : fz + d))) return new double[] {(alongX ? fx : fz) + (d > 0 ? 1 - ZIG_EDGE : ZIG_EDGE)};
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return String.format("climb via (%d %d %d)-(%d %d %d) onto top %.2f, jump at %d",
-            entry[0], entry[1], entry[2], exit[0], exit[1], exit[2], top, jumpAt);
+            entry[0], entry[1], entry[2], exit[0], exit[1], exit[2], top, jumpAt)
+            + (via == null ? "" : String.format(" by (%.2f, %.2f)", via[0], via[1]));
     }
 }

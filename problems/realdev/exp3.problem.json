@@ -1,0 +1,30 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "realdev/exp3",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "imported": {"exportedFrom": "mctas-recorder", "from": [-48, 71, 226], "to": [-39, 91, 249]},
+    "fills": [
+      {"from": [-40, 71, 249], "block": "minecraft:double_plant"},
+      {"from": [-44, 77, 230], "to": [-44, 77, 231], "block": "minecraft:stone"},
+      {"from": [-44, 77, 232], "block": "minecraft:redstone_block"},
+      {"from": [-44, 78, 234], "block": "minecraft:skull[facing=up]"},
+      {"from": [-44, 79, 236], "block": "minecraft:skull[facing=up]"},
+      {"from": [-45, 80, 237], "block": "minecraft:skull[facing=up]"},
+      {"from": [-43, 81, 237], "block": "minecraft:skull[facing=up]"},
+      {"from": [-43, 82, 238], "block": "minecraft:skull[facing=north]"},
+      {"from": [-43, 83, 240], "block": "minecraft:skull[facing=up]"},
+      {"from": [-45, 84, 240], "block": "minecraft:skull[facing=east]"},
+      {"from": [-46, 85, 240], "block": "minecraft:skull[facing=up]"},
+      {"from": [-46, 86, 242], "block": "minecraft:skull[facing=up]"},
+      {"from": [-43, 87, 243], "block": "minecraft:skull[facing=up]"},
+      {"from": [-43, 87, 246], "block": "minecraft:redstone_block"}
+    ]
+  },
+  "spawn": {"pos": [-43.52561130344521, 78.0, 230.40845493538004], "yaw": -1440.0659, "pitch": 52.03357},
+  "start": {"min": [-44.0, 78.0, 232.0], "max": [-43.0, 79.0, 233.0]},
+  "goal": {"min": [-43.0, 88.0, 246.0], "max": [-42.0, 89.0, 247.0]},
+  "limits": {"maxTicks": 1200, "voidY": 71.0}
+}

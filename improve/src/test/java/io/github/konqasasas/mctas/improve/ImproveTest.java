@@ -81,6 +81,20 @@ public class ImproveTest {
         in[t] = new PlayerInput(in[t].keys & ~PlayerInput.SPRINT & ~PlayerInput.W, in[t].yaw, 0);
         Run r = new Course(p).evaluate(in);
         assertFalse(r.valid());
+        assertTrue(ToggleFix.clash(r) > 0);
+    }
+
+    @Test
+    public void toggleFixMendsAClash() throws Exception {
+        Problem p = problem("08-two-jumps");
+        Course c = new Course(p);
+        PlayerInput[] in = witness(p, "08-two-jumps");
+        int t = c.evaluate(in).startTick() / 2;
+        in[t] = new PlayerInput(in[t].keys & ~PlayerInput.SPRINT & ~PlayerInput.W, in[t].yaw, 0);
+        Run r = c.evaluate(in);
+        assertTrue(r.toString(), ToggleFix.clash(r) > 0);
+        Run fixed = new ToggleFix().apply(c, r, new Random(1));
+        assertTrue(r + " -> " + fixed, fixed.valid());
     }
 
     @Test
@@ -124,5 +138,19 @@ public class ImproveTest {
         assertEquals(1, cma.mean[0], 1e-3);
         assertEquals(-1, cma.mean[1], 1e-3);
         assertEquals(0, cma.mean[2], 1e-3);
+    }
+
+    @Test
+    public void windowInputsAreDistinctAndMostUsedFirst() {
+        PlayerInput run = PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT, 0);
+        PlayerInput jump = PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT | PlayerInput.JUMP, 0);
+        PlayerInput sneak = PlayerInput.of(PlayerInput.W | PlayerInput.SNEAK, 90);
+        PlayerInput[] in = {jump, run, run, sneak, run, sneak};
+        List<PlayerInput> w = Rebuild.windowInputs(in, 0, in.length);
+        assertEquals(3, w.size());
+        assertEquals(run, w.get(0));
+        assertEquals(sneak, w.get(1));
+        assertEquals(jump, w.get(2));
+        assertEquals(2, Rebuild.windowInputs(in, 3, 5).size());
     }
 }

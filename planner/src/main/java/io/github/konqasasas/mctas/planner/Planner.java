@@ -61,11 +61,15 @@ final class Planner {
     double backSlack = 8;
     /** Jump branching reaches this far past the best jump's reach (see {@link StepManeuver}). */
     double far = 1.5;
+    /** Share of the time left that the round keeps after its first plan (the rest goes to the rounds after it). */
+    double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
+    /** Time spent in each maneuver (with {@link #DEBUG}). */
+    final Map<String, Long> maneuverNanos = new java.util.TreeMap<String, Long>();
     int expanded, generated;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
@@ -74,6 +78,7 @@ final class Planner {
         this.course = course;
         maneuvers.add(new ClimbManeuver());
         maneuvers.add(new HoleManeuver());
+        maneuvers.add(new BounceClimbManeuver());
     }
 
     Planner add(Maneuver m) {
@@ -114,15 +119,24 @@ final class Planner {
             succ.clear();
             List<double[]> aims = aims(n.run);
             expandParallel(steps, n.run, aims, succ);
-            for (Maneuver m : maneuvers) m.expand(n.run, aims, succ);
+            for (Maneuver m : maneuvers) {
+                long t0 = DEBUG ? System.nanoTime() : 0;
+                m.expand(n.run, aims, succ);
+                if (DEBUG) maneuverNanos.merge(m.getClass().getSimpleName(), System.nanoTime() - t0, Long::sum);
+            }
             int[] why = new int[4];
             for (Maneuver.Successor x : succ) {
                 generated++;
                 if (x.run.done()) {
                     int t = x.run.time();
                     if (t < bestTime) {
+                        if (best == null) {
+                            long now = System.currentTimeMillis();
+                            deadline = Math.min(deadline, now + (long) ((deadline - now) * afterFirst));
+                        }
                         bestTime = t;
                         best = new Node(x.run, n, x.move, x.inputs, t);
+                        if (DEBUG) System.err.printf("  found %d ticks, %d expanded, %d ms before the deadline%n", t, expanded, deadline - System.currentTimeMillis());
                     }
                     continue;
                 }
@@ -313,12 +327,19 @@ final class Planner {
             double nx = clamp(x, bx0 + ix, bx1 - ix), nz = clamp(z, bz0 + iz, bz1 - iz);
             out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             addVias(x, z, Math.max(y, b.top), new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, out);
+            if (here >= 0) addCorner(r, new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ}, a -> a.next.contains(b) && !a.notByStep.contains(b), out);
             // A bounce: by way of the slime block's middle.
             if (here >= 0) {
                 for (Course.Surface a : course.platforms.get(here)) {
                     Course.Surface sl = a.bounceVia.get(b);
                     if (sl == null) continue;
-                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sl.cx(), sl.cz()});
+                    // Land with the centre well over the slime, at its point nearest the foothold.
+                    double[] e = course.slimeExtent(sl);
+                    double in = BounceClimbManeuver.LAND_IN;
+                    double sx0 = e[0] + in, sx1 = e[1] - in, sz0 = e[2] + in, sz1 = e[3] - in;
+                    double sx = clamp(nx, Math.min(sx0 + 0.1, (sx0 + sx1) / 2), Math.max(sx1 - 0.1, (sx0 + sx1) / 2));
+                    double sz = clamp(nz, Math.min(sz0 + 0.1, (sz0 + sz1) / 2), Math.max(sz1 - 0.1, (sz0 + sz1) / 2));
+                    out.add(new double[] {nx, nz, b.top, b.minX, b.maxX, b.minZ, b.maxZ, sx, sz, sx0, sx1, sz0, sz1, sl.top});
                     break;
                 }
             }
@@ -329,12 +350,110 @@ final class Planner {
                 if (Math.hypot(q[0] - nx, q[1] - nz) > 0.15) out.add(new double[] {q[0], q[1], b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             }
         }
+        // The bodies off this platform with the best footholds beyond them.
+        if (here >= 0) {
+            List<Integer> bodies = new ArrayList<Integer>();
+            List<Double> best = new ArrayList<Double>();
+            for (Course.Surface a : course.platforms.get(here)) {
+                for (int i = 0; i < a.viaBody.size(); i++) {
+                    int b = a.viaBodyId.get(i);
+                    double t = a.viaBody.get(i).toGo;
+                    int k = bodies.indexOf(b);
+                    if (k < 0) {
+                        bodies.add(b);
+                        best.add(t);
+                    } else if (t < best.get(k)) best.set(k, t);
+                }
+            }
+            Integer[] order = new Integer[bodies.size()];
+            for (int i = 0; i < order.length; i++) order[i] = i;
+            java.util.Arrays.sort(order, (p, q) -> Double.compare(best.get(p), best.get(q)));
+            for (int i = 0; i < Math.min(BODY_CORNERS, order.length); i++) addBodyCorner(r, bodies.get(order[i]), out);
+        }
         if (goalNear || here < 0) {
             Region g = course.problem.goal;
             double ix = Math.min(0.2, (g.maxX - g.minX) / 2), iz = Math.min(0.2, (g.maxZ - g.minZ) / 2);
-            out.add(new double[] {clamp(x, g.minX + ix, g.maxX - ix), clamp(z, g.minZ + iz, g.maxZ - iz), g.minY, g.minX, g.maxX, g.minZ, g.maxZ});
+            double[] ga = {clamp(x, g.minX + ix, g.maxX - ix), clamp(z, g.minZ + iz, g.maxZ - iz), g.minY, g.minX, g.maxX, g.minZ, g.maxZ};
+            out.add(ga);
+            if (here >= 0) addCorner(r, ga, a -> a.nearGoal, out);
         }
         return out;
+    }
+
+    /** Bodies off the platform that a corner towards an entry is looked for. */
+    static final int BODY_CORNERS = 2;
+    /** Footholds a corner search ({@link #addCorner}) visits at most. */
+    static final int CORNER_SEARCH = 600;
+
+    /**
+     * When walls on the player's own platform stand between the player and an aim (a slalom between
+     * posts or panes), the first corner to round, as an aim of its own: the shortest walk
+     * over the platform's footholds to one from which the move is made ({@code from}) with a clear line
+     * into the aim's region, pulled straight to its furthest foothold the player can see.
+     */
+    private void addCorner(Run r, double[] aim, java.util.function.Predicate<Course.Surface> from, List<double[]> out) {
+        double x = r.s.posX, y = r.s.posY, z = r.s.posZ;
+        if (!course.blockedLine(x, z, aim[0], aim[1], y)) return;
+        addCorner(r, a -> from.test(a) && !course.blockedLine(a.cx(), a.cz(), clamp(a.cx(), aim[3], aim[4]), clamp(a.cz(), aim[5], aim[6]), a.top), out);
+    }
+
+    /**
+     * The same for a body of ladders, vines or water the platform leads into (handled by
+     * {@link ClimbManeuver}, which runs straight at the entry): when no entry is in sight from where
+     * the player stands, the corner on the way to a foothold that has one.
+     */
+    private void addBodyCorner(Run r, int body, List<double[]> out) {
+        List<int[]> cells = course.bodies.get(body);
+        java.util.function.Predicate<Course.Surface> sees = a -> {
+            for (int[] c : cells) {
+                if (course.canEnter(a, c) && !course.blockedLine(a.cx(), a.cz(), c[0] + 0.5, c[2] + 0.5, Math.min(a.top, c[1]))) return true;
+            }
+            return false;
+        };
+        Course.Surface start = course.support(r.s.posX, r.s.posY, r.s.posZ);
+        if (start == null || sees.test(start)) return;
+        addCorner(r, sees, out);
+    }
+
+    /** The corner on the walk over the player's platform to the nearest foothold that {@code goal} accepts. */
+    private void addCorner(Run r, java.util.function.Predicate<Course.Surface> goal, List<double[]> out) {
+        double x = r.s.posX, y = r.s.posY, z = r.s.posZ;
+        Course.Surface start = course.support(x, y, z);
+        if (start == null) return;
+        Map<Course.Surface, Course.Surface> back = new HashMap<Course.Surface, Course.Surface>();
+        java.util.ArrayDeque<Course.Surface> queue = new java.util.ArrayDeque<Course.Surface>();
+        back.put(start, start);
+        queue.add(start);
+        Course.Surface end = null;
+        while (!queue.isEmpty() && back.size() < CORNER_SEARCH) {
+            Course.Surface a = queue.poll();
+            if (a != start && goal.test(a)) {
+                end = a;
+                break;
+            }
+            for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                List<Course.Surface> col = course.column(a.x + d[0], a.z + d[1]);
+                if (col == null) continue;
+                for (Course.Surface n : col) {
+                    if (n.platform != a.platform || n.top != a.top || back.containsKey(n)) continue;
+                    if (course.blockedLine(a.cx(), a.cz(), n.cx(), n.cz(), a.top)) continue;
+                    back.put(n, a);
+                    queue.add(n);
+                }
+            }
+        }
+        if (end == null) return;
+        List<Course.Surface> path = new ArrayList<Course.Surface>();
+        for (Course.Surface a = end; a != start; a = back.get(a)) path.add(0, a);
+        Course.Surface corner = null;
+        for (Course.Surface a : path) {
+            if (course.blockedLine(x, z, a.cx(), a.cz(), y)) break;
+            corner = a;
+        }
+        if (corner == null) return;
+        for (double[] o : out) if (o.length == 8 && o[0] == corner.cx() && o[1] == corner.cz()) return;
+        // Length 8 marks a corner: the walk stops there (StepManeuver).
+        out.add(new double[] {corner.cx(), corner.cz(), corner.top, corner.minX, corner.maxX, corner.minZ, corner.maxZ, 1});
     }
 
     /**
