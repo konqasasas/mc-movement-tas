@@ -287,6 +287,7 @@ public final class RecorderController {
         if (phase != Phase.RUN) {
             return;
         }
+        logChanges("before tick " + tick);
         checkPressed();
         PlayerState now = PlayerSnapshot.read(p);
         readPlacement(p, now, lastEnd);
@@ -336,6 +337,7 @@ public final class RecorderController {
                 PlayerState real = PlayerSnapshot.read(p);
                 PlayerInput in = mode == Mode.RECORD ? PlayerSnapshot.lastInput(p) : inputs.get(tick);
                 Physics.step(blocks, sim, in);
+                logChanges("during tick " + tick);
                 notePresses();
                 if (sim.unsupportedAction && runUnsupportedTick < 0) {
                     runUnsupportedTick = tick;
@@ -389,6 +391,17 @@ public final class RecorderController {
     public void onGuiOpen(GuiOpenEvent event) {
         if (phase == Phase.RUN && mode != Mode.RECORD && event.getGui() != null) {
             runScreenOpened = true;
+        }
+    }
+
+    /**
+     * Logs the client's block changes since the last call. The engine reads the world as it was when
+     * the run began, so a change here (the client's own button press aside) is a block the real player
+     * meets and the engine does not.
+     */
+    private void logChanges(String when) {
+        for (String c : blocks.drainChanges()) {
+            log.println("# block changed " + when + ": " + c);
         }
     }
 
