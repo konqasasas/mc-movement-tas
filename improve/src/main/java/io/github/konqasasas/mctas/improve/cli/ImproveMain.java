@@ -37,7 +37,7 @@ public final class ImproveMain {
     private static final String USAGE = String.join("\n",
             "usage:",
             "  mctas-improve run <problem.json|problem-dir> --seeds <file|dir>[,...] --out <dir> [--budget seconds]",
-            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--quiet]",
+            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--quiet]",
             "    Improves the seed runs of each problem for --budget seconds (default 60) and writes",
             "    <id with / as _>.solution.json and .tas to --out. Seeds are .tas or .solution.json files; in a",
             "    directory, a .solution.json is matched by the problem id inside, a .tas by its file name",
@@ -72,6 +72,7 @@ public final class ImproveMain {
                     break;
                 }
                 case "--quiet": quiet = true; break;
+                case "--fixed-shares": o.adaptive = false; break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);

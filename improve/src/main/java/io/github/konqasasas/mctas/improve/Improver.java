@@ -128,7 +128,6 @@ public final class Improver {
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
-        double[] spent = new double[Move.values().length];
         double[] share = o.shares.clone();
         double[] gain = new double[share.length], time = new double[share.length];
         long nextAdapt = System.nanoTime() + (long) (o.adaptSeconds * 1e9);
@@ -142,10 +141,9 @@ public final class Improver {
         while (System.nanoTime() < deadline) {
             if (o.adaptive && System.nanoTime() > nextAdapt) {
                 adapt(share, gain, time);
-                Arrays.fill(spent, 0);
                 nextAdapt = System.nanoTime() + (long) (o.adaptSeconds * 1e9);
             }
-            Move m = pick(spent, share);
+            Move m = pick(time, share);
             long t0 = System.nanoTime();
             Run r;
             try {
@@ -159,7 +157,6 @@ public final class Improver {
                 r = null;
             }
             long dt = System.nanoTime() - t0;
-            spent[m.ordinal()] += dt / share[m.ordinal()];
             time[m.ordinal()] += dt / 1e9;
             synchronized (this) {
                 stats.calls[m.ordinal()]++;
@@ -188,10 +185,12 @@ public final class Improver {
         }
     }
 
-    /** The move whose time, divided by its share, is smallest. */
+    /** The move whose (recent) time, divided by its share, is smallest. */
     private static Move pick(double[] spent, double[] share) {
-        int k = 0;
-        for (int i = 1; i < spent.length; i++) if (share[i] > 0 && (share[k] <= 0 || spent[i] < spent[k])) k = i;
+        int k = -1;
+        for (int i = 0; i < spent.length; i++) {
+            if (share[i] > 0 && (k < 0 || spent[i] / share[i] < spent[k] / share[k])) k = i;
+        }
         return Move.values()[k];
     }
 
