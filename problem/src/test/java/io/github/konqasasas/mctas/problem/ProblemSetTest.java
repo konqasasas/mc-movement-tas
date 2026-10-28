@@ -31,6 +31,11 @@ public class ProblemSetTest {
     }
 
     @Test
+    public void everyFallWitnessReachesItsTargetExactly() throws IOException {
+        assertEquals(1, checkWitnesses(Paths.get("..", "problems", "fall")));
+    }
+
+    @Test
     public void everyV1WitnessReachesItsTargetExactly() throws IOException {
         assertEquals(8, checkWitnesses(Paths.get("..", "problems", "v1-dev")));
         // Some held-out courses have no known solution yet.
