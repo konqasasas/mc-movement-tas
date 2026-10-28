@@ -122,7 +122,12 @@ public final class Main {
         int failures = 0;
         for (Path f : files) {
             Problem problem = ProblemIO.read(f);
-            if (problem.target == null || problem.target.witness == null) {
+            if (problem.target != null && problem.target.witness == null) {
+                System.out.println(problem.id + ": target " + problem.target.ticks + " ("
+                    + problem.target.kind.name().toLowerCase() + ", no witness)");
+                continue;
+            }
+            if (problem.target == null) {
                 System.out.println(problem.id + ": no target");
                 continue;
             }

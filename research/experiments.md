@@ -30,3 +30,4 @@
 | E-024 | 2026-10-28 | F-024 の対応の悪化確認 | `mctas-approx gen /tmp/dev2 v1-dev2 9 16` を v2(`ce94d4a`)と `c41692a` で `--budget 20` | 14 問ずつ解け、2 問で良く 2 問で 1 ティック悪い | F-027 |
 | E-200 | 2026-10-28 | F-024 の対応の悪化確認(続き) | `mctas-approx gen` でシード 25〜120 を足し、v2 と新版を `--budget 20`(48 問)と `--budget 5`(64 問)で 1 本ずつ。`v1-holdout` を `--budget 30` で 3 回 | 調整用は悪化なし、報告用は s1002 を落とす | F-200 |
 | E-201 | 2026-10-28 | human6 の初回測定 | `mctas-approx solve problems/human6 out --budget 60 --quiet` を v2 と新版で、`mctas-problem score problems/human6 out-v2 out-v3` | どちらも 0/6 | F-201 |
+| E-202 | 2026-10-28 | human6 の解けない理由の種別 | 経路 6 種を引き、方策だけを走らせて、経路の有無・止まった通過点・止まり方だけを出す使い捨てのクラス(`Route`、`Pilot.play`) | 2 問は経路なし、4 問は方策が序盤で落ちる | F-202 |
