@@ -66,6 +66,7 @@ public final class ExactModel implements MovementModel<PlayerState> {
         if (in.has(PlayerInput.SPRINT)) k.add(Key.SPRINT);
         if (in.has(PlayerInput.SNEAK)) k.add(Key.SNEAK);
         if (in.has(PlayerInput.USE)) k.add(Key.USE);
+        if (in.has(PlayerInput.CLOSE)) k.add(Key.CLOSE);
         return new TickInput(k, in.yaw, in.pitch, in.slot);
     }
 }

@@ -37,7 +37,7 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [shapes|fluids|place|press] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | probe shulker [trials] | stop"
+        return "/mctas fuzz [shapes|fluids|place|press|shulker] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> [force] | record | probe shulker [trials] | stop"
                 + " | mark from|to [x y z] | mark spawn | mark start x1 y1 z1 x2 y2 z2 | mark goal [x y z | x1 y1 z1 x2 y2 z2] | export <name> [id] | checkids";
     }
 

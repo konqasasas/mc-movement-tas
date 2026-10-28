@@ -95,6 +95,23 @@ public class BlockType {
         return t;
     }
 
+    /**
+     * The same block with one box for both collision and selection and other face shapes: a shulker box
+     * whose lid is moving, which takes its shape from the tile entity. Only for blocks read from the table.
+     */
+    BlockType withShape(Aabb box, FaceShape[] shapes) {
+        if (getClass() != BlockType.class) {
+            throw new IllegalArgumentException(name + " is written by hand");
+        }
+        BlockType t = new BlockType(name, Collections.singletonList(box), slipperiness, normalCube, air, shapes, except);
+        t.blocksMovement = blocksMovement;
+        t.setInteraction(rayHittable, materialReplaceable, activates, placeable, replaceable, replaceableFromNeighbours,
+                box, selectionFromNeighbours, selectionOffsetXZ, fragile);
+        t.selectionUnknown = selectionUnknown;
+        t.reactsToPower = reactsToPower;
+        return t;
+    }
+
     /** True if the two table blocks differ in nothing the engine reads but the selection box. */
     boolean sameExceptSelection(BlockType o) {
         return getClass() == BlockType.class && o.getClass() == BlockType.class && Arrays.equals(boxes, o.boxes)
