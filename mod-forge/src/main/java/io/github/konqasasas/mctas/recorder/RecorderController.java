@@ -7,6 +7,19 @@ import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import io.github.konqasasas.mctas.physics.testing.RandomScenario;
+import io.github.konqasasas.mctas.problem.Problem;
+import io.github.konqasasas.mctas.problem.Region;
+import io.github.konqasasas.mctas.problem.Vec3;
+import io.github.konqasasas.mctas.problem.input.TickInput;
+import io.github.konqasasas.mctas.problem.io.InputText;
+import io.github.konqasasas.mctas.problem.io.ProblemIO;
+import io.github.konqasasas.mctas.problem.io.SolutionIO;
+import io.github.konqasasas.mctas.problem.judge.Evaluator;
+import io.github.konqasasas.mctas.problem.judge.Judge;
+import io.github.konqasasas.mctas.problem.judge.PhysicsModel;
+import io.github.konqasasas.mctas.problem.judge.RunResult;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -39,6 +52,8 @@ import java.util.List;
  *   <li>{@code fuzz}: builds the engine's random test courses next to the player, teleports to each
  *       start and plays its random inputs. The same seeds as the engine's own tests.</li>
  *   <li>{@code record}: follows the person's own play.</li>
+ *   <li>{@code replay}: builds a problem's world where the problem puts it, teleports to its spawn and
+ *       plays a solution, judging the start and goal entries on the real player.</li>
  * </ul>
  *
  * Every tick the real player's state is compared with the engine's prediction from the previous
@@ -48,7 +63,7 @@ import java.util.List;
  */
 public final class RecorderController {
 
-    private enum Mode { SCRIPT, FUZZ, RECORD }
+    private enum Mode { SCRIPT, FUZZ, RECORD, REPLAY }
 
     private enum Phase { IDLE, PREPARE, SETTLE, RUN }
 
@@ -58,6 +73,8 @@ public final class RecorderController {
     private static final int FUZZ_MAX_Y = 72;
     private static final int SETTLE_TICKS = 15;
     private static final int SETTLE_TIMEOUT = 100;
+    /** Largest area the replay mode clears, in blocks. */
+    private static final long REPLAY_MAX_VOLUME = 4000000L;
 
     private final Minecraft mc = Minecraft.getMinecraft();
     private final InputDriver driver = new InputDriver();
@@ -93,12 +110,25 @@ public final class RecorderController {
     private int originX;
     private int originZ;
     private RandomScenario scenario;
+    /** The blocks built for the current run (a fuzz course or a problem world), at {@link #originX}, {@link #originZ}. */
+    private SparseBlockWorld course;
+    /** What the player holds while settling before a run. */
+    private PlayerInput settleInput;
     private volatile boolean serverReady;
     private int settleCount;
     private int runsMatched;
     private int runsMismatched;
     private int runsInvalid;
     private int runsSkipped;
+
+    // replay
+    private Problem problem;
+    private Judge judge;
+    private String replayExpected;
+    private RunResult enginePrediction;
+    /** First tick on which the player was hurt, or -1: damage lets the server overwrite the velocity. */
+    private int runDamageTick;
+    private boolean replayOffSpawn;
 
     public boolean active() {
         return phase != Phase.IDLE;
@@ -163,7 +193,8 @@ public final class RecorderController {
         driver.uninstall();
         restoreDamage();
         phase = Phase.IDLE;
-        String summary = mode == Mode.FUZZ
+        String summary = mode == Mode.REPLAY ? "replay done"
+                : mode == Mode.FUZZ
                 ? String.format("fuzz: %d matched, %d mismatched, %d invalid, %d skipped (not standing starts)",
                 runsMatched, runsMismatched, runsInvalid, runsSkipped)
                 : "stopped";
@@ -201,7 +232,7 @@ public final class RecorderController {
 
     private void onTickStart(EntityPlayerSP p) {
         if (phase == Phase.SETTLE) {
-            driver.apply(PlayerInput.of(0, scenario.start.rotationYaw));
+            driver.apply(settleInput);
             return;
         }
         if (phase != Phase.RUN) {
@@ -232,7 +263,14 @@ public final class RecorderController {
             case SETTLE:
                 settleCount++;
                 if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient()) {
-                    beginRun("seed " + seed);
+                    if (mode == Mode.REPLAY) {
+                        beginReplay(p);
+                    } else {
+                        beginRun("seed " + seed);
+                    }
+                } else if (settleCount >= SETTLE_TIMEOUT && mode == Mode.REPLAY) {
+                    log.println("# the world or the player did not settle at the spawn");
+                    stop("the player did not come to rest at the spawn, or the world was not built");
                 } else if (settleCount >= SETTLE_TIMEOUT) {
                     runsInvalid++;
                     log.println("# seed " + seed + ": course or player did not settle, skipped");
@@ -246,7 +284,10 @@ public final class RecorderController {
                 if (entityNearby(p)) {
                     runEntityTicks++;
                 }
-                if (mode == Mode.FUZZ && runWorldChange == null) {
+                if (mode == Mode.REPLAY && runDamageTick < 0 && p.hurtTime > 0) {
+                    runDamageTick = tick;
+                }
+                if ((mode == Mode.FUZZ || mode == Mode.REPLAY) && runWorldChange == null) {
                     String changed = firstCourseChange();
                     if (changed != null) {
                         runWorldChange = "tick " + tick + " " + changed;
@@ -266,7 +307,9 @@ public final class RecorderController {
                 }
                 lastEnd = real;
                 tick++;
-                if (mode != Mode.RECORD && tick >= inputs.size()) {
+                boolean judged = mode == Mode.REPLAY
+                        && judge.observe(new Vec3(real.posX, real.posY, real.posZ));
+                if (mode != Mode.RECORD && (judged || tick >= inputs.size())) {
                     endRun();
                     // Leave RUN first, or stop() would close the finished run a second time.
                     phase = Phase.PREPARE;
@@ -309,6 +352,7 @@ public final class RecorderController {
         runFirstMismatch = null;
         runScreenOpened = false;
         runWorldChange = null;
+        runDamageTick = -1;
         runPausedTicks = 0;
         phase = Phase.RUN;
         log.println("# run " + label);
@@ -317,6 +361,10 @@ public final class RecorderController {
     }
 
     private void endRun() {
+        if (mode == Mode.REPLAY) {
+            endReplay();
+            return;
+        }
         String result;
         if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
@@ -347,6 +395,163 @@ public final class RecorderController {
         }
     }
 
+    /**
+     * Plays a solution of a problem on the real player: an {@code mctas-solution} JSON file or a text
+     * inputs file. The problem's world is built at its own coordinates, so the area it covers (plus a
+     * margin) is overwritten.
+     */
+    public void startReplay(File problemFile, File solutionFile) throws IOException {
+        if (!checkPlayer()) {
+            return;
+        }
+        if (mc.getIntegratedServer() == null) {
+            chat("replay needs a single-player world.");
+            return;
+        }
+        Problem pr;
+        List<TickInput> solution;
+        JsonObject expected;
+        try {
+            pr = ProblemIO.read(problemFile.toPath());
+            String json = new String(java.nio.file.Files.readAllBytes(solutionFile.toPath()), StandardCharsets.UTF_8);
+            if (json.trim().startsWith("{")) {
+                solution = SolutionIO.readInputs(json);
+                JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+                expected = root.has("result") ? root.getAsJsonObject("result") : new JsonObject();
+            } else {
+                // A text inputs file (.tas), as the problem tools read it.
+                solution = InputText.parse(json, pr.spawn);
+                expected = new JsonObject();
+            }
+        } catch (RuntimeException e) {
+            chat("cannot read the problem or the solution: " + e.getMessage());
+            return;
+        }
+        int[] box = replayBox(pr);
+        long volume = (long) (box[3] - box[0] + 1) * (box[4] - box[1] + 1) * (box[5] - box[2] + 1);
+        if (volume > REPLAY_MAX_VOLUME) {
+            chat("the problem's area is too large to build (" + volume + " blocks).");
+            return;
+        }
+        List<PlayerInput> in = new java.util.ArrayList<PlayerInput>();
+        for (TickInput t : solution) {
+            in.add(PhysicsModel.toPhysics(t));
+        }
+        openLog("replay-" + pr.id.replaceAll("[^A-Za-z0-9._-]", "_"));
+        problem = pr;
+        enginePrediction = Evaluator.run(pr, solution);
+        replayExpected = expected.has("status") ? describe(expected.get("status").getAsString(),
+                intOr(expected, "startTick"), intOr(expected, "goalTick")) : "no result";
+        log.println("# replay of " + solutionFile.getAbsolutePath() + " (" + in.size() + " ticks) on problem "
+                + pr.id + " from " + problemFile.getAbsolutePath());
+        log.println("# solution file says: " + replayExpected);
+        log.println("# engine predicts:    " + describe(enginePrediction));
+        log.println("# cleared and built: " + box[0] + " " + box[1] + " " + box[2] + " .. " + box[3] + " " + box[4] + " " + box[5]);
+        mode = Mode.REPLAY;
+        inputs = in;
+        course = pr.world;
+        originX = 0;
+        originZ = 0;
+        settleInput = new PlayerInput(0, pr.spawn.yaw, pr.spawn.pitch);
+        driver.install(mc.player);
+        chat("Replaying " + in.size() + " ticks of " + solutionFile.getName() + " on " + pr.id
+                + ". The area " + box[0] + " " + box[1] + " " + box[2] + " .. " + box[3] + " " + box[4] + " " + box[5]
+                + " is rebuilt.");
+        build(box, pr.spawn.pos.x, pr.spawn.pos.y, pr.spawn.pos.z, pr.spawn.yaw, pr.spawn.pitch, false);
+    }
+
+    /** The problem's blocks, spawn, start and goal, with a margin of 3 blocks around and 4 above. */
+    private static int[] replayBox(Problem pr) {
+        final double[] b = {pr.spawn.pos.x, pr.spawn.pos.y, pr.spawn.pos.z, pr.spawn.pos.x, pr.spawn.pos.y, pr.spawn.pos.z};
+        pr.world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                grow(b, x, y, z);
+                grow(b, x + 1, y + 1, z + 1);
+            }
+        });
+        for (Region r : new Region[] {pr.start, pr.goal}) {
+            grow(b, r.minX, r.minY, r.minZ);
+            grow(b, r.maxX, r.maxY, r.maxZ);
+        }
+        return new int[] {
+            (int) Math.floor(b[0]) - 3, Math.max(0, (int) Math.floor(b[1]) - 3), (int) Math.floor(b[2]) - 3,
+            (int) Math.ceil(b[3]) + 3, Math.min(255, (int) Math.ceil(b[4]) + 4), (int) Math.ceil(b[5]) + 3
+        };
+    }
+
+    private static void grow(double[] b, double x, double y, double z) {
+        b[0] = Math.min(b[0], x);
+        b[1] = Math.min(b[1], y);
+        b[2] = Math.min(b[2], z);
+        b[3] = Math.max(b[3], x);
+        b[4] = Math.max(b[4], y);
+        b[5] = Math.max(b[5], z);
+    }
+
+    private void beginReplay(EntityPlayerSP p) {
+        Vec3 spawn = problem.spawn.pos;
+        replayOffSpawn = p.posX != spawn.x || p.posY != spawn.y || p.posZ != spawn.z;
+        beginRun("replay " + problem.id);
+        if (replayOffSpawn) {
+            log.println("# the player rests at " + p.posX + " " + p.posY + " " + p.posZ + ", not at the spawn "
+                    + spawn.x + " " + spawn.y + " " + spawn.z);
+        }
+        judge = new Judge(problem);
+    }
+
+    private void endReplay() {
+        RunResult real = judge.result();
+        List<String> notes = new java.util.ArrayList<String>();
+        if (replayOffSpawn) {
+            notes.add("the player did not start exactly at the spawn");
+        }
+        if (!blocks.unsupported().isEmpty()) {
+            notes.add("touched unsupported blocks " + blocks.unsupported());
+        }
+        if (runScreenOpened) {
+            notes.add("a screen was opened");
+        }
+        if (runWorldChange != null) {
+            notes.add("the world changed, first at " + runWorldChange);
+        }
+        if (runEntityTicks > 0) {
+            notes.add("another entity was next to the player on " + runEntityTicks + " ticks");
+        }
+        if (runDamageTick >= 0) {
+            notes.add("the player was hurt at tick " + runDamageTick);
+        }
+        notes.add(runMismatches == 0 ? "the engine matched every tick"
+                : "the engine differed on " + runMismatches + " ticks, first at " + runFirstMismatch);
+        String result = "real game: " + describe(real) + "; solution file: " + replayExpected
+                + "; engine: " + describe(enginePrediction);
+        log.println("# result " + result);
+        for (String n : notes) {
+            log.println("# note " + n);
+        }
+        log.flush();
+        chat(result);
+        for (String n : notes) {
+            chat("  " + n);
+        }
+    }
+
+    private static String describe(RunResult r) {
+        return describe(r.status.name(), r.finished() ? r.startTick : null, r.finished() ? r.goalTick : null);
+    }
+
+    private static String describe(String status, Integer start, Integer goal) {
+        String st = status.toUpperCase(java.util.Locale.ROOT);
+        if (start == null || goal == null) {
+            return st;
+        }
+        return st + " start " + start + ", goal " + goal + " (" + (goal - start) + " ticks)";
+    }
+
+    private static Integer intOr(JsonObject o, String key) {
+        return o.has(key) ? Integer.valueOf(o.get(key).getAsInt()) : null;
+    }
+
     private void advanceFuzz() {
         seed++;
         if (seed > lastSeed) {
@@ -374,21 +579,40 @@ public final class RecorderController {
             return;
         }
         inputs = scenario.inputs;
+        course = scenario.world;
+        settleInput = PlayerInput.of(0, scenario.start.rotationYaw);
+        PlayerState st = scenario.start;
+        build(new int[] {originX - FUZZ_RADIUS, FUZZ_MIN_Y, originZ - FUZZ_RADIUS,
+                originX + FUZZ_RADIUS, FUZZ_MAX_Y, originZ + FUZZ_RADIUS},
+                st.posX + originX, st.posY, st.posZ + originZ, st.rotationYaw, 0.0F, true);
+    }
+
+    /**
+     * Clears the box (inclusive block coordinates minX, minY, minZ, maxX, maxY, maxZ), builds
+     * {@link #course} at the origin and teleports the player, on the server thread; then waits in
+     * PREPARE until that is done.
+     */
+    private void build(final int[] box, final double x, final double y, final double z, final float yaw,
+                       final float pitch, final boolean invulnerable) {
         phase = Phase.PREPARE;
         serverReady = false;
-        final RandomScenario sc = scenario;
+        final SparseBlockWorld world = course;
+        final int ox = originX;
+        final int oz = originZ;
         final IntegratedServer server = mc.getIntegratedServer();
         final java.util.UUID id = mc.player.getUniqueID();
         server.addScheduledTask(new Runnable() {
             @Override
             public void run() {
-                buildOnServer(server, id, sc);
+                buildOnServer(server, id, world, ox, oz, box, x, y, z, yaw, pitch, invulnerable);
                 serverReady = true;
             }
         });
     }
 
-    private void buildOnServer(IntegratedServer server, java.util.UUID id, RandomScenario sc) {
+    private void buildOnServer(IntegratedServer server, java.util.UUID id, SparseBlockWorld world, final int ox,
+                               final int oz, int[] box, double px, double py, double pz, float yaw, float pitch,
+                               boolean invulnerable) {
         final WorldServer ws = server.getWorld(0);
         final IBlockState air = Blocks.AIR.getDefaultState();
         // No random ticks: grass spreading, crops growing, snow and ice melting would change the course.
@@ -396,9 +620,9 @@ public final class RecorderController {
             savedRandomTickSpeed = ws.getGameRules().getString("randomTickSpeed");
         }
         ws.getGameRules().setOrCreateGameRule("randomTickSpeed", "0");
-        for (int x = originX - FUZZ_RADIUS; x <= originX + FUZZ_RADIUS; x++) {
-            for (int z = originZ - FUZZ_RADIUS; z <= originZ + FUZZ_RADIUS; z++) {
-                for (int y = FUZZ_MIN_Y; y <= FUZZ_MAX_Y; y++) {
+        for (int x = box[0]; x <= box[3]; x++) {
+            for (int z = box[2]; z <= box[5]; z++) {
+                for (int y = box[1]; y <= box[4]; y++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     if (ws.getBlockState(pos) != air) {
                         ws.setBlockState(pos, air, 2);
@@ -406,19 +630,21 @@ public final class RecorderController {
                 }
             }
         }
-        sc.world.forEach(new SparseBlockWorld.Visitor() {
+        world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                ws.setBlockState(new BlockPos(x + originX, y, z + originZ), vanilla(type), 2);
+                ws.setBlockState(new BlockPos(x + ox, y, z + oz), vanilla(type), 2);
             }
         });
         EntityPlayerMP mp = server.getPlayerList().getPlayerByUUID(id);
         if (mp != null) {
-            mp.capabilities.disableDamage = true;
+            if (invulnerable) {
+                mp.capabilities.disableDamage = true;
+            }
+            mp.setHealth(mp.getMaxHealth());
             mp.getFoodStats().setFoodLevel(20);
             mp.fallDistance = 0.0F;
-            mp.connection.setPlayerLocation(sc.start.posX + originX, sc.start.posY, sc.start.posZ + originZ,
-                    sc.start.rotationYaw, 0.0F);
+            mp.connection.setPlayerLocation(px, py, pz, yaw, pitch);
         }
     }
 
@@ -430,7 +656,7 @@ public final class RecorderController {
     private String firstCourseChange() {
         final String[] first = {null};
         final ClientWorldBlocks check = new ClientWorldBlocks(mc.world);
-        scenario.world.forEach(new SparseBlockWorld.Visitor() {
+        course.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
                 if (first[0] == null) {
@@ -454,7 +680,7 @@ public final class RecorderController {
      */
     private void restoreDamage() {
         final IntegratedServer server = mc.getIntegratedServer();
-        if (server == null || mc.player == null || mode != Mode.FUZZ) {
+        if (server == null || mc.player == null || (mode != Mode.FUZZ && mode != Mode.REPLAY)) {
             return;
         }
         final java.util.UUID id = mc.player.getUniqueID();

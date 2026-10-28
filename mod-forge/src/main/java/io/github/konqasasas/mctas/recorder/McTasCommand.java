@@ -12,7 +12,8 @@ import java.io.IOException;
 
 /**
  * {@code /mctas fuzz [shapes] [runs] [ticks] [firstSeed]}, {@code /mctas script <file>}, {@code /mctas record},
- * {@code /mctas stop}. Script files are read from {@code .minecraft/mctas/scripts}.
+ * {@code /mctas replay <problem> <solution>}, {@code /mctas stop}. Script files are read from
+ * {@code .minecraft/mctas/scripts}; replay paths are absolute or relative to {@code .minecraft/mctas}.
  */
 final class McTasCommand extends CommandBase {
 
@@ -29,7 +30,7 @@ final class McTasCommand extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/mctas fuzz [shapes|fluids] [runs] [ticks] [firstSeed] | script <file> | record | stop";
+        return "/mctas fuzz [shapes|fluids] [runs] [ticks] [firstSeed] | script <file> | replay <problem> <solution> | record | stop";
     }
 
     @Override
@@ -60,6 +61,9 @@ final class McTasCommand extends CommandBase {
                     f = new File(dir, args[1] + ".txt");
                 }
                 controller.startScript(f);
+            } else if (sub.equals("replay") && args.length > 2) {
+                File dir = new File(Minecraft.getMinecraft().gameDir, "mctas");
+                controller.startReplay(resolve(dir, args[1]), resolve(dir, args[2]));
             } else if (sub.equals("record")) {
                 controller.startRecord();
             } else if (sub.equals("stop")) {
@@ -70,5 +74,16 @@ final class McTasCommand extends CommandBase {
         } catch (IOException e) {
             sender.sendMessage(new TextComponentString("[mctas] " + e.getMessage()));
         }
+    }
+
+    private static File resolve(File dir, String path) throws IOException {
+        File f = new File(path);
+        if (!f.isAbsolute()) {
+            f = new File(dir, path);
+        }
+        if (!f.isFile()) {
+            throw new IOException("no file " + f.getPath());
+        }
+        return f;
     }
 }
