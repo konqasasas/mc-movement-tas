@@ -145,6 +145,10 @@ public final class TickBeam {
         return child(n, a, t);
     }
 
+    double estimateForDebug(Node n) {
+        return estimate(n);
+    }
+
     boolean doomedForDebug(Node n) {
         return doomed(n);
     }
@@ -468,7 +472,7 @@ public final class TickBeam {
             if (offEdge) return n + landing + rest / Route.RUN_SPEED + MISS_TICKS_PER_BLOCK * (d - run - Flight.jumpDistance(u, landing - 1));
             run += u + Flight.GROUND_ACCEL;
             u = (u + Flight.GROUND_ACCEL) * Flight.GROUND_FRICTION;
-            offEdge = route.support(x + ux * run, z + uz * run, y - 1e-6, y + 1e-6) == null;
+            offEdge = route.support(x + ux * run, z + uz * run, y - 0.6, y + 0.6) == null; // steps up or down keep the run going
         }
         // By now the run is at full speed; the rest is linear.
         double left = d - run - Flight.jumpDistance(u, landing - 1);

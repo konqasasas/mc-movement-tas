@@ -66,7 +66,12 @@ final class Pilot {
         Region goal = problem.goal;
         int stopStage = landings >= route.waypoints.size() - 1 - stage ? Integer.MAX_VALUE : stage + landings;
         double[] aim = new double[2];
-        for (int k = 1; k <= maxTicks; k++) {
+        // From before the start entry, the tick allowance counts from the entry: otherwise a later
+        // entry would leave less of the course to play and look better than it is.
+        int limit = maxTicks;
+        int played = 0;
+        for (int k = 1; k <= limit && tick + k <= problem.maxTicks; k++) {
+            played = k;
             int t = tick + k;
             PlayerInput a = decide(s, stage, entry >= 0, aim);
             // After the entry, a wall that stops the sprint must not make the next press break
@@ -87,7 +92,10 @@ final class Pilot {
             s = ns;
             if (record) r.inputs.add(a);
             boolean in = problem.start.contains(s.posX, s.posY, s.posZ);
-            if (in && !inStart) entry = t;
+            if (in && !inStart) {
+                if (entry < 0) limit = Math.max(limit, k + maxTicks);
+                entry = t;
+            }
             inStart = in;
             if (entry >= 0 && goal.contains(s.posX, s.posY, s.posZ)) {
                 r.finished = true;
@@ -104,7 +112,7 @@ final class Pilot {
                 return finish(r, s, k, stage, entry, inStart, lastToggle);
             }
         }
-        return finish(r, s, maxTicks, stage, entry, inStart, lastToggle);
+        return finish(r, s, played, stage, entry, inStart, lastToggle);
     }
 
     private static Run finish(Run r, PlayerState s, int ticks, int stage, int entry, boolean inStart, int lastToggle) {
