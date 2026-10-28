@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -399,8 +400,8 @@ public final class Route {
         return c < 0 && searchEdges ? searchCost(a, b) : c;
     }
 
-    /** Horizontal gap and rise of an edge left to the segment search. */
-    static final double SEARCH_GAP = 4.5, SEARCH_RISE = 1.5;
+    /** Horizontal gap and rise of an edge left to the segment search: no jump rises more than 1.25. */
+    static final double SEARCH_GAP = 4.5, SEARCH_RISE = 1.3;
     /** Ticks a search edge counts extra, so the route takes one only where nothing else goes. */
     static final double SEARCH_PENALTY = 300;
 
@@ -527,6 +528,8 @@ public final class Route {
      * clears does not count, and neither does a block that a line 0.4 to either side passes.
      */
     static final double PROBE = 0.1;
+    /** Spacing of the probes along a line: under twice their half width, so a pane or fence cannot slip between two. */
+    static final double STEP = 0.15;
 
     private boolean obstructed(Surface a, Surface b) {
         double dx = b.cx() - a.cx(), dz = b.cz() - a.cz(), n = Math.hypot(dx, dz);
@@ -540,10 +543,18 @@ public final class Route {
 
     private boolean blockedLine(Surface a, Surface b, double ax, double az, double bx, double bz) {
         double len = Math.hypot(bx - ax, bz - az);
-        int steps = Math.max(1, (int) Math.ceil(len / 0.25));
+        int steps = Math.max(1, (int) Math.ceil(len / STEP));
         int leave = 0, enter = steps;
         while (leave + 1 < steps && a.contains(ax + (bx - ax) * (leave + 1) / steps, az + (bz - az) * (leave + 1) / steps)) leave++;
         while (enter - 1 > leave && b.contains(ax + (bx - ax) * (enter - 1) / steps, az + (bz - az) * (enter - 1) / steps)) enter--;
+        // Walking to the edge and from it on the surfaces themselves: a fence or a pane across a
+        // block's footprint leaves only a sliver of it to stand on.
+        for (int i = 0; i <= steps; i++) {
+            if (i > leave && i < enter) continue;
+            Surface on = i <= leave ? a : b;
+            double px = ax + (bx - ax) * i / steps, pz = az + (bz - az) * i / steps;
+            if (solidAt(px, on.top + 0.6, pz, on.top + 1.7, PROBE)) return true;
+        }
         double[] arc = jumpArc(a.top, b.top);
         List<Aabb> hit = new ArrayList<Aabb>();
         for (int i = leave + 1; i < enter; i++) {
@@ -551,6 +562,10 @@ public final class Route {
             double t = (arc.length - 1) * (i - leave) / (double) (enter - leave);
             int k = (int) t;
             double feet = k + 1 < arc.length ? arc[k] + (arc[k + 1] - arc[k]) * (t - k) : arc[k];
+            // Down a long drop the jump is over the gap long before it comes down: by the table.
+            if (b.top < a.top - 1 && jumps != null) {
+                feet = Math.max(feet, a.top + Math.max(b.top - a.top, jumps.riseAt(len * (i - leave) / steps)));
+            }
             Aabb probe = new Aabb(px - PROBE, feet + 0.1, pz - PROBE, px + PROBE, feet + 1.7, pz + PROBE);
             int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
             for (int yy = (int) Math.floor(feet + 0.1) - 1; yy <= (int) Math.floor(feet + 1.7); yy++) {
@@ -573,11 +588,11 @@ public final class Route {
         double dx = bx - ax, dz = bz - az, n = Math.hypot(dx, dz);
         if (n < EPS) return false;
         double y0 = Math.max(a.top, b.top) + 0.6, y1 = Math.max(a.top, b.top) + 1.7;
-        int steps = Math.max(1, (int) Math.ceil(n / 0.25));
+        int steps = Math.max(1, (int) Math.ceil(n / STEP));
         for (double off : new double[] {0, -0.4, 0.4}) {
             double ox = -dz / n * off, oz = dx / n * off;
             boolean blocked = false;
-            for (int i = 1; i < steps && !blocked; i++) {
+            for (int i = 0; i <= steps && !blocked; i++) {
                 double px = ax + ox + dx * i / steps, pz = az + oz + dz * i / steps;
                 blocked = solidAt(px, y0, pz, y1, PROBE);
             }
@@ -601,6 +616,77 @@ public final class Route {
         double[] out = new double[ys.size()];
         for (int i = 0; i < out.length; i++) out[i] = ys.get(i);
         return out;
+    }
+
+    /** Of the fall onto a slime block (from the feet's highest point), the height the bounce gives back. */
+    static final double BOUNCE = 0.75;
+    /** How far aside a bounce carries the player, from the slime block's edge. */
+    static final double BOUNCE_REACH = 3.5;
+
+    static boolean isSlime(BlockType type) {
+        return type.name().startsWith("minecraft:slime");
+    }
+
+    private Map<Integer, List<double[]>> bounceIn;
+    private Map<Surface, List<Surface>> bounceOut;
+
+    /**
+     * Jumps off a surface onto a slime block that bounce up to a surface, or into a ladder, vine or
+     * water block, higher than a jump reaches: by target, each source with the cost. Three surfaces
+     * make one edge, as the bounce depends on the height the fall starts from.
+     */
+    private Map<Integer, List<double[]>> bounceEdges() {
+        if (bounceIn != null) return bounceIn;
+        bounceIn = new HashMap<Integer, List<double[]>>();
+        bounceOut = new IdentityHashMap<Surface, List<Surface>>();
+        int reach = (int) Math.ceil(jumps.maxReach()) + 2;
+        for (Surface sl : graph) {
+            if (sl.climb || !isSlime(problem.world.getBlock(sl.x, sl.y, sl.z))) continue;
+            List<double[]> from = new ArrayList<double[]>();
+            List<int[]> to = new ArrayList<int[]>();
+            for (int dx = -reach; dx <= reach; dx++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    List<Integer> list = graphByColumn.get(col(sl.x + dx, sl.z + dz));
+                    if (list == null) continue;
+                    for (int u : list) {
+                        Surface a = graph.get(u);
+                        if (a == sl) continue;
+                        if (!a.climb && a.top > sl.top + 0.5) {
+                            double c = plainCost(a, sl, jumps);
+                            if (c >= 0) from.add(new double[] {u, c});
+                        }
+                        double rise = (a.climb ? a.y : a.top) - sl.top;
+                        if (rise > 1.0 && rectGap(sl, a) <= BOUNCE_REACH) to.add(new int[] {u});
+                    }
+                }
+            }
+            for (double[] f : from) {
+                Surface a = graph.get((int) f[0]);
+                double fall = a.top + 1.25 - sl.top;
+                for (int[] t : to) {
+                    Surface b = graph.get(t[0]);
+                    double rise = (b.climb ? b.y : b.top) - sl.top;
+                    if (b == a || rise > BOUNCE * fall) continue;
+                    // Up and over: the bounce's airtime, about twice the rise at the slime's top speed.
+                    double c = f[1] + 2 * Math.sqrt(2 * rise / 0.08) + centreDist(sl, b) / RUN_SPEED;
+                    bounceIn.computeIfAbsent(t[0], k -> new ArrayList<double[]>()).add(new double[] {f[0], c});
+                    bounceOut.computeIfAbsent(a, k -> new ArrayList<Surface>()).add(b);
+                }
+            }
+        }
+        return bounceIn;
+    }
+
+    /** How far a sprint jump carries the centre to a surface {@code dy} above the takeoff. */
+    double jumpReach(double dy) {
+        return jumps.reach(dy);
+    }
+
+    /** Surfaces and blocks a bounce on a slime block reaches from {@code a} (see {@link #bounceEdges}). */
+    List<Surface> bounceTargets(Surface a) {
+        if (!searchEdges) return Collections.emptyList();
+        costToGoal();
+        return bounceOut.getOrDefault(a, Collections.<Surface>emptyList());
     }
 
     /** Every surface and ladder or vine block, indexed by column, for {@link #costToGoal}. */
@@ -628,11 +714,19 @@ public final class Route {
             }
         }
         int reach = (int) Math.ceil(Math.max(jumps.maxReach(), searchEdges ? SEARCH_GAP : 0)) + 2;
+        Map<Integer, List<double[]>> bounceIn = searchEdges ? bounceEdges() : new HashMap<Integer, List<double[]>>();
         while (!pq.isEmpty()) {
             double[] e = pq.poll();
             int v = (int) e[1];
             if (e[0] > dist[v]) continue;
             Surface b = graph.get(v);
+            for (double[] in : bounceIn.getOrDefault(v, Collections.<double[]>emptyList())) {
+                int u = (int) in[0];
+                if (dist[v] + in[1] < dist[u]) {
+                    dist[u] = dist[v] + in[1];
+                    pq.add(new double[] {dist[u], u});
+                }
+            }
             for (int dx = -reach; dx <= reach; dx++) {
                 for (int dz = -reach; dz <= reach; dz++) {
                     List<Integer> list = graphByColumn.get(col(b.x + dx, b.z + dz));
@@ -647,6 +741,14 @@ public final class Route {
                         }
                     }
                 }
+            }
+        }
+        if (System.getenv("ROUTE_COST") != null) {
+            toGoal = dist;
+            for (int i = 0; i < graph.size(); i++) {
+                System.err.println("cost " + graph.get(i) + " " + dist[i]);
+                String w = System.getenv("ROUTE_COST");
+                if (graph.get(i).toString().startsWith(w)) System.err.println("chain " + chainToGoal(graph.get(i), 6));
             }
         }
         return toGoal = dist;
@@ -749,6 +851,24 @@ public final class Route {
         return best;
     }
 
+    private Boolean goalOnFloor;
+
+    /** Whether the goal is a flat box with a floor of the graph at its height. */
+    private boolean goalOnFloor() {
+        if (goalOnFloor == null) {
+            Region g = problem.goal;
+            boolean on = false;
+            if (g.maxY - g.minY < 0.5) {
+                for (Surface c : graph) {
+                    if (c.climb || c.top < g.minY - EPS || c.top > g.maxY + EPS) continue;
+                    if (c.maxX > g.minX && c.minX < g.maxX && c.maxZ > g.minZ && c.minZ < g.maxZ) on = true;
+                }
+            }
+            goalOnFloor = on;
+        }
+        return goalOnFloor;
+    }
+
     private double goalCost(Surface a, JumpTable jumps) {
         Region g = problem.goal;
         double gx = Math.max(0, Math.max(g.minX - a.maxX, a.minX - g.maxX));
@@ -758,6 +878,9 @@ public final class Route {
         double cx = Math.max(g.minX, Math.min(g.maxX, a.cx())), cz = Math.max(g.minZ, Math.min(g.maxZ, a.cz()));
         double d = Math.hypot(cx - a.cx(), cz - a.cz());
         if (gap < EPS && g.minY <= a.top + 0.6 && g.maxY >= a.top) return d / RUN_SPEED;
+        // A flat goal over floors of its own is reached by standing on them, not by any jump into
+        // its box: the box may stretch over the whole course.
+        if (searchEdges && goalOnFloor()) return Double.POSITIVE_INFINITY;
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) {
             if (searchEdges && !a.climb && gap <= SEARCH_GAP && dy <= SEARCH_RISE && dy >= -8) return SEARCH_PENALTY + 2 * d / RUN_SPEED;
             return Double.POSITIVE_INFINITY;
@@ -976,6 +1099,10 @@ public final class Route {
                     room = hasRoom(world, x, y, z, px, top, pz);
                 }
                 if (!room) return;
+                // A fence or a pane through the middle of the block: the slivers either side belong
+                // to the blocks next to it, and the surface would let the route walk through.
+                double mx = (minX + maxX) / 2, mz = (minZ + maxZ) / 2;
+                if (blocks(world, mx - PROBE, top + 0.6, mz - PROBE, mx + PROBE, top + 1.7, mz + PROBE)) return;
                 // Cobwebs at the body hold the player nearly still: the route jumps over them.
                 for (int yy = (int) Math.floor(top); yy <= (int) Math.floor(top + 1.8); yy++) {
                     if (isWeb(world.getBlock(x, yy, z))) return;

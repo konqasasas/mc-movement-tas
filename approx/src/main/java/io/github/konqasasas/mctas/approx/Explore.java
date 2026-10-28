@@ -28,6 +28,8 @@ import java.util.Set;
 final class Explore {
     /** How far a landing may be, horizontally, and how high up without a ladder, vine or water near. */
     static final double REACH = 5.5, RISE = 1.3;
+    /** How far a landing may be down a drop. */
+    static final double FAR = 9;
     /** Surfaces tried from each node. */
     static final int FAN = 8;
     /** Of these, the first few also get the wide search when the quick one finds nothing. */
@@ -159,19 +161,31 @@ final class Explore {
         double here = route.costToGoalAt(s.posX, s.posY, s.posZ, 1e-3);
         List<Route.Surface> out = new ArrayList<Route.Surface>();
         List<double[]> keys = new ArrayList<double[]>();
-        List<Route.Surface> all = route.surfacesNear(s.posX, s.posZ, REACH + 1);
+        List<Route.Surface> all = route.surfacesNear(s.posX, s.posZ, FAR + 1);
         for (Route.Surface c : all) {
             if (c == on || closed.contains(c)) continue;
             double hc = route.cost(c);
             if (!(hc < here - MIN_GAIN)) continue;
             double gap = c.dist(s.posX, s.posZ);
-            if (gap > REACH) continue;
             double dy = c.top - s.posY;
+            // Further down a drop, as far as the jump carries.
+            if (gap > (dy < -1 ? Math.min(FAR, Math.max(REACH, route.jumpReach(dy))) : REACH)) continue;
             // The next block of the same floor is no step worth a search: the next one may be.
             if (!c.climb && Math.abs(dy) < 0.01 && gap < 2.0) continue;
             if (dy < -8 || dy > 8 || (dy > RISE && !route.climbAidNear(s.posX, s.posY, s.posZ, c))) continue;
             out.add(c);
             keys.add(new double[] {hc + gap / Route.RUN_SPEED, out.size() - 1});
+        }
+        // Up off a slime block, beyond what any jump reaches.
+        Route.Surface under = on != null ? on : route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6);
+        if (under != null) {
+            for (Route.Surface c : route.bounceTargets(under)) {
+                if (closed.contains(c) || out.contains(c)) continue;
+                double hc = route.cost(c);
+                if (!(hc < here - MIN_GAIN)) continue;
+                out.add(c);
+                keys.add(new double[] {hc + c.dist(s.posX, s.posZ) / Route.RUN_SPEED, out.size() - 1});
+            }
         }
         keys.sort(Comparator.comparingDouble(k -> k[0]));
         // Spread over heights: a row of blocks out of reach must not crowd out the floor ahead.
