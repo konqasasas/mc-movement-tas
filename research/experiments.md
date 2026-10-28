@@ -20,3 +20,4 @@
 | E-014 | 2026-10-28 | 近似探索 v1 の v0 成績 | ブランチ `claude/project-thread-e5m6fi`(`b73a506`)で `mctas-approx solve problems/v0 out --budget 15`、`mctas-problem score problems/v0 out` | 10 問すべて解け、9 問が目標どおり。08 は 24(最適 23)、10 は 33(目標 35) | F-016 |
 | E-015 | 2026-10-28 | 近似探索 v1 の報告用成績 | 同じビルドで `mctas-approx solve problems/v1-holdout out --budget 30`、`v1-full` も 30 秒 | v1-holdout 12 問中 9 問、v1-full 8 問中 7 問を解いた | F-016 |
 | E-016 | 2026-10-28 | v1 の目標タイム作り | 同じビルドで `--budget 120` を `v1-dev` と `v1-holdout` に | v1-holdout の 30 秒の解は 9 問中 6 問で 120 秒と同じ、残りは +1〜+4 | F-016 |
+| E-019 | 2026-10-28 | 落下ダメージ無効の実機確認 | 実機で `/mctas replay ../../../../problems/fall/01-drop-6.problem.json ../../../../problems/fall/01-drop-6.tas` | 58 ティック、全ティック一致 | F-022 |
