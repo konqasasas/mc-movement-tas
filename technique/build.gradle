@@ -1,0 +1,19 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':physics')
+    implementation project(':problem')
+    implementation 'com.google.code.gson:gson:2.8.0'
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.technique.cli.TechniqueMain'
+    applicationName = 'mctas-technique'
+    applicationDefaultJvmArgs = ['-Xmx4g']
+}
+
+run {
+    workingDir = rootProject.projectDir
+}

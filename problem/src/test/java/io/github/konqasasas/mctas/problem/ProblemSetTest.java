@@ -30,11 +30,29 @@ public class ProblemSetTest {
         assertEquals(1, checkWitnesses(Paths.get("..", "problems", "place")));
     }
 
+    @Test
+    public void everyFallWitnessReachesItsTargetExactly() throws IOException {
+        assertEquals(1, checkWitnesses(Paths.get("..", "problems", "fall")));
+    }
+
+    @Test
+    public void everyV1WitnessReachesItsTargetExactly() throws IOException {
+        assertEquals(8, checkWitnesses(Paths.get("..", "problems", "v1-dev")));
+        // Some held-out courses have no known solution yet.
+        assertEquals(9, checkWitnesses(Paths.get("..", "problems", "v1-holdout"), false));
+        assertEquals(7, checkWitnesses(Paths.get("..", "problems", "v1-full"), false));
+    }
+
     private static int checkWitnesses(Path dir) throws IOException {
+        return checkWitnesses(dir, true);
+    }
+
+    private static int checkWitnesses(Path dir, boolean everyHasTarget) throws IOException {
         int checked = 0;
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.problem.json")) {
             for (Path f : ds) {
                 Problem p = ProblemIO.read(f);
+                if (p.target == null && !everyHasTarget) continue;
                 assertNotNull(p.id + " has no target", p.target);
                 String text = new String(Files.readAllBytes(f.resolveSibling(p.target.witness)), StandardCharsets.UTF_8);
                 RunResult r = Evaluator.run(p, InputText.parse(text, p.spawn));

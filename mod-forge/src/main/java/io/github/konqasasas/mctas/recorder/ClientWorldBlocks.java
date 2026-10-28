@@ -4,6 +4,7 @@ import io.github.konqasasas.mctas.physics.BlockType;
 import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.VanillaBlocks;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -52,6 +53,11 @@ final class ClientWorldBlocks implements BlockWorld {
         IBlockState state = before.get(pos);
         if (state == null) {
             state = world.getBlockState(pos);
+        }
+        if (state.getBlock() instanceof BlockDoor) {
+            // Each half stores only half of the door; the client gets the rest of the state from the
+            // server as whatever Block.BLOCK_STATE_IDS holds for that metadata.
+            state = state.getActualState(world, pos);
         }
         BlockType t = cache.get(state);
         if (t == null) {

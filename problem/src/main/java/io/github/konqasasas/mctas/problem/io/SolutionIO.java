@@ -24,6 +24,11 @@ public final class SolutionIO {
     }
 
     public static String write(Problem problem, List<TickInput> inputs, RunResult result, String model) {
+        return write(problem, inputs, result, model, null);
+    }
+
+    /** As {@link #write(Problem, List, RunResult, String)}, with {@code result.search} when {@code search} is given. */
+    public static String write(Problem problem, List<TickInput> inputs, RunResult result, String model, SearchInfo search) {
         JsonObject root = new JsonObject();
         root.addProperty("format", FORMAT);
         root.addProperty("version", VERSION);
@@ -38,6 +43,12 @@ public final class SolutionIO {
         }
         res.addProperty("model", model);
         res.addProperty("engineBuild", EngineBuild.ID);
+        if (search != null) {
+            JsonObject se = new JsonObject();
+            se.addProperty("engine", search.engine);
+            se.addProperty("wallMillis", search.wallMillis);
+            res.add("search", se);
+        }
         root.add("result", res);
         JsonArray rows = new JsonArray();
         int n = result.finished() ? result.goalTick : inputs.size();
@@ -54,6 +65,19 @@ public final class SolutionIO {
         }
         root.add("inputs", rows);
         return new GsonBuilder().setPrettyPrinting().create().toJson(root);
+    }
+
+    /** The problem id a solution file names. */
+    public static String readProblemId(String json) {
+        return new JsonParser().parse(json).getAsJsonObject().get("problem").getAsString();
+    }
+
+    /** {@code result.search}, or null when the file has none. */
+    public static SearchInfo readSearch(String json) {
+        JsonObject res = new JsonParser().parse(json).getAsJsonObject().getAsJsonObject("result");
+        if (res == null || !res.has("search")) return null;
+        JsonObject se = res.getAsJsonObject("search");
+        return new SearchInfo(se.get("engine").getAsString(), se.has("wallMillis") ? se.get("wallMillis").getAsLong() : -1);
     }
 
     /** The {@code result.engineBuild} of a solution file, or null when it has none (files from before it existed). */

@@ -1,0 +1,185 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1012-9j",
+  "title": "9 jumps, generated (seed 1012): stone, stone, anvil[facing=north], stone, stone, stone, anvil[facing=north], stone, ice",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          64,
+          3
+        ],
+        "to": [
+          -2,
+          64,
+          3
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -1,
+          63,
+          6
+        ],
+        "to": [
+          -1,
+          63,
+          6
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -3,
+          64,
+          9
+        ],
+        "to": [
+          -3,
+          64,
+          9
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      },
+      {
+        "from": [
+          -1,
+          64,
+          12
+        ],
+        "to": [
+          -1,
+          64,
+          13
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          65,
+          16
+        ],
+        "to": [
+          0,
+          65,
+          16
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          64,
+          18
+        ],
+        "to": [
+          -2,
+          64,
+          18
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          0,
+          64,
+          21
+        ],
+        "to": [
+          0,
+          64,
+          21
+        ],
+        "block": "minecraft:anvil[facing=north]"
+      },
+      {
+        "from": [
+          -2,
+          64,
+          22
+        ],
+        "to": [
+          -2,
+          64,
+          23
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          64,
+          27
+        ],
+        "to": [
+          -4,
+          64,
+          27
+        ],
+        "block": "minecraft:ice"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -4.3,
+      65.0,
+      26.7
+    ],
+    "max": [
+      -2.7,
+      65.0,
+      28.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 760,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 92,
+    "kind": "upper_bound",
+    "witness": "s1012-9j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

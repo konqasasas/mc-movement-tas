@@ -1,0 +1,159 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1010-7j",
+  "title": "7 jumps, generated (seed 1010): stone_slab[half=bottom], sea_lantern, stone, iron_bars, iron_bars, enchanting_table, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          5
+        ],
+        "to": [
+          -2,
+          63,
+          5
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          -2,
+          63,
+          8
+        ],
+        "to": [
+          -2,
+          63,
+          9
+        ],
+        "block": "minecraft:sea_lantern"
+      },
+      {
+        "from": [
+          -4,
+          63,
+          11
+        ],
+        "to": [
+          -4,
+          63,
+          11
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -4,
+          63,
+          13
+        ],
+        "to": [
+          -4,
+          63,
+          14
+        ],
+        "block": "minecraft:iron_bars"
+      },
+      {
+        "from": [
+          -5,
+          62,
+          16
+        ],
+        "to": [
+          -5,
+          62,
+          16
+        ],
+        "block": "minecraft:iron_bars"
+      },
+      {
+        "from": [
+          -7,
+          62,
+          17
+        ],
+        "to": [
+          -7,
+          62,
+          17
+        ],
+        "block": "minecraft:enchanting_table"
+      },
+      {
+        "from": [
+          -6,
+          62,
+          20
+        ],
+        "to": [
+          -6,
+          62,
+          20
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -6.3,
+      63.0,
+      19.7
+    ],
+    "max": [
+      -4.7,
+      63.0,
+      21.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 680,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 80,
+    "kind": "upper_bound",
+    "witness": "s1010-7j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}

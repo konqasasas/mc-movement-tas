@@ -32,7 +32,9 @@ import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
+import net.minecraft.util.DamageSource;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -75,6 +77,10 @@ public final class RecorderController {
     private static final int FUZZ_MAX_Y = 72;
     private static final int SETTLE_TICKS = 15;
     private static final int SETTLE_TIMEOUT = 100;
+    /** What a run that set {@code PlayerState.unsupportedAction} did. */
+    private static final String UNSUPPORTED = "the inputs did something the engine does not model (right-clicked a"
+            + " block that opens or toggles, placed a block the server may refuse, or let go of sneak under a"
+            + " low ceiling)";
     /** Largest area the replay mode clears, in blocks. */
     private static final long REPLAY_MAX_VOLUME = 4000000L;
 
@@ -82,7 +88,8 @@ public final class RecorderController {
     private final InputDriver driver = new InputDriver();
 
     private Mode mode;
-    private Phase phase = Phase.IDLE;
+    /** Volatile because the integrated server thread reads it ({@link #onLivingAttack}). */
+    private volatile Phase phase = Phase.IDLE;
     private PrintWriter log;
     private File logFile;
 
@@ -218,6 +225,21 @@ public final class RecorderController {
         chat(summary + ". Log: " + (logFile == null ? "-" : logFile.getPath()));
     }
 
+    /**
+     * No fall damage while any session runs (replay, record, fuzz; D-012). On the integrated server,
+     * {@code EntityPlayer.attackEntityFrom} fires this before it hurts the player, and so before
+     * {@code EntityLivingBase.attackEntityFrom} marks the velocity changed and the server sends it back
+     * to the client, which is what moved replayed falls off the engine's path. Creative mode is not
+     * used instead because double-tapping jump toggles flying there.
+     */
+    @SubscribeEvent
+    public void onLivingAttack(LivingAttackEvent event) {
+        if (phase != Phase.IDLE && event.getSource() == DamageSource.FALL
+                && event.getEntityLiving() instanceof EntityPlayerMP) {
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (phase == Phase.IDLE) {
@@ -256,7 +278,7 @@ public final class RecorderController {
         now.rightClickDelay = lastEnd.rightClickDelay;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
-        String field = now.firstDifference(lastEnd);
+        String field = difference(now, lastEnd);
         if (field != null) {
             runBetween++;
             log.println("# between ticks " + (tick - 1) + " and " + tick + ": " + field + " changed outside the player tick");
@@ -277,7 +299,9 @@ public final class RecorderController {
                 return;
             case SETTLE:
                 settleCount++;
-                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient()) {
+                // A replay that places blocks also waits for the position resend the problem starts on.
+                boolean reported = mode != Mode.REPLAY || runHotbar == null || PlayerSnapshot.reportedAtRest(p);
+                if (settleCount >= SETTLE_TICKS && p.onGround && scenarioBuiltOnClient() && reported) {
                     if (mode == Mode.REPLAY) {
                         beginReplay(p);
                     } else {
@@ -312,7 +336,7 @@ public final class RecorderController {
                         runWorldChange = "tick " + tick + " " + changed;
                     }
                 }
-                String field = sim.firstDifference(real);
+                String field = difference(sim, real);
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
                 if (field != null) {
@@ -328,7 +352,7 @@ public final class RecorderController {
                 tick++;
                 boolean judged = mode == Mode.REPLAY
                         && judge.observe(new Vec3(real.posX, real.posY, real.posZ));
-                // After an unmodelled right-click (a door opened, a chest's screen) the game and the engine part.
+                // After something the engine does not model (a door opened, a refused block) the game and the engine part.
                 if (mode != Mode.RECORD && (judged || tick >= inputs.size() || runUnsupportedTick >= 0)) {
                     endRun();
                     // Leave RUN first, or stop() would close the finished run a second time.
@@ -366,9 +390,17 @@ public final class RecorderController {
             real.selectedSlot = ref.selectedSlot;
             real.rightClickDelay = ref.rightClickDelay;
             real.placed = ref.placed;
+            real.lastReportedPosX = ref.lastReportedPosX;
+            real.lastReportedPosY = ref.lastReportedPosY;
+            real.lastReportedPosZ = ref.lastReportedPosZ;
+            real.positionUpdateTicks = ref.positionUpdateTicks;
+            real.serverSneakState = ref.serverSneakState;
+            real.sneakReportedTicks = ref.sneakReportedTicks;
             return;
         }
         PlayerSnapshot.readPlacement(p, real);
+        // Not kept by the client; it follows from the sneak states already compared.
+        real.sneakReportedTicks = ref.sneakReportedTicks;
         ClientWorldBlocks live = new ClientWorldBlocks(mc.world);
         io.github.konqasasas.mctas.physics.WorldDelta shown = io.github.konqasasas.mctas.physics.WorldDelta.EMPTY;
         for (io.github.konqasasas.mctas.physics.WorldDelta e : ref.placed.entries()) {
@@ -379,7 +411,19 @@ public final class RecorderController {
         real.placed = shown;
     }
 
-    private boolean entityNearby(EntityPlayerSP p) {
+    /**
+     * The first field that differs, then the placed blocks: in a run with a hotbar, a block the engine
+     * placed that the client world does not show (or no longer shows, once the server took it back).
+     */
+    private String difference(PlayerState a, PlayerState b) {
+        String field = a.firstDifference(b);
+        if (field == null && runPlacing && !a.placed.sameBlocks(b.placed)) {
+            field = "placed";
+        }
+        return field;
+    }
+
+        private boolean entityNearby(EntityPlayerSP p) {
         for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, p.getEntityBoundingBox().grow(1.0D))) {
             if (e.canBePushed()) {
                 return true;
@@ -425,8 +469,7 @@ public final class RecorderController {
         }
         String result;
         if (runUnsupportedTick >= 0) {
-            result = "INVALID: at tick " + runUnsupportedTick + " the inputs right-clicked a block that opens or"
-                    + " toggles, which the engine does not model";
+            result = "INVALID: at tick " + runUnsupportedTick + " " + UNSUPPORTED;
             runsInvalid++;
         } else if (!blocks.unsupported().isEmpty()) {
             result = "INVALID: touched unsupported blocks " + blocks.unsupported();
@@ -583,8 +626,7 @@ public final class RecorderController {
             notes.add("the player did not start exactly at the spawn");
         }
         if (runUnsupportedTick >= 0) {
-            notes.add("stopped at tick " + runUnsupportedTick + ": the inputs right-clicked a block that opens or"
-                    + " toggles, which the engine does not model");
+            notes.add("stopped at tick " + runUnsupportedTick + ": " + UNSUPPORTED);
         }
         if (!blocks.unsupported().isEmpty()) {
             notes.add("touched unsupported blocks " + blocks.unsupported());
