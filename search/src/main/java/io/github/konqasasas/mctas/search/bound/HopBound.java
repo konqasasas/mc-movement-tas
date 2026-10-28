@@ -95,6 +95,10 @@ public final class HopBound {
     private final Node start, goal;
     private final Region problemStart, problemGoal;
     private int radius;
+    /** {@link SpeedBound#hops}: reach and end speed of a hop from the ground, by ticks and start speed. */
+    private final double[][] hopFar, hopFast;
+    /** The start's horizontal speed on the ground, or -1 for any state in the start box. */
+    private final double startSpeed;
     private double lowestTop;
     /** Also run the forward search over positions (stronger, slower). */
     static boolean useForward = System.getenv("MCTAS_NOFORWARD") == null;
@@ -108,12 +112,25 @@ public final class HopBound {
 
     /** The bound from any state in {@code from} to entering {@code to}, on the problem's world. */
     public HopBound(Problem problem, Region from, Region to) {
+        this(problem, from, to, -1);
+    }
+
+    /**
+     * The bound from a state in {@code from} to entering {@code to}; with {@code groundSpeed} at least 0,
+     * only from states that have just ended a tick on the ground with at most that horizontal speed
+     * (a landing in a run), which the forward search uses to limit the first hop.
+     */
+    public HopBound(Problem problem, Region from, Region to, double groundSpeed) {
         this.problem = problem;
+        this.startSpeed = groundSpeed;
         this.placing = !problem.inventory.isEmpty();
         this.problemStart = from;
         this.problemGoal = to;
         SpeedBound speed = new SpeedBound(problem);
         this.far = speed.reach(problem.maxTicks, Double.POSITIVE_INFINITY);
+        double[][][] h = speed.hops(far.length - 1);
+        this.hopFar = h[0];
+        this.hopFast = h[1];
         final double[] top = {Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
         final List<double[]> boxes = new ArrayList<double[]>();
         final List<double[]> specials = new ArrayList<double[]>();
@@ -558,53 +575,71 @@ public final class HopBound {
         }
     }
 
-    private static final class Label {
-        final int t, node;
+    /** A settled label: where the player can be at the end of an anchor tick, and how fast at most. */
+    private static final class Seen {
         final Oct where;
+        final int speed;
 
-        Label(int t, int node, Oct where) {
-            this.t = t;
-            this.node = node;
+        Seen(Oct where, int speed) {
             this.where = where;
+            this.speed = speed;
         }
     }
 
+    /** Speeds are kept in steps of this many {@link SpeedBound#HOP_GRID}s per pending label. */
+    private static final int SPEED_BUCKET = 4;
+
     /**
      * Ticks from the start to the goal, tracking where the player can be at the end of each anchor
-     * tick: a hop of n ticks moves it at most far[n], and it ends over the next place (widened by one
-     * tick's move, since a landing's top is under the position before or after the tick) or in the
-     * goal. Label-setting by time; a label is dropped when an earlier one at the same place covers it.
+     * tick and how fast it can be going: a hop of n ticks moves it at most far[n] (from the ground, at
+     * most what a ground tick and then free flight get from that speed), and it ends over the next
+     * place (widened by one tick's move, since a landing's top is under the position before or after
+     * the tick) or in the goal. Label-setting by time; a label is dropped when an earlier one at the
+     * same place is at least as fast and covers it.
      */
     private int forward() {
         int g = nodes.indexOf(goal), s = nodes.indexOf(start);
         double step = far[1];
+        int top = hopFar[0].length - 1;
+        // suffixFast[n][i]: the fastest any hop of n or more ticks from speed i ends.
+        double[][] suffixFast = new double[hopFast.length + 1][top + 1];
+        for (int n = hopFast.length - 1; n >= 1; n--) {
+            for (int i = 0; i <= top; i++) suffixFast[n][i] = Math.max(hopFast[n][i], suffixFast[n + 1][i]);
+        }
         Oct[] places = new Oct[nodes.size()];
         for (int i = 0; i < nodes.size(); i++) {
             Node n = nodes.get(i);
             places[i] = i == g || i == s ? Oct.rect(n.x0, n.x1, n.z0, n.z1)
                 : Oct.rect(n.x0 - step, n.x1 + step, n.z0 - step, n.z1 + step);
         }
-        List<List<Oct>> settled = new ArrayList<List<Oct>>();
-        for (int i = 0; i < nodes.size(); i++) settled.add(new ArrayList<Oct>());
-        // Labels waiting, one per (place, tick), merged into their hull.
+        List<List<Seen>> settled = new ArrayList<List<Seen>>();
+        for (int i = 0; i < nodes.size(); i++) settled.add(new ArrayList<Seen>());
+        // Labels waiting, one per (place, tick, speed bucket), merged into their hull at the fastest speed.
         Map<Long, Oct> pending = new HashMap<Long, Oct>();
+        Map<Long, Integer> pendingSpeed = new HashMap<Long, Integer>();
         PriorityQueue<long[]> queue = new PriorityQueue<long[]>((p, q) -> Long.compare(p[0], q[0]));
-        pending.put(((long) 0 << 32) | s, places[s]);
-        queue.add(new long[] {0, s});
+        int v0 = startSpeed >= 0 ? speedIndex(startSpeed, top) : top;
+        long k0 = label(0, s, v0);
+        pending.put(k0, places[s]);
+        pendingSpeed.put(k0, v0);
+        queue.add(new long[] {0, k0});
         int[][] nbr = new int[nodes.size()][];
         int[][][] nbrRanges = new int[nodes.size()][][];
         int popped = 0;
         while (!queue.isEmpty()) {
             long[] e = queue.poll();
-            int t = (int) e[0], ai = (int) e[1];
-            Oct where = pending.remove(((long) t << 32) | ai);
+            int t = (int) e[0];
+            Oct where = pending.remove(e[1]);
             if (where == null) continue;
+            int v = pendingSpeed.remove(e[1]);
+            int ai = (int) ((e[1] >>> 8) & 0xFFFFFF);
             if (ai == g) return t;
-            if (covered(settled.get(ai), where)) continue;
-            settled.get(ai).add(where);
+            if (covered(settled.get(ai), where, v)) continue;
+            settled.get(ai).add(new Seen(where, v));
             if (++popped > 3000000) return 0;
             if (nbr[ai] == null) neighbours(ai, nbr, nbrRanges, s, step);
             Node a = nodes.get(ai);
+            boolean ground = a.type == SURFACE || ai == s && startSpeed >= 0;
             for (int j = 0; j < nbr[ai].length; j++) {
                 int bi = nbr[ai][j];
                 Node b = nodes.get(bi);
@@ -612,25 +647,39 @@ public final class HopBound {
                 int[] r = nbrRanges[ai][j];
                 for (int i = 0; i < r.length; i += 2) {
                     for (int n = r[i]; n <= r[i + 1] && t + n <= problem.maxTicks; n++) {
-                        if (far[n] < gap) continue;
-                        Oct o = where.grow(far[n]).and(places[bi]);
+                        double reach = ground ? Math.min(far[n], hopFar[n][v]) : far[n];
+                        if (reach < gap) continue;
+                        Oct o = where.grow(reach).and(places[bi]);
                         if (o == null) continue;
-                        if (!covered(settled.get(bi), o)) {
-                            long k = ((long) (t + n) << 32) | bi;
+                        int w = bi == g ? 0 : ground ? speedIndex(hopFast[n][v], top) : top;
+                        if (!covered(settled.get(bi), o, w)) {
+                            long k = label(t + n, bi, w);
                             Oct old = pending.get(k);
                             if (old == null) {
                                 pending.put(k, o);
-                                queue.add(new long[] {t + n, bi});
-                            } else if (!old.contains(o)) {
-                                pending.put(k, old.hull(o));
+                                pendingSpeed.put(k, w);
+                                queue.add(new long[] {t + n, k});
+                            } else {
+                                if (!old.contains(o)) pending.put(k, old.hull(o));
+                                if (w > pendingSpeed.get(k)) pendingSpeed.put(k, w);
                             }
                         }
-                        if (o.contains(places[bi])) break;
+                        // Longer hops land in the same place later and no faster: nothing new.
+                        if (o.contains(places[bi]) && (!ground || w >= speedIndex(suffixFast[n + 1][v], top))) break;
                     }
                 }
             }
         }
         return INF;
+    }
+
+    /** The key of a pending label: tick, place and speed bucket. */
+    private static long label(int t, int node, int speed) {
+        return ((long) t << 32) | ((long) node << 8) | (speed / SPEED_BUCKET);
+    }
+
+    private static int speedIndex(double v, int top) {
+        return Math.min(top, (int) Math.ceil(v / SpeedBound.HOP_GRID - 1e-9));
     }
 
     /** The places a hop from {@code ai} can reach, with the tick counts each can take. */
@@ -670,8 +719,8 @@ public final class HopBound {
         }
     }
 
-    private static boolean covered(List<Oct> list, Oct o) {
-        for (Oct p : list) if (p.contains(o)) return true;
+    private static boolean covered(List<Seen> list, Oct o, int speed) {
+        for (Seen p : list) if (p.speed >= speed && p.where.contains(o)) return true;
         return false;
     }
 
