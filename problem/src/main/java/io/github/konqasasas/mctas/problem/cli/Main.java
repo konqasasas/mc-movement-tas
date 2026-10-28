@@ -33,6 +33,7 @@ public final class Main {
         "usage:",
         "  mctas-problem time <problem.json> <inputs.tas|solution.json> [--trace] [--strict] [--solution out.json] [--pkc out.json]",
         "  mctas-problem check <problem-dir>",
+        "  mctas-problem score <problem-dir> <solution-dir>... [--markdown]",
         "  mctas-problem search <problem.json> <out.tas> [--beam N] [--horizon T] [--yaws a,b,c] [--via x,y,z;x,y,z]",
         WorldImport.USAGE,
         "  mctas-problem diffworld <a.problem.json> <b.problem.json>");
@@ -48,6 +49,8 @@ public final class Main {
             System.exit(search(args));
         } else if (args[0].equals("check") && args.length == 2) {
             System.exit(check(Paths.get(args[1])));
+        } else if (args[0].equals("score") && args.length >= 3) {
+            System.exit(Score.run(args));
         } else if (args[0].equals("import")) {
             System.exit(WorldImport.run(args));
         } else if (args[0].equals("diffworld") && args.length == 3) {

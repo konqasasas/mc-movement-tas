@@ -1,0 +1,140 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-holdout/s1001-6j",
+  "title": "6 jumps, generated (seed 1001): stone_slab[half\u003dbottom], glass_pane, stone, stone_slab[half\u003dtop], carpet, stone",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          65,
+          4
+        ],
+        "to": [
+          -2,
+          65,
+          4
+        ],
+        "block": "minecraft:stone_slab[half\u003dbottom]"
+      },
+      {
+        "from": [
+          -4,
+          64,
+          8
+        ],
+        "to": [
+          -4,
+          64,
+          9
+        ],
+        "block": "minecraft:glass_pane"
+      },
+      {
+        "from": [
+          -2,
+          65,
+          12
+        ],
+        "to": [
+          -2,
+          65,
+          12
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          -2,
+          64,
+          17
+        ],
+        "to": [
+          -2,
+          64,
+          18
+        ],
+        "block": "minecraft:stone_slab[half\u003dtop]"
+      },
+      {
+        "from": [
+          -4,
+          65,
+          20
+        ],
+        "to": [
+          -4,
+          65,
+          20
+        ],
+        "block": "minecraft:carpet"
+      },
+      {
+        "from": [
+          -4,
+          65,
+          23
+        ],
+        "to": [
+          -4,
+          65,
+          23
+        ],
+        "block": "minecraft:stone"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      -4.3,
+      66.0,
+      22.7
+    ],
+    "max": [
+      -2.7,
+      66.0,
+      24.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 640,
+    "voidY": 0.0
+  }
+}

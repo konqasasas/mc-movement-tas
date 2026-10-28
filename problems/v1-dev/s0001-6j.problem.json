@@ -1,0 +1,146 @@
+{
+  "format": "mctas-problem",
+  "version": 1,
+  "id": "v1-dev/s0001-6j",
+  "title": "6 jumps, generated (seed 1): daylight_detector, stone, cobblestone_wall, stone_slab[half=bottom], fence, packed_ice",
+  "mcVersion": "1.12.2",
+  "world": {
+    "source": "inline",
+    "fills": [
+      {
+        "from": [
+          0,
+          64,
+          -30
+        ],
+        "to": [
+          0,
+          64,
+          0
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          1,
+          63,
+          3
+        ],
+        "to": [
+          1,
+          63,
+          3
+        ],
+        "block": "minecraft:daylight_detector"
+      },
+      {
+        "from": [
+          2,
+          62,
+          7
+        ],
+        "to": [
+          2,
+          62,
+          8
+        ],
+        "block": "minecraft:stone"
+      },
+      {
+        "from": [
+          4,
+          60,
+          11
+        ],
+        "to": [
+          4,
+          60,
+          11
+        ],
+        "block": "minecraft:cobblestone_wall"
+      },
+      {
+        "from": [
+          4,
+          60,
+          13
+        ],
+        "to": [
+          4,
+          60,
+          13
+        ],
+        "block": "minecraft:stone_slab[half=bottom]"
+      },
+      {
+        "from": [
+          6,
+          60,
+          14
+        ],
+        "to": [
+          6,
+          60,
+          14
+        ],
+        "block": "minecraft:fence"
+      },
+      {
+        "from": [
+          6,
+          60,
+          17
+        ],
+        "to": [
+          6,
+          60,
+          17
+        ],
+        "block": "minecraft:packed_ice"
+      }
+    ]
+  },
+  "spawn": {
+    "pos": [
+      0.5,
+      65.0,
+      -29.5
+    ],
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "start": {
+    "min": [
+      -1.0,
+      60.0,
+      0.0
+    ],
+    "max": [
+      2.0,
+      70.0,
+      1.0
+    ]
+  },
+  "goal": {
+    "min": [
+      5.7,
+      61.0,
+      16.7
+    ],
+    "max": [
+      7.3,
+      61.0,
+      18.3
+    ]
+  },
+  "limits": {
+    "maxTicks": 640,
+    "voidY": 0.0
+  },
+  "target": {
+    "ticks": 51,
+    "kind": "upper_bound",
+    "witness": "s0001-6j.tas",
+    "note": "approx-beam v1, 120 s"
+  }
+}
