@@ -23,7 +23,7 @@ problem/build/install/mctas-problem/bin/mctas-problem score problems/v0 out/ --m
 
 ## 版
 
-採用した改良には版を振り、同じ問題集で全版を比べられるようにします。結果は [../research/findings.md](../research/findings.md) にあります。
+採用した改良には版を振り、同じ問題集で全版を比べられるようにします。結果は [../research/findings/](../research/findings/)(F-016〜F-028 は shared.md、F-200 以降は ws3b.md) にあります。
 
 | 版 | コミット | 中身 |
 | --- | --- | --- |

@@ -16,7 +16,7 @@ Minecraft Java Edition 1.12.2 の移動TASを自動で探すエンジンです�
 
 ## 研究メモ
 
-スレッドどうしの知見の受け渡しは [research/](research/README.md) で行います。作業の前に [research/lessons.md](research/lessons.md) と [research/decisions.md](research/decisions.md) を読んでください。
+スレッドどうしの知見の受け渡しは [research/](research/README.md) で行います。作業の前に [research/lessons/](research/lessons/) の全ファイルと [research/decisions.md](research/decisions.md) を読んでください。
 
 ## 問題と判定
 
