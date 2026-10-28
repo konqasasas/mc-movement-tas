@@ -1,5 +1,7 @@
 package io.github.konqasasas.mctas.search.bound;
 
+import io.github.konqasasas.mctas.physics.testing.Slow;
+import org.junit.experimental.categories.Category;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.problem.Problem;
@@ -26,6 +28,7 @@ public class SoundnessTest {
     private static final String[] PROBLEMS = {"03-gap-2", "05-up-1", "06-down-1-gap-4", "07-side-2", "10-three-jumps-zigzag"};
 
     @Test
+    @Category(Slow.class)
     public void randomRunsStayInsideTheSets() throws IOException {
         for (String id : PROBLEMS) check(id, 300, 25);
     }
