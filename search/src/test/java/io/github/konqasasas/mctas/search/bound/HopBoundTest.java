@@ -37,8 +37,9 @@ import static org.junit.Assert.fail;
 
 /**
  * The hop bound is never above a known run, nor, from a landing, above what the run took from
- * there; and on random courses (full blocks, every shape, liquids) the bound between two states of
- * a random run is never above the ticks the run took between them.
+ * there or (from the start) what it took to get there; and on random courses (full blocks, every
+ * shape, liquids) the bound between two states of a random run is never above the ticks the run
+ * took between them.
  */
 public class HopBoundTest {
 
@@ -66,6 +67,10 @@ public class HopBoundTest {
                         if (s.onGround) {
                             int lb = hb.ticksFromGround(s.posX, s.box.minY, s.posZ);
                             assertTrue(p.id + " tick " + t + ": " + lb + " > " + (res.goalTick - t), lb <= res.goalTick - t);
+                            if (t > res.startTick) {
+                                int early = hb.ticksFromStart(s.posX, s.box.minY, s.posZ);
+                                assertTrue(p.id + " tick " + t + ": from start " + early + " > " + (t - res.startTick), early <= t - res.startTick);
+                            }
                         }
                         s = model.tick(s, in.get(t));
                     }

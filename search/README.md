@@ -51,6 +51,7 @@ search/build/install/mctas-search/bin/mctas-search speed problems/v1-full/*.prob
 
 - 区間の下界: `new HopBound(problem, from, to).ticks()` は、`from` の中のどの状態からでも `to` に入るまでの下界です。
 - 着地からの下界: `hb.ticksFromGround(x, 足の y, z)` は、その場所に立っている状態(着地した瞬間など)からゴールまでの下界です。表を引くだけなので速く、着地を頂点にする探索(WS9 の A* など)の枝刈りや打ち切りに使えます。`SpeedBound.ticksFrom` と大きい方を取れます。前提は、ポーションなし、ブロックの中に入らないこと(pushOutOfBlocks が起きない)です。
+- スタートからの下界: `hb.ticksFromStart(x, 足の y, z)` は、スタート(スタートの箱にいる最後の tick)から、その場所に地面で立つまでの下界です(各頂点の最早到達 tick)。前向き探索のついでに作る表を引くだけです。後ろ向き探索(WS11)で、確かめる着地点の順位付けに使えます。前向き探索はゴールで止まるので、そこまでに届いていない場所はゴールの下界になります。前向き探索が走らないとき(下界 0、ゴールに届かない、設置あり、`MCTAS_NOFORWARD`)は 0 です。
 - 区間ごとの差: `mctas-search segments <problem.json> <run.tas> [--length N] [--json out.json]` は、解を約 N ティック(既定 40)ごとの着地で区切り、各区間について、区間の初めの位置と速さから次の区切りの位置(最後はゴール)までの下界と、実際にかかったティック数の差を出します。区間の下界は、その解と同じ点を通る走りに対するものです。差が 0 の区間はもう縮みません。
 - 解との差: `mctas-search gap <problem.json> <run.tas>` は解を再生し、各着地での下界と残りのティック数を出します。下界が残りを超えたら `UNSOUND` と出ます。
 
