@@ -214,5 +214,11 @@
   "limits": {
     "maxTicks": 880,
     "voidY": 0.0
+  },
+  "target": {
+    "ticks": 169,
+    "kind": "upper_bound",
+    "witness": "s2007-12j.tas",
+    "note": "approx-beam v1, 30 s"
   }
 }
