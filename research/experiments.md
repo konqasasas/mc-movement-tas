@@ -28,3 +28,4 @@
 | E-022 | 2026-10-28 | 動画から stpt1 の人間の入力を復元 | `tools/video-tas/README.md` の手順(フレーム 4640〜4958、yaw 0)、`mctas-problem time stpt1.problem.json tools/video-tas/stpt1/stpt1-human187.tas --strict` | 全ティック一致、エンジンで 187 ティック。実機の `/mctas replay` でも問題なし | F-025 |
 | E-023 | 2026-10-28 | stpt1 を人間の解から磨く | `mctas-approx solve problems/real/stpt1.problem.json out --budget 120 --seed stpt1-human187.tas` | 187 のまま、改善なし(98 秒) | F-026 |
 | E-024 | 2026-10-28 | F-024 の対応の悪化確認 | `mctas-approx gen /tmp/dev2 v1-dev2 9 16` を v2(`ce94d4a`)と `c41692a` で `--budget 20` | 14 問ずつ解け、2 問で良く 2 問で 1 ティック悪い | F-027 |
+| E-200 | 2026-10-28 | F-024 の対応の悪化確認(続き) | `mctas-approx gen` でシード 25〜120 を足し、v2 と新版を `--budget 20`(48 問)と `--budget 5`(64 問)で 1 本ずつ。`v1-holdout` を `--budget 30` で 3 回 | 調整用は悪化なし、報告用は s1002 を落とす | F-200 |

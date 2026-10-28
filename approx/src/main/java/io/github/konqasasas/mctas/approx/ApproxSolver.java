@@ -86,14 +86,18 @@ public final class ApproxSolver {
         long t0 = System.currentTimeMillis();
         long deadline = t0 + budgetMillis;
         // Routes planned with less and more reach to spare: the bold one may take a shortcut that the
-        // physics cannot quite make, the careful one goes round it.
+        // physics cannot quite make, the careful one goes round it. The check for walls in a jump's
+        // way is a guess along a straight line, so each also comes without it when that differs.
         List<Route> routes = new ArrayList<Route>();
         Set<String> seen = new HashSet<String>();
-        for (double slack : SLACKS) {
-            Route route = new Route(problem, slack);
-            if (seen.add(route.toString())) {
-                routes.add(route);
-                say("route (slack " + slack + "): " + (route.found() ? route.toString() : "none found, heading straight for the goal"));
+        for (boolean throughWalls : new boolean[] {false, true}) {
+            for (double slack : SLACKS) {
+                Route route = new Route(problem, slack, throughWalls);
+                if (seen.add(route.toString())) {
+                    routes.add(route);
+                    say("route (slack " + slack + (throughWalls ? ", through walls" : "") + "): "
+                        + (route.found() ? route.toString() : "none found, heading straight for the goal"));
+                }
             }
         }
         List<PlayerInput> best = null;

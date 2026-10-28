@@ -122,13 +122,25 @@ public final class Route {
         this(problem, 0);
     }
 
+    /** Jumps may pass through things at body height on the way (the check is a straight-line guess). */
+    public final boolean throughWalls;
+
     public Route(Problem problem, double slack) {
-        this(problem, JumpTable.get(), slack);
+        this(problem, slack, false);
+    }
+
+    public Route(Problem problem, double slack, boolean throughWalls) {
+        this(problem, JumpTable.get(), slack, throughWalls);
     }
 
     Route(Problem problem, JumpTable jumps, double slack) {
+        this(problem, jumps, slack, false);
+    }
+
+    Route(Problem problem, JumpTable jumps, double slack, boolean throughWalls) {
         this.problem = problem;
         this.slack = slack;
+        this.throughWalls = throughWalls;
         List<Surface> surfaces = surfaces(problem.world);
         for (Surface c : surfaces) allByColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Surface>()).add(c);
         Region g = problem.goal;
@@ -324,7 +336,7 @@ public final class Route {
         if (walkable(a, b)) return d / RUN_SPEED;
         double gap = rectGap(a, b);
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
-        if (obstructed(a, b)) return -1;
+        if (!throughWalls && obstructed(a, b)) return -1;
         // A jump costs at least its airtime; a short hop between close surfaces still takes it.
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
     }
