@@ -148,6 +148,8 @@ public final class Route {
     public final boolean throughWalls;
     /** Surfaces next to walls keep the body clear of them (see {@link #surfaces(SparseBlockWorld, boolean)}). */
     public final boolean clearOfWalls;
+    /** Gaps left to the segment search are edges too ({@link #searchCost}). */
+    public final boolean searchEdges;
 
     public Route(Problem problem, double slack) {
         this(problem, slack, false);
@@ -158,15 +160,21 @@ public final class Route {
     }
 
     public Route(Problem problem, double slack, boolean throughWalls, boolean clearOfWalls) {
-        this(problem, JumpTable.get(), slack, throughWalls, clearOfWalls);
+        this(problem, JumpTable.get(), slack, throughWalls, clearOfWalls, false);
+    }
+
+    /** With {@code searchEdges}, also the gaps no plain jump crosses, for the segment search to find a way over. */
+    public Route(Problem problem, double slack, boolean throughWalls, boolean clearOfWalls, boolean searchEdges) {
+        this(problem, JumpTable.get(), slack, throughWalls, clearOfWalls, searchEdges);
     }
 
     Route(Problem problem, JumpTable jumps, double slack) {
-        this(problem, jumps, slack, false, false);
+        this(problem, jumps, slack, false, false, false);
     }
 
-    Route(Problem problem, JumpTable jumps, double slack, boolean throughWalls, boolean clearOfWalls) {
+    Route(Problem problem, JumpTable jumps, double slack, boolean throughWalls, boolean clearOfWalls, boolean searchEdges) {
         this.problem = problem;
+        this.searchEdges = searchEdges;
         this.slack = slack;
         this.throughWalls = throughWalls;
         this.clearOfWalls = clearOfWalls;
@@ -181,6 +189,9 @@ public final class Route {
             Surface c = surfaces.get(i);
             byColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Integer>()).add(i);
         }
+        this.graph = surfaces;
+        this.graphByColumn = byColumn;
+        this.jumps = jumps;
         Region s = problem.start;
         List<Integer> starts = new ArrayList<Integer>();
         for (int i = 0; i < surfaces.size(); i++) {
@@ -196,7 +207,13 @@ public final class Route {
         if (!path.isEmpty() && spawnCell != null && !starts.contains(surfaces.indexOf(spawnCell))) {
             List<Surface> pre = shortest(surfaces, byColumn, Collections.singletonList(surfaces.indexOf(spawnCell)),
                 surfaces.indexOf(path.get(0)), jumps);
-            if (!pre.isEmpty()) runUp.addAll(pre.subList(0, pre.size() - 1));
+            if (!pre.isEmpty()) {
+                runUp.addAll(pre.subList(0, pre.size() - 1));
+            } else if (searchEdges) {
+                // The start surfaces the route begins on are out of reach from the spawn (a start
+                // box spanning several floors): plan from the spawn itself.
+                path = shortest(surfaces, byColumn, Collections.singletonList(surfaces.indexOf(spawnCell)), -1, jumps);
+            }
         }
         // Waypoints come from the run-up too: the start box may hold a platform the run-up jumps onto.
         List<Surface> full = new ArrayList<Surface>(runUp);
@@ -378,6 +395,30 @@ public final class Route {
 
     /** Ticks to go from surface a to surface b, or -1 when the edge does not exist. */
     private double edgeCost(Surface a, Surface b, JumpTable jumps) {
+        double c = plainCost(a, b, jumps);
+        return c < 0 && searchEdges ? searchCost(a, b) : c;
+    }
+
+    /** Horizontal gap and rise of an edge left to the segment search. */
+    static final double SEARCH_GAP = 4.5, SEARCH_RISE = 1.5;
+    /** Ticks a search edge counts extra, so the route takes one only where nothing else goes. */
+    static final double SEARCH_PENALTY = 300;
+
+    /**
+     * A gap the planner cannot vouch for but that the segment search may find a way over: short,
+     * not much higher (or higher with a ladder, vine or water nearby to climb), not a long drop.
+     */
+    private double searchCost(Surface a, Surface b) {
+        if (b.climb) return -1;
+        double gap = rectGap(a, b), dy = b.top - a.top;
+        if (gap > SEARCH_GAP || dy < -8) return -1;
+        // Ladders, vines and water are edges of their own now; a search edge is a jump.
+        if (dy > SEARCH_RISE) return -1;
+        if (!throughWalls && obstructed(a, b)) return -1;
+        return SEARCH_PENALTY + 2 * centreDist(a, b) / RUN_SPEED + 4 * Math.max(0, dy);
+    }
+
+    private double plainCost(Surface a, Surface b, JumpTable jumps) {
         if (a.climb || b.climb) return climbCost(a, b, jumps);
         double dy = b.top - a.top;
         double d = centreDist(a, b);
@@ -401,7 +442,23 @@ public final class Route {
      */
     private double climbCost(Surface a, Surface b, JumpTable jumps) {
         double d = centreDist(a, b);
+        // Out of water at its top over a short gap: swimming at the surface, a jump clears about
+        // a block and a half onto a block top or into the next water no higher.
+        // Up a ladder of water blocks with air between: the swim out of one carries the player
+        // up into the next, one or two blocks higher and at most a block aside.
+        if (a.climb && b.climb && waterAt(a) && waterAt(b) && b.y > a.y && b.y <= a.y + 2 && rectGap(a, b) <= 1 + EPS) {
+            return (b.y - a.y) / UP_SPEED + 4;
+        }
+        if (a.climb && waterAt(a) && rectGap(a, b) > EPS) {
+            double top = b.climb ? b.y : b.top;
+            if (rectGap(a, b) > WATER_HOP || top > a.y + 1 + 0.6 || top < a.y - 3) return -1;
+            if (!throughWalls && obstructed(a, b)) return -1;
+            return WATER_HOP_TICKS + d / CLIMB_SPEED;
+        }
         if (a.climb && b.climb) {
+            // Up the same column: a ladder pushes up against its wall at 0.12 a tick (about 0.118),
+            // water with the jump key held at somewhat less.
+            if (a.x == b.x && a.z == b.z && b.y == a.y + 1) return 1.0 / UP_SPEED;
             if (rectGap(a, b) > EPS || (b.y != a.y && b.y != a.y - 1)) return -1;
             if (a.x == b.x && a.z == b.z && b.y != a.y - 1) return -1;
             return Math.max(d, 1.0 / 8) / CLIMB_SPEED;
@@ -409,27 +466,44 @@ public final class Route {
         if (a.climb) {
             // Step out onto a top no higher than the hold reaches, or drop onto one below.
             if (b.top > a.top + 1.0 + EPS || b.top < a.top - 3.0 || rectGap(a, b) > EPS) return -1;
+            if (!throughWalls && wallBetween(a, b)) return -1;
             return d / CLIMB_SPEED;
         }
         // Into the block, entering at the height of the span nearest the take-off top.
         double feet = Math.max(b.top, Math.min(a.top, b.top + 0.99));
         double dy = feet - a.top;
         double gap = rectGap(a, b);
-        if (gap < EPS && dy <= 0.6 + EPS) return d / RUN_SPEED;
+        if (gap < EPS && dy <= 0.6 + EPS) return !throughWalls && wallBetween(a, b) ? -1 : d / RUN_SPEED;
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
+        if (!throughWalls && obstructed(a, b)) return -1;
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
     }
 
-    /** Ladder and vine blocks. */
+    /** Gap a hop out of water clears, and the ticks it is counted. */
+    static final double WATER_HOP = 1.5, WATER_HOP_TICKS = 12;
+
+    private boolean waterAt(Surface c) {
+        return isWater(problem.world.getBlock(c.x, c.y, c.z));
+    }
+
+    /** Climbing up a ladder, vine or water column, blocks a tick (planning only). */
+    static final double UP_SPEED = 0.1;
+
+    /** Ladder, vine and water blocks. */
     static List<Surface> climbCells(SparseBlockWorld world) {
         final List<Surface> out = new ArrayList<Surface>();
         world.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                if (isClimbable(type)) out.add(Surface.climbCell(x, y, z));
+                if (isClimbable(type) || isWater(type)) out.add(Surface.climbCell(x, y, z));
             }
         });
         return out;
+    }
+
+    static boolean isWater(BlockType type) {
+        String n = type.name();
+        return n.startsWith("minecraft:water") || n.startsWith("minecraft:flowing_water");
     }
 
     static boolean isWeb(BlockType type) {
@@ -529,6 +603,152 @@ public final class Route {
         return out;
     }
 
+    /** Every surface and ladder or vine block, indexed by column, for {@link #costToGoal}. */
+    private List<Surface> graph;
+    private Map<Long, List<Integer>> graphByColumn;
+    private JumpTable jumps;
+    private double[] toGoal;
+
+    /**
+     * The route's cost (ticks, with the penalties of search edges) from every surface to the goal:
+     * Dijkstra backwards from the goal over the same edges as the route.
+     */
+    double[] costToGoal() {
+        if (toGoal != null) return toGoal;
+        int n = graph.size();
+        double[] dist = new double[n];
+        Arrays.fill(dist, Double.POSITIVE_INFINITY);
+        PriorityQueue<double[]> pq = new PriorityQueue<double[]>(16, (a, b) -> Double.compare(a[0], b[0]));
+        for (int i = 0; i < n; i++) {
+            if (graph.get(i).climb) continue;
+            double c = goalCost(graph.get(i), jumps);
+            if (c < Double.POSITIVE_INFINITY) {
+                dist[i] = c;
+                pq.add(new double[] {c, i});
+            }
+        }
+        int reach = (int) Math.ceil(Math.max(jumps.maxReach(), searchEdges ? SEARCH_GAP : 0)) + 2;
+        while (!pq.isEmpty()) {
+            double[] e = pq.poll();
+            int v = (int) e[1];
+            if (e[0] > dist[v]) continue;
+            Surface b = graph.get(v);
+            for (int dx = -reach; dx <= reach; dx++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    List<Integer> list = graphByColumn.get(col(b.x + dx, b.z + dz));
+                    if (list == null) continue;
+                    for (int u : list) {
+                        if (u == v) continue;
+                        double c = edgeCost(graph.get(u), b, jumps);
+                        if (c < 0) continue;
+                        if (dist[v] + c < dist[u]) {
+                            dist[u] = dist[v] + c;
+                            pq.add(new double[] {dist[u], u});
+                        }
+                    }
+                }
+            }
+        }
+        return toGoal = dist;
+    }
+
+    private java.util.IdentityHashMap<Surface, Integer> graphIndex;
+
+    /** {@link #costToGoal} of one surface of the graph. */
+    double cost(Surface c) {
+        if (graphIndex == null) {
+            graphIndex = new java.util.IdentityHashMap<Surface, Integer>();
+            for (int i = 0; i < graph.size(); i++) graphIndex.put(graph.get(i), i);
+        }
+        Integer i = graphIndex.get(c);
+        return i == null ? Double.POSITIVE_INFINITY : costToGoal()[i];
+    }
+
+    /** For debugging: the cheapest way on from {@code u} by {@link #costToGoal}, null at the goal. */
+    String chainToGoal(Surface u, int max) {
+        double[] h = costToGoal();
+        StringBuilder sb = new StringBuilder();
+        int reach = (int) Math.ceil(Math.max(jumps.maxReach(), searchEdges ? SEARCH_GAP : 0)) + 2;
+        for (int k = 0; k < max && u != null; k++) {
+            sb.append(u).append(String.format(" h%.0f", cost(u))).append(" -> ");
+            Surface next = null;
+            double best = Double.POSITIVE_INFINITY;
+            for (int dx = -reach; dx <= reach; dx++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    List<Integer> list = graphByColumn.get(col(u.x + dx, u.z + dz));
+                    if (list == null) continue;
+                    for (int v : list) {
+                        if (graph.get(v) == u) continue;
+                        double c = edgeCost(u, graph.get(v), jumps);
+                        if (c >= 0 && c + h[v] < best) {
+                            best = c + h[v];
+                            next = graph.get(v);
+                        }
+                    }
+                }
+            }
+            if (next == null || best >= cost(u) + 1e-6 + 1e9) break;
+            u = next;
+        }
+        return sb.toString();
+    }
+
+    /** The graph's surfaces and climbing blocks in the columns within {@code r} of (x, z). */
+    List<Surface> surfacesNear(double x, double z, double r) {
+        List<Surface> out = new ArrayList<Surface>();
+        for (int bx = (int) Math.floor(x - r); bx <= (int) Math.floor(x + r); bx++) {
+            for (int bz = (int) Math.floor(z - r); bz <= (int) Math.floor(z + r); bz++) {
+                List<Integer> list = graphByColumn.get(col(bx, bz));
+                if (list != null) for (int i : list) out.add(graph.get(i));
+            }
+        }
+        return out;
+    }
+
+    /** A ladder, vine or water block within a block of the player, at heights from the feet up to {@code b}'s top. */
+    boolean climbAidNear(double x, double y, double z, Surface b) {
+        int x0 = (int) Math.floor(x) - 1, x1 = (int) Math.floor(x) + 1;
+        int z0 = (int) Math.floor(z) - 1, z1 = (int) Math.floor(z) + 1;
+        int y0 = (int) Math.floor(y), y1 = (int) Math.floor(b.top);
+        for (int bx = x0; bx <= x1; bx++) {
+            for (int bz = z0; bz <= z1; bz++) {
+                for (int by = y0; by <= y1; by++) {
+                    BlockType t = problem.world.getBlock(bx, by, bz);
+                    if (isClimbable(t) || isWater(t)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * {@link #costToGoal} where the player is: of the ladder or vine block at the feet, else the
+     * least of the surfaces the feet are over (the highest top at or below the feet, at most
+     * {@code drop} lower, in the columns the body overlaps), plus the horizontal distance to it.
+     * Infinite over nothing known.
+     */
+    double costToGoalAt(double x, double y, double z, double drop) {
+        double[] h = costToGoal();
+        double best = Double.POSITIVE_INFINITY;
+        for (int bx = (int) Math.floor(x - 0.3); bx <= (int) Math.floor(x + 0.3); bx++) {
+            for (int bz = (int) Math.floor(z - 0.3); bz <= (int) Math.floor(z + 0.3); bz++) {
+                List<Integer> list = graphByColumn.get(col(bx, bz));
+                if (list == null) continue;
+                int under = -1;
+                for (int i : list) {
+                    Surface c = graph.get(i);
+                    if (c.climb) {
+                        if (y >= c.top - 1e-6 && y < c.top + 1) best = Math.min(best, h[i]);
+                        continue;
+                    }
+                    if (c.top <= y + 1e-6 && c.top >= y - drop && (under < 0 || c.top > graph.get(under).top)) under = i;
+                }
+                if (under >= 0) best = Math.min(best, h[under] + graph.get(under).dist(x, z) / RUN_SPEED);
+            }
+        }
+        return best;
+    }
+
     private double goalCost(Surface a, JumpTable jumps) {
         Region g = problem.goal;
         double gx = Math.max(0, Math.max(g.minX - a.maxX, a.minX - g.maxX));
@@ -538,7 +758,10 @@ public final class Route {
         double cx = Math.max(g.minX, Math.min(g.maxX, a.cx())), cz = Math.max(g.minZ, Math.min(g.maxZ, a.cz()));
         double d = Math.hypot(cx - a.cx(), cz - a.cz());
         if (gap < EPS && g.minY <= a.top + 0.6 && g.maxY >= a.top) return d / RUN_SPEED;
-        if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return Double.POSITIVE_INFINITY;
+        if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) {
+            if (searchEdges && !a.climb && gap <= SEARCH_GAP && dy <= SEARCH_RISE && dy >= -8) return SEARCH_PENALTY + 2 * d / RUN_SPEED;
+            return Double.POSITIVE_INFINITY;
+        }
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
     }
 
