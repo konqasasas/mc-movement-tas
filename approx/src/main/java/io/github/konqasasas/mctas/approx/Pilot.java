@@ -77,6 +77,7 @@ final class Pilot {
             // After the entry, a wall that stops the sprint must not make the next press break
             // the toggle rule. (Holding back before it too made the run-up beam dawdle on v1-dev.)
             if (entry >= 0) a = Rollout.holdSprint(s, a, lastToggle, t);
+            a = Rollout.holdSneak(s, a, lastToggle, t);
             PlayerState ns = Physics.tick(problem.world, s, a);
             if (ToggleRule.toggles(s, ns)) {
                 if (!ToggleRule.allowed(lastToggle, t)) {
@@ -132,12 +133,50 @@ final class Pilot {
         return s.posY < Math.min(ahead, behind) - 0.6 || s.posY < route.floorY - 1.0;
     }
 
+    /**
+     * The heading to slide along an obstacle right ahead that a jump does not clear, towards the
+     * nearer side where the body fits through; NaN when nothing blocks ahead or no side is free.
+     */
+    private float sidestep(PlayerState s, float heading) {
+        double fx = -Math.sin(Math.toRadians(heading)), fz = Math.cos(Math.toRadians(heading));
+        double lo = s.posY + 1.3, hi = s.posY + 1.8;
+        // Blocked: something ahead still in the way at the height a jump lifts the feet to.
+        if (!route.solidAt(s.posX + fx * 0.35, lo, s.posZ + fz * 0.35, hi, 0.29)) return Float.NaN;
+        for (double k = 0.25; k <= 1.5; k += 0.25) {
+            for (int sign = -1; sign <= 1; sign += 2) {
+                double lx = -fz * sign * k, lz = fx * sign * k;
+                if (!route.solidAt(s.posX + lx + fx * 0.35, s.posY + 0.05, s.posZ + lz + fz * 0.35, hi, 0.29)) {
+                    return heading + sign * 90F;
+                }
+            }
+        }
+        return Float.NaN;
+    }
+
+    /** In ladders or vines, sneak once the feet are this little above the platform ahead. */
+    static final double CLIMB_HOLD = 0.35;
+
     private PlayerInput decide(PlayerState s, int stage, boolean entered, double[] aim) {
         Route.Waypoint w = route.waypoints.get(stage);
         route.remaining(s.posX, s.posZ, stage, aim);
         double dx = aim[0] - s.posX, dz = aim[1] - s.posZ;
         double d = Math.sqrt(dx * dx + dz * dz);
         float heading = d > 1e-6 ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : velocityHeading(s);
+        if (w.viaClimb && route.holding(s.posX, s.posY, s.posZ) && !s.onGround) {
+            // Holding on in ladders or vines on the way: move along the route, sneaking whenever
+            // the feet sink near the height of the platform ahead so as not to drop below it.
+            route.aimAlong(s.posX, s.posZ, stage, aim);
+            double ax = aim[0] - s.posX, az = aim[1] - s.posZ;
+            float h = ax * ax + az * az > 1e-6 ? (float) Math.toDegrees(Math.atan2(-ax, az)) : heading;
+            if (s.posY < w.top + CLIMB_HOLD) return PlayerInput.of(PlayerInput.W | PlayerInput.SNEAK, h);
+            return PlayerInput.of(TickBeam.RUN, h + 45F);
+        }
+        if (s.onGround) {
+            // Pressed against something too high to step or jump onto (a post, say): slide along
+            // it towards the nearer side where the body fits past it.
+            float side = sidestep(s, heading);
+            if (!Float.isNaN(side)) return PlayerInput.of(TickBeam.RUN, side + 45F);
+        }
         if (s.onGround || s.inWater) {
             double along = d > 1e-9 ? (s.motionX * dx + s.motionZ * dz) / d : 0;
             if (w.needsJump) {

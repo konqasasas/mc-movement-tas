@@ -23,9 +23,11 @@ public final class PilotCheck {
                 PlayerState x = Rollout.spawn(p);
                 int t = 0;
                 for (PlayerInput a : r.inputs) {
+                    PlayerState before = x;
                     x = io.github.konqasasas.mctas.physics.Physics.tick(p.world, x, a);
                     t++;
-                    if (t > r.ticks - Integer.getInteger("last", 40)) System.out.printf("  t=%d %s pos=(%.3f, %.3f, %.3f) v=(%.3f, %.3f, %.3f) g=%b spr=%b%n", t, a, x.posX, x.posY, x.posZ, x.motionX, x.motionY, x.motionZ, x.onGround, x.sprinting);
+                    boolean toggle = io.github.konqasasas.mctas.problem.judge.ToggleRule.toggles(before, x);
+                    if (t > r.ticks - Integer.getInteger("last", 40)) System.out.printf("  t=%d %s pos=(%.3f, %.3f, %.3f) v=(%.3f, %.3f, %.3f) g=%b spr=%b snk=%b%s%n", t, a, x.posX, x.posY, x.posZ, x.motionX, x.motionY, x.motionZ, x.onGround, x.sprinting, x.prevSneak, toggle ? " TOGGLE" : "");
                 }
             }
         }

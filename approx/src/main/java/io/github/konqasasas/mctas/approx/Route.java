@@ -39,16 +39,31 @@ public final class Route {
         public final double top;
         /** Footprint grown by the player's half width: the centre is supported anywhere inside. */
         public final double minX, minZ, maxX, maxZ;
+        /**
+         * A ladder or vine block instead of a block top: the player holds on in it with the feet
+         * anywhere from {@code top} (its bottom) up to a block higher, and its footprint is the block
+         * itself, since the block at the feet decides the hold.
+         */
+        public final boolean climb;
 
         Surface(int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
+            this(x, y, z, top, minX - 0.3, minZ - 0.3, maxX + 0.3, maxZ + 0.3, false);
+        }
+
+        private Surface(int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ, boolean climb) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.top = top;
-            this.minX = minX - 0.3;
-            this.minZ = minZ - 0.3;
-            this.maxX = maxX + 0.3;
-            this.maxZ = maxZ + 0.3;
+            this.minX = minX;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxZ = maxZ;
+            this.climb = climb;
+        }
+
+        static Surface climbCell(int x, int y, int z) {
+            return new Surface(x, y, z, y, x, z, x + 1, z + 1, true);
         }
 
         double dist(double px, double pz) {
@@ -71,7 +86,7 @@ public final class Route {
 
         @Override
         public String toString() {
-            return "(" + x + "," + y + "," + z + " top " + top + ")";
+            return "(" + x + "," + y + "," + z + (climb ? " climb" : " top " + top) + ")";
         }
     }
 
@@ -85,9 +100,16 @@ public final class Route {
         final boolean goal;
         /** The route reaches this waypoint with a jump (or a drop), not by walking. */
         public final boolean needsJump;
+        /** The route reaches this waypoint through ladder or vine blocks, holding on in them. */
+        public final boolean viaClimb;
 
         Waypoint(List<Surface> cells, int firstChainIndex, double top, boolean goal, boolean needsJump) {
+            this(cells, firstChainIndex, top, goal, needsJump, false);
+        }
+
+        Waypoint(List<Surface> cells, int firstChainIndex, double top, boolean goal, boolean needsJump, boolean viaClimb) {
             this.needsJump = needsJump;
+            this.viaClimb = viaClimb;
             this.cells = cells;
             this.firstChainIndex = firstChainIndex;
             this.top = top;
@@ -143,6 +165,7 @@ public final class Route {
         this.throughWalls = throughWalls;
         List<Surface> surfaces = surfaces(problem.world);
         for (Surface c : surfaces) allByColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Surface>()).add(c);
+        surfaces.addAll(climbCells(problem.world));
         Region g = problem.goal;
         Surface goalCell = new Surface(Integer.MIN_VALUE, 0, 0, g.minY, g.minX + 0.3, g.minZ + 0.3, g.maxX - 0.3, g.maxZ - 0.3);
         // Index surfaces by block column for neighbour lookups.
@@ -155,7 +178,7 @@ public final class Route {
         List<Integer> starts = new ArrayList<Integer>();
         for (int i = 0; i < surfaces.size(); i++) {
             Surface c = surfaces.get(i);
-            if (c.top >= s.minY && c.top <= s.maxY && c.maxX >= s.minX && c.minX <= s.maxX && c.maxZ >= s.minZ && c.minZ <= s.maxZ) {
+            if (!c.climb && c.top >= s.minY && c.top <= s.maxY && c.maxX >= s.minX && c.minX <= s.maxX && c.maxZ >= s.minZ && c.minZ <= s.maxZ) {
                 starts.add(i);
             }
         }
@@ -176,8 +199,15 @@ public final class Route {
         double low = g.minY;
         double startTopV = full.isEmpty() ? problem.spawn.pos.y : full.get(0).top;
         int i = 1;
+        boolean climbed = false;
         while (i < full.size()) {
             Surface first = full.get(i);
+            if (first.climb) {
+                // Held on through; the next platform is reached this way.
+                climbed = true;
+                i++;
+                continue;
+            }
             List<Surface> cells = new ArrayList<Surface>();
             cells.add(first);
             int j = i + 1;
@@ -185,11 +215,12 @@ public final class Route {
                 cells.add(full.get(j));
                 j++;
             }
-            boolean sameAsPrev = walkable(full.get(i - 1), first) && Math.abs(full.get(i - 1).top - first.top) < EPS;
+            boolean sameAsPrev = !climbed && walkable(full.get(i - 1), first) && Math.abs(full.get(i - 1).top - first.top) < EPS;
             if (!sameAsPrev) {
-                waypoints.add(new Waypoint(cells, i, first.top, false, !runnable(full.get(i - 1), first)));
+                waypoints.add(new Waypoint(cells, i, first.top, false, climbed || !runnable(full.get(i - 1), first), climbed));
                 low = Math.min(low, first.top);
             }
+            climbed = false;
             i = j;
         }
         int before = 0;
@@ -306,6 +337,7 @@ public final class Route {
     }
 
     static boolean walkable(Surface a, Surface b) {
+        if (a.climb || b.climb) return false;
         double dy = b.top - a.top;
         return rectGap(a, b) < EPS && dy <= 0.6 + EPS;
     }
@@ -315,6 +347,7 @@ public final class Route {
      * steps up onto the far side (02-gap-1 is crossed this way in 4 ticks).
      */
     static boolean runnable(Surface a, Surface b) {
+        if (a.climb || b.climb) return false;
         return rectGap(a, b) <= 0.45 && b.top - a.top <= 0.6 + EPS;
     }
 
@@ -331,6 +364,7 @@ public final class Route {
 
     /** Ticks to go from surface a to surface b, or -1 when the edge does not exist. */
     private double edgeCost(Surface a, Surface b, JumpTable jumps) {
+        if (a.climb || b.climb) return climbCost(a, b, jumps);
         double dy = b.top - a.top;
         double d = centreDist(a, b);
         if (walkable(a, b)) return d / RUN_SPEED;
@@ -341,12 +375,67 @@ public final class Route {
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
     }
 
+    /** Holding on in ladders and vines, a sprint moves about this far a tick (it is capped at 0.15). */
+    static final double CLIMB_SPEED = 0.12;
+
+    /**
+     * Edges into, through and out of ladder and vine blocks. Inside them the fall is slow and
+     * sneaking stops it, so the player can move sideways from block to block at the same height or
+     * sink to the one below; climbing up needs a wall to push against and is left out. Into one: a
+     * jump or walk that reaches the block at some height of its span. Out of one: onto a block top
+     * next to it no higher than the block's top.
+     */
+    private double climbCost(Surface a, Surface b, JumpTable jumps) {
+        double d = centreDist(a, b);
+        if (a.climb && b.climb) {
+            if (rectGap(a, b) > EPS || (b.y != a.y && b.y != a.y - 1)) return -1;
+            if (a.x == b.x && a.z == b.z && b.y != a.y - 1) return -1;
+            return Math.max(d, 1.0 / 8) / CLIMB_SPEED;
+        }
+        if (a.climb) {
+            // Step out onto a top no higher than the hold reaches, or drop onto one below.
+            if (b.top > a.top + 1.0 + EPS || b.top < a.top - 3.0 || rectGap(a, b) > EPS) return -1;
+            return d / CLIMB_SPEED;
+        }
+        // Into the block, entering at the height of the span nearest the take-off top.
+        double feet = Math.max(b.top, Math.min(a.top, b.top + 0.99));
+        double dy = feet - a.top;
+        double gap = rectGap(a, b);
+        if (gap < EPS && dy <= 0.6 + EPS) return d / RUN_SPEED;
+        if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
+        return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
+    }
+
+    /** Ladder and vine blocks. */
+    static List<Surface> climbCells(SparseBlockWorld world) {
+        final List<Surface> out = new ArrayList<Surface>();
+        world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                if (isClimbable(type)) out.add(Surface.climbCell(x, y, z));
+            }
+        });
+        return out;
+    }
+
+    static boolean isClimbable(BlockType type) {
+        String n = type.name();
+        return n.startsWith("minecraft:ladder") || n.startsWith("minecraft:vine");
+    }
+
+    /** The player's feet are in a ladder or vine block (vanilla's {@code isOnLadder}, without trapdoors). */
+    boolean holding(double x, double y, double z) {
+        return isClimbable(problem.world.getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)));
+    }
+
     /**
      * Something in the way of the body on the straight line between two surfaces' centres: a wall
      * or a step that the jump would run into. The route then has to go over it as a surface. Over
      * the gap the feet follow a jump arc from one top to the other, so a low block that the jump
      * clears does not count, and neither does a block that a line 0.4 to either side passes.
      */
+    static final double PROBE = 0.1;
+
     private boolean obstructed(Surface a, Surface b) {
         double dx = b.cx() - a.cx(), dz = b.cz() - a.cz(), n = Math.hypot(dx, dz);
         if (n < EPS) return false;
@@ -370,7 +459,7 @@ public final class Route {
             double t = (arc.length - 1) * (i - leave) / (double) (enter - leave);
             int k = (int) t;
             double feet = k + 1 < arc.length ? arc[k] + (arc[k + 1] - arc[k]) * (t - k) : arc[k];
-            Aabb probe = new Aabb(px - 0.1, feet + 0.1, pz - 0.1, px + 0.1, feet + 1.7, pz + 0.1);
+            Aabb probe = new Aabb(px - PROBE, feet + 0.1, pz - PROBE, px + PROBE, feet + 1.7, pz + PROBE);
             int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
             for (int yy = (int) Math.floor(feet + 0.1) - 1; yy <= (int) Math.floor(feet + 1.7); yy++) {
                 problem.world.getBlock(bxI, yy, bzI).addCollisionBoxes(problem.world, bxI, yy, bzI, probe, hit);
@@ -616,6 +705,20 @@ public final class Route {
             }
         });
         return out;
+    }
+
+    /** Something solid in a box of half width {@code half} around (x, z) between heights y0 and y1. */
+    boolean solidAt(double x, double y0, double z, double y1, double half) {
+        Aabb box = new Aabb(x - half, y0, z - half, x + half, y1, z + half);
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int yy = (int) Math.floor(y0) - 1; yy <= (int) Math.floor(y1); yy++) {
+            for (int xx = (int) Math.floor(x - half); xx <= (int) Math.floor(x + half); xx++) {
+                for (int zz = (int) Math.floor(z - half); zz <= (int) Math.floor(z + half); zz++) {
+                    problem.world.getBlock(xx, yy, zz).addCollisionBoxes(problem.world, xx, yy, zz, box, hit);
+                }
+            }
+        }
+        return !hit.isEmpty();
     }
 
     /** No collision box in the player's 0.6 x 1.8 box standing at (px, top, pz). */

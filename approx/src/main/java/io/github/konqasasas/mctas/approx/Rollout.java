@@ -21,11 +21,18 @@ final class Rollout {
 
     /**
      * The input without its sprint key when pressing it now would start sprinting too soon after the
-     * last toggle (say a wall just stopped the sprint), so the toggle rule holds; otherwise the input.
+     * last toggle (say a wall just stopped the sprint), or while still pressed against the wall that
+     * would stop it again, so the toggle rule holds; otherwise the input.
      */
     static PlayerInput holdSprint(PlayerState s, PlayerInput a, int lastToggle, int t) {
-        if (!a.has(PlayerInput.SPRINT) || s.sprinting || ToggleRule.allowed(lastToggle, t)) return a;
+        if (!a.has(PlayerInput.SPRINT) || s.sprinting || (ToggleRule.allowed(lastToggle, t) && !s.collidedHorizontally)) return a;
         return new PlayerInput(a.keys & ~PlayerInput.SPRINT, a.yaw, a.pitch, a.slot);
+    }
+
+    /** The input with the sneak key as it is now when changing it now would break the toggle rule. */
+    static PlayerInput holdSneak(PlayerState s, PlayerInput a, int lastToggle, int t) {
+        if (a.has(PlayerInput.SNEAK) == s.isSneaking() || ToggleRule.allowed(lastToggle, t)) return a;
+        return new PlayerInput(s.isSneaking() ? a.keys | PlayerInput.SNEAK : a.keys & ~PlayerInput.SNEAK, a.yaw, a.pitch, a.slot);
     }
 
     static PlayerState spawn(Problem p) {
