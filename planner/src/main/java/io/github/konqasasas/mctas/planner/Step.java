@@ -163,9 +163,17 @@ final class Step implements Move {
 
     /** Flies until landing (or the run ends), recording the inputs. */
     void air(Run r, List<PlayerInput> out) {
-        for (int i = 0; i < MAX_AIR && !r.s.onGround && !r.over(); i++) tick(r, move(r), out);
-        if (!r.s.onGround && !r.over()) r.dead = true;
+        for (int i = 0; i < MAX_AIR && (!r.s.onGround || bounced(r)) && !r.over(); i++) tick(r, move(r), out);
+        if ((!r.s.onGround || bounced(r)) && !r.over()) r.dead = true;
     }
+
+    /** Just landed on a slime block and thrown back up: still in the air, as far as the step goes. */
+    static boolean bounced(Run r) {
+        return r.s.onGround && r.s.motionY > BOUNCE;
+    }
+
+    /** Upward speed left by a landing that counts as a bounce (a fall of about half a block). */
+    static final double BOUNCE = 0.2;
 
     static void tick(Run r, PlayerInput a, List<PlayerInput> out) {
         r.step(a);

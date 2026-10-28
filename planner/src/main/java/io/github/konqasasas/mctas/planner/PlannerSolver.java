@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -70,6 +71,7 @@ public final class PlannerSolver {
         say(course.surfaces.size() + " footholds, " + course.platforms.size() + " platforms, bound from spawn "
             + String.format("%.1f", course.toGo(spawn.s.posX, spawn.s.posY, spawn.s.posZ)) + " ticks"
             + (under == null ? " (spawn not on a foothold)" : "") + " (" + (System.currentTimeMillis() - t0) + " ms)");
+        if (Planner.DEBUG) for (Map.Entry<Integer, List<Course.Hole>> e : course.holes.entrySet()) say("holes in platform " + e.getKey() + ": " + e.getValue());
         List<Runup.Root> roots = Runup.roots(course);
         List<Runup.Root> picked = ROOTS > 0 ? new Planner(course).pickRoots(roots, ROOTS) : roots;
         say(roots.size() + " run-up roots, searching from " + picked.size() + " (" + (System.currentTimeMillis() - t0) + " ms)");
