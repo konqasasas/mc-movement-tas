@@ -365,6 +365,7 @@ public final class RecorderController {
                     }
                     log.println("#   engine: " + sim);
                     log.println("#   real:   " + real);
+                    logBoxes(p);
                     sim = real.copy();
                 }
                 lastEnd = real;
@@ -402,6 +403,53 @@ public final class RecorderController {
     private void logChanges(String when) {
         for (String c : blocks.drainChanges()) {
             log.println("# block changed " + when + ": " + c);
+        }
+    }
+
+    /**
+     * The collision boxes around the player as the client and as the engine see them, with the block
+     * at each cell, so a mismatch shows which block one side has and the other does not.
+     */
+    private void logBoxes(EntityPlayerSP p) {
+        net.minecraft.util.math.AxisAlignedBB area = p.getEntityBoundingBox().grow(1.0D);
+        StringBuilder real = new StringBuilder();
+        for (net.minecraft.util.math.AxisAlignedBB b : mc.world.getCollisionBoxes(p, area)) {
+            real.append(String.format(" [%s %s %s -> %s %s %s]", b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ));
+        }
+        log.println("#   real boxes:" + real);
+        StringBuilder engine = new StringBuilder();
+        StringBuilder cells = new StringBuilder();
+        io.github.konqasasas.mctas.physics.Aabb a = new io.github.konqasasas.mctas.physics.Aabb(area.minX, area.minY,
+                area.minZ, area.maxX, area.maxY, area.maxZ);
+        for (int x = (int) Math.floor(area.minX) - 1; x <= (int) Math.floor(area.maxX); x++) {
+            for (int y = (int) Math.floor(area.minY) - 1; y <= (int) Math.floor(area.maxY); y++) {
+                for (int z = (int) Math.floor(area.minZ) - 1; z <= (int) Math.floor(area.maxZ); z++) {
+                    BlockType t = blocks.getBlock(x, y, z);
+                    List<io.github.konqasasas.mctas.physics.Aabb> out = new java.util.ArrayList<io.github.konqasasas.mctas.physics.Aabb>();
+                    t.addCollisionBoxes(blocks, x, y, z, a, out);
+                    for (io.github.konqasasas.mctas.physics.Aabb b : out) {
+                        engine.append(String.format(" [%s %s %s -> %s %s %s]", b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ));
+                    }
+                    IBlockState live = mc.world.getBlockState(new BlockPos(x, y, z));
+                    String liveName = String.valueOf(ClientWorldBlocks.catalogName(live));
+                    if (!t.isAir() || live.getBlock() != Blocks.AIR) {
+                        cells.append(' ').append(x).append(',').append(y).append(',').append(z).append('=')
+                                .append(t.name().replace("minecraft:", ""));
+                        if (!liveName.equals(t.name())) {
+                            cells.append("(client now ").append(liveName.replace("minecraft:", "")).append(')');
+                        }
+                    }
+                }
+            }
+        }
+        log.println("#   engine boxes:" + engine);
+        log.println("#   cells:" + cells);
+        int n = 0;
+        for (Entity e : mc.world.getEntitiesWithinAABBExcludingEntity(p, area)) {
+            log.println("#   entity: " + e + (e.getCollisionBoundingBox() == null ? "" : " collides"));
+            if (++n >= 5) {
+                break;
+            }
         }
     }
 
