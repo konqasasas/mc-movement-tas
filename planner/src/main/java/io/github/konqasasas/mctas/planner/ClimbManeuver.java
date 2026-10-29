@@ -17,6 +17,9 @@ final class ClimbManeuver implements Maneuver {
     static final int BODIES = 2;
     /** (Foothold, body) pairs looked at per node at most. */
     static final int ATTEMPTS = 12;
+    /** Targets missed (no climb reached them) that are replaced by the next one down, per expansion. */
+    static final int MISSES = 3;
+    static final boolean retry = !Boolean.getBoolean("planner.noClimbRetry");
     static final boolean TRACE = System.getenv("PLANNER_TRACE") != null;
     static final boolean climbRank = !Boolean.getBoolean("planner.noClimbRank");
     static final int[] JUMPS = {0, 1, 3, 6, 10, 15, ClimbStep.EDGE};
@@ -81,11 +84,12 @@ final class ClimbManeuver implements Maneuver {
         }
         final int extra = climbRank && climbBest >= 0 ? cand.get(climbBest).platform : Integer.MIN_VALUE;
         java.util.Arrays.sort(order, (p, q) -> Double.compare(score[p], score[q]));
+        if (TRACE) for (int i : order) System.err.println("  cand " + cand.get(i) + " top " + cand.get(i).top + " platform " + cand.get(i).platform + " score " + score[i] + " toGo " + cand.get(i).toGo + (cand.get(i).platform == extra ? " EXTRA" : ""));
         java.util.Map<Integer, Integer> platforms = new java.util.HashMap<Integer, Integer>();
         java.util.Set<Long> pairs = new java.util.HashSet<Long>();
         int tried = 0;
         Course.Surface missed = null;
-        int normal = 0;
+        int normal = 0, misses = 0;
         for (int i : order) {
             Course.Surface h = cand.get(i);
             Integer ways = platforms.get(h.platform);
@@ -132,7 +136,8 @@ final class ClimbManeuver implements Maneuver {
             if (TRACE) System.err.println("climb target " + h + " top " + h.top + " body " + body.get(i) + " exit " + java.util.Arrays.toString(exit) + " entries " + entries.size()
                 + (entries.isEmpty() ? "" : " first " + java.util.Arrays.toString(entries.get(0))));
             if (entries.isEmpty()) continue;
-            if (platforms.merge(h.platform, 1, Integer::sum) == 1 && (h.platform != extra || normal < TARGETS)) normal++;
+            boolean counted = platforms.merge(h.platform, 1, Integer::sum) == 1 && (h.platform != extra || normal < TARGETS);
+            if (counted) normal++;
             List<int[]> exits = new ArrayList<int[]>();
             exits.add(exit);
             if (high != exit && high[1] > exit[1]) exits.add(high);
@@ -152,6 +157,12 @@ final class ClimbManeuver implements Maneuver {
             boolean reached = false;
             for (int k = before; k < out.size() && !reached; k++) reached = c.platformAt(out.get(k).run.s) == h.platform;
             if (!reached && missed == null) missed = h;
+            // A target no climb reached does not take a place: the next one down is tried instead
+            // (the top of the ladder, past footholds a jump off the ladder falls short of, F-535).
+            if (!reached && counted && retry && misses < MISSES) {
+                normal--;
+                misses++;
+            }
         }
         // The controller missed the best foothold it had a body for (a jump into a ladder set in a
         // slot, say): search the inputs there tick by tick instead (WS8), once.
