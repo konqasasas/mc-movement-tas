@@ -212,6 +212,30 @@ public final class PlannerSolver {
         }
         say(on.size() + " footholds with a way to the goal; furthest back:");
         for (Course.Surface b : on.subList(0, Math.min(8, on.size()))) say(String.format("  %s top %.3f toGo %.1f", b, b.top, b.toGo));
+        // The closest pairs across the cut, one per foothold with a way on: where the missing edge is.
+        // Leaving out the tops of the course's walls, which every foothold below drops from.
+        double roof = Double.NEGATIVE_INFINITY;
+        for (Course.Surface a : course.surfaces) roof = Math.max(roof, a.top);
+        List<Object[]> pairs = new ArrayList<Object[]>();
+        for (Course.Surface b : on) {
+            if (b.top >= roof - 0.01) continue;
+            Course.Surface near = null;
+            double nd = Double.POSITIVE_INFINITY;
+            for (Course.Surface a : seen) {
+                double d = Math.hypot(Math.hypot(a.cx() - b.cx(), a.cz() - b.cz()), a.top - b.top);
+                if (d < nd) {
+                    nd = d;
+                    near = a;
+                }
+            }
+            if (near != null) pairs.add(new Object[] {nd, near, b});
+        }
+        pairs.sort((p, o) -> Double.compare((Double) p[0], (Double) o[0]));
+        say("closest across the cut:");
+        for (Object[] p : pairs.subList(0, Math.min(8, pairs.size()))) {
+            Course.Surface a = (Course.Surface) p[1], b = (Course.Surface) p[2];
+            say(String.format("  %s top %.3f -> %s top %.3f, %.2f away", a, a.top, b, b.top, (Double) p[0]));
+        }
     }
 
     static TickInput toTick(PlayerInput a) {
