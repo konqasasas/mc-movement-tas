@@ -95,6 +95,12 @@ final class Beam {
         boolean judgeStart;
         long deadlineNanos;
         float[] offsets = OFFSETS;
+        /**
+         * The run-up only: the hits are the entries into the start box (value: the field's ticks left
+         * from there, as the run-up's ticks are free), the states ranked by the way to the box; the
+         * best per position and speed.
+         */
+        boolean entries;
         /** States whose clock plus this share of the field's value is past the best hit are dropped. */
         double prune = 0.6;
     }
@@ -108,6 +114,10 @@ final class Beam {
     /** Prints the best state of every tick. */
     boolean trace;
     static final float FREE = 0.6F;
+    /** The run-up beam ({@link Options#entries}) goes on this many ticks past its first entry. */
+    static final int ENTRY_TICKS = 12;
+    /** With the judge's start ({@link Options#judgeStart}), the beam goes on this many ticks past its first hit. */
+    static final int HIT_TICKS = 40;
     /** Towards the start box, for states before their first entry (judgeStart), and the field's best value in the box. */
     private Field toStart;
     private float startValue;
@@ -194,19 +204,25 @@ final class Beam {
         return n.entry >= 0 && problem.goal.contains(n.s.posX, n.s.posY, n.s.posZ);
     }
 
-    List<PlayerInput> actions(float heading, float[] offsets) {
-        List<PlayerInput> out = new ArrayList<PlayerInput>(offsets.length * 6 + 4);
+    /**
+     * The moves to try. W+A at a yaw 45 to the right of W moves the same way, and faster (the input is
+     * scaled to length 1 only when it is longer), so off a jump tick only the strafe is tried. On a
+     * jump tick the sprint jump's push follows the yaw, so W and both strafes are tried. A jump only
+     * acts on the ground or in water, so in the air there is no jump.
+     */
+    List<PlayerInput> actions(float heading, float[] offsets, boolean canJump) {
+        List<PlayerInput> out = new ArrayList<PlayerInput>(offsets.length * 4 + 4);
         for (float off : offsets) {
             float dir = heading + off;
-            for (int jump : new int[] {0, PlayerInput.JUMP}) {
-                int base = PlayerInput.SPRINT | jump;
-                out.add(PlayerInput.of(base | PlayerInput.W, dir));
-                out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.A, dir + 45));
-                out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.D, dir - 45));
-            }
+            out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.W | PlayerInput.A, dir + 45));
+            if (!canJump) continue;
+            int base = PlayerInput.SPRINT | PlayerInput.JUMP;
+            out.add(PlayerInput.of(base | PlayerInput.W, dir));
+            out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.A, dir + 45));
+            out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.D, dir - 45));
         }
         out.add(PlayerInput.of(PlayerInput.SPRINT, heading));
-        out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.JUMP, heading));
+        if (canJump) out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.JUMP, heading));
         out.add(PlayerInput.of(PlayerInput.SNEAK | PlayerInput.W, heading));
         out.add(PlayerInput.of(PlayerInput.SNEAK, heading));
         return out;
@@ -287,6 +303,8 @@ final class Beam {
         // Per anchor also the fastest landing within a few ticks of its best: the run after it may need the speed.
         Map<Integer, Hit> fast = new HashMap<Integer, Hit>();
         float bestValue = Field.INF;
+        Map<Long, Hit> entered = new HashMap<Long, Hit>();
+        int firstEntry = -1, firstHit = -1;
         float lastHeading = field.heading(root.s.posX, root.s.posY, root.s.posZ);
         if (Float.isNaN(lastHeading)) lastHeading = root.s.rotationYaw;
         for (int t = 1; t <= o.maxTicks; t++) {
@@ -296,22 +314,47 @@ final class Beam {
             int least = Integer.MAX_VALUE;
             for (int i = 0; i < cur.size; i++) least = Math.min(least, cur.nodes[i].clock());
             if (least >= bestValue) break;
+            if (firstEntry >= 0 && t > firstEntry + ENTRY_TICKS) break;
+            // States that step back into the start box restart the clock, so the clock alone never
+            // rules them out: the beam goes on only so long past its first hit.
+            if (o.judgeStart && firstHit >= 0 && t > firstHit + HIT_TICKS) break;
             Map<Long, Cand> merged = new HashMap<Long, Cand>();
             for (int i = 0; i < cur.size; i++) {
                 Node n = cur.nodes[i];
                 float heading = before(n, o) ? toStart.heading(n.s.posX, n.s.posY, n.s.posZ) : field.heading(n.s.posX, n.s.posY, n.s.posZ);
                 if (Float.isNaN(heading)) heading = lastHeading;
-                List<PlayerInput> acts = actions(heading, o.offsets);
+                int cell = grid.cellOf(n.s.posX, n.s.posY, n.s.posZ);
+                boolean canJump = n.s.onGround || cell >= 0 && (grid.flags[cell] & Grid.WATER) != 0;
+                List<PlayerInput> acts = actions(heading, o.offsets, canJump);
                 lines(n, before(n, o) ? toStart : field, acts);
                 for (PlayerInput a : acts) {
                     Node m = step(n, a, o.judgeStart);
                     expanded++;
                     if (m == null) continue;
+                    if (o.entries) {
+                        if (m.entry < 0) {
+                            float h = toStart.at(m.s.posX, m.s.posY, m.s.posZ);
+                            if (h == Field.INF) continue;
+                            long key = cellKey(m);
+                            Cand old = merged.get(key);
+                            if (old == null || m.tick + h < old.f) merged.put(key, new Cand(m, i, a, m.tick + h, bucket(m)));
+                            continue;
+                        }
+                        if (firstEntry < 0) firstEntry = t;
+                        long key = ((long) Math.floor(speed(m.s) / 0.04) * 64 + (long) Math.floor(m.s.posX * 2)) * 1000003L
+                            + (long) Math.floor(m.s.posZ * 2) * 4 + (long) Math.floor(m.s.posY * 2) * 2 + (m.s.onGround ? 1 : 0);
+                        // By what is left after the entry: the run-up's ticks are free.
+                        float left = toGo(m);
+                        Hit old = entered.get(key);
+                        if (left < Field.INF && (old == null || left < old.value)) entered.put(key, new Hit(path(layers, t - 1, i, a), m, null, left));
+                        continue;
+                    }
                     if (inGoal(m)) {
                         float v = m.clock();
                         Hit old = best.get(-1);
                         if (old == null || v < old.value) best.put(-1, new Hit(path(layers, t - 1, i, a), m, null, v));
                         bestValue = Math.min(bestValue, v);
+                        if (firstHit < 0) firstHit = t;
                         continue;
                     }
                     if (o.collect && m.s.onGround && !n.s.onGround) {
@@ -331,6 +374,7 @@ final class Beam {
                                 fast.put(an.id, hit != null ? hit : new Hit(path(layers, t - 1, i, a), m, an, v));
                             }
                             if (v < bestValue) bestValue = v;
+                            if (firstHit < 0) firstHit = t;
                         }
                     }
                     float h = toGo(m);
@@ -342,11 +386,7 @@ final class Beam {
                     if (m.clock() + o.prune * h >= bestValue) continue;
                     long key = cellKey(m);
                     Cand old = merged.get(key);
-                    if (old == null || f < old.f) {
-                        long bucket = ((long) Math.floor(m.s.posY * 2) * 31 + (long) Math.floor(m.s.posX)) * 1000003L
-                            + (long) Math.floor(m.s.posZ) * 2 + (m.s.onGround ? 1 : 0);
-                        merged.put(key, new Cand(m, i, a, f, bucket));
-                    }
+                    if (old == null || f < old.f) merged.put(key, new Cand(m, i, a, f, bucket(m)));
                 }
             }
             List<Cand> cands = new ArrayList<Cand>(merged.values());
@@ -370,10 +410,21 @@ final class Beam {
                     field.at(b.s.posX, b.s.posY, b.s.posZ), field.heading(b.s.posX, b.s.posY, b.s.posZ), bestValue);
             }
         }
+        if (o.entries) {
+            List<Hit> out = new ArrayList<Hit>(entered.values());
+            Collections.sort(out, (p, q) -> Float.compare(p.value, q.value));
+            return out.size() > o.hits ? new ArrayList<Hit>(out.subList(0, o.hits)) : out;
+        }
         List<Hit> out = new ArrayList<Hit>(best.values());
         for (Hit h : fast.values()) if (!out.contains(h)) out.add(h);
         Collections.sort(out, (p, q) -> Float.compare(p.value, q.value));
         return out.size() > o.hits ? new ArrayList<Hit>(out.subList(0, o.hits)) : out;
+    }
+
+    /** The block of position (and on the ground or not) that caps how many states the beam keeps there. */
+    private static long bucket(Node m) {
+        return ((long) Math.floor(m.s.posY * 2) * 31 + (long) Math.floor(m.s.posX)) * 1000003L
+            + (long) Math.floor(m.s.posZ) * 2 + (m.s.onGround ? 1 : 0);
     }
 
     private static List<PlayerInput> path(List<Layer> layers, int layer, int index, PlayerInput last) {
@@ -401,7 +452,7 @@ final class Beam {
         h = mix(h, (long) Math.floor(s.motionZ / 0.02));
         h = mix(h, (long) Math.floor(s.motionY / 0.04));
         int since = Math.min(n.tick - n.lastToggle, ToggleRule.GAP);
-        h = mix(h, (s.onGround ? 1 : 0) | (s.sprinting ? 2 : 0) | (s.prevSneak ? 4 : 0) | (n.inStart ? 8 : 0) | since << 4);
+        h = mix(h, (s.onGround ? 1 : 0) | (s.sprinting ? 2 : 0) | (s.prevSneak ? 4 : 0) | (n.inStart ? 8 : 0) | (n.entry >= 0 ? 16 : 0) | since << 5);
         h = mix(h, Float.floatToIntBits(s.height));
         return h;
     }
