@@ -179,7 +179,7 @@ public final class Route {
         this.slack = slack;
         this.throughWalls = throughWalls;
         this.clearOfWalls = clearOfWalls;
-        List<Surface> surfaces = surfaces(problem.world, clearOfWalls);
+        List<Surface> surfaces = surfaces(problem.world, clearOfWalls, searchEdges);
         for (Surface c : surfaces) allByColumn.computeIfAbsent(col(c.x, c.z), k -> new ArrayList<Surface>()).add(c);
         surfaces.addAll(climbCells(problem.world));
         Region g = problem.goal;
@@ -430,7 +430,7 @@ public final class Route {
         if (walkable(a, b)) return !throughWalls && wallBetween(a, b) ? -1 : d / RUN_SPEED;
         double gap = rectGap(a, b);
         if (dy > jumps.maxRise() || gap > jumps.reach(dy) - slack) return -1;
-        if (!throughWalls && obstructed(a, b)) return -1;
+        if (!throughWalls && obstructed(a, b) && !(searchEdges && gap < EPS && clearOverlap(a, b))) return -1;
         // A jump costs at least its airtime; a short hop between close surfaces still takes it.
         return Math.max(d / RUN_SPEED, jumps.airTicks(dy)) + 1;
     }
@@ -539,6 +539,24 @@ public final class Route {
     /** Spacing of the probes along a line: under twice their half width, so a pane or fence cannot slip between two. */
     static final double STEP = 0.15;
 
+    /**
+     * Surfaces that overlap where the player can stand and jump straight up from one onto the
+     * other, though the lines between their centres are blocked: the open trapdoors of a stair
+     * round a pillar, each on another side of it.
+     */
+    private boolean clearOverlap(Surface a, Surface b) {
+        double x0 = Math.max(a.minX, b.minX), x1 = Math.min(a.maxX, b.maxX);
+        double z0 = Math.max(a.minZ, b.minZ), z1 = Math.min(a.maxZ, b.maxZ);
+        if (x0 > x1 + EPS || z0 > z1 + EPS) return false;
+        double y0 = a.top + 1e-3, y1 = Math.max(a.top, b.top) + 1.8;
+        for (int i = 0; i < 9; i++) {
+            double px = i % 3 == 0 ? x0 : i % 3 == 1 ? (x0 + x1) / 2 : x1;
+            double pz = i / 3 == 0 ? z0 : i / 3 == 1 ? (z0 + z1) / 2 : z1;
+            if (!solidAt(px, y0, pz, y1, 0.2999)) return true;
+        }
+        return false;
+    }
+
     private boolean obstructed(Surface a, Surface b) {
         double dx = b.cx() - a.cx(), dz = b.cz() - a.cz(), n = Math.hypot(dx, dz);
         if (n < EPS) return false;
@@ -564,6 +582,13 @@ public final class Route {
             double px = ax + (bx - ax) * i / steps, pz = az + (bz - az) * i / steps;
             if (solidAt(px, y0 + 0.6, pz, y0 + 1.7, PROBE)) return true;
         }
+        // The jump's arc, or under a low ceiling that the head hits, about level at the higher top.
+        return arcBlocked(a, b, ax, az, bx, bz, len, steps, leave, enter, false)
+                && (!searchEdges || arcBlocked(a, b, ax, az, bx, bz, len, steps, leave, enter, true));
+    }
+
+    private boolean arcBlocked(Surface a, Surface b, double ax, double az, double bx, double bz, double len, int steps,
+            int leave, int enter, boolean level) {
         double[] arc = jumpArc(a.top, b.top);
         List<Aabb> hit = new ArrayList<Aabb>();
         for (int i = leave + 1; i < enter; i++) {
@@ -575,6 +600,7 @@ public final class Route {
             if (b.top < a.top - 1 && jumps != null) {
                 feet = Math.max(feet, a.top + Math.max(b.top - a.top, jumps.riseAt(len * (i - leave) / steps)));
             }
+            if (level) feet = Math.max(a.top, b.top);
             Aabb probe = new Aabb(px - PROBE, feet + 0.1, pz - PROBE, px + PROBE, feet + 1.7, pz + PROBE);
             int bxI = (int) Math.floor(px), bzI = (int) Math.floor(pz);
             for (int yy = (int) Math.floor(feet + 0.1) - 1; yy <= (int) Math.floor(feet + 1.7); yy++) {
@@ -900,15 +926,17 @@ public final class Route {
         int x0 = (int) Math.floor(x) - 1, x1 = (int) Math.floor(x) + 1;
         int z0 = (int) Math.floor(z) - 1, z1 = (int) Math.floor(z) + 1;
         int y0 = (int) Math.floor(y), y1 = (int) Math.floor(b.top);
+        // And high enough: from the top of what is climbed, a jump rises at most SEARCH_RISE.
+        int high = Integer.MIN_VALUE;
         for (int bx = x0; bx <= x1; bx++) {
             for (int bz = z0; bz <= z1; bz++) {
                 for (int by = y0; by <= y1; by++) {
                     BlockType t = problem.world.getBlock(bx, by, bz);
-                    if (isClimbable(t) || isWater(t)) return true;
+                    if (isClimbable(t) || isWater(t)) high = Math.max(high, by);
                 }
             }
         }
-        return false;
+        return high > Integer.MIN_VALUE && (b.climb ? b.y : b.top) <= high + 1 + SEARCH_RISE + EPS;
     }
 
     /**
@@ -1150,15 +1178,17 @@ public final class Route {
 
     /** Standable surfaces: the top of each block's highest collision boxes with 1.8 blocks of room above. */
     static List<Surface> surfaces(SparseBlockWorld world) {
-        return surfaces(world, false);
+        return surfaces(world, false, false);
     }
 
     /**
      * Standable surfaces; with {@code clearOfWalls}, a wall beside one above step height keeps the
      * centre 0.3 inside that edge instead of 0.3 outside it, so the route does not run the body into
-     * a trunk or a post (but stays off the edges that a run along a wall could use).
+     * a trunk or a post (but stays off the edges that a run along a wall could use). With {@code thin},
+     * also the slivers only the edge of the body stands on (an open trapdoor against a wall, a
+     * fence between posts), for the explorer's graph: in the planner's they change routes that work.
      */
-    static List<Surface> surfaces(SparseBlockWorld world, final boolean clearOfWalls) {
+    static List<Surface> surfaces(SparseBlockWorld world, final boolean clearOfWalls, final boolean thin) {
         final List<Surface> out = new ArrayList<Surface>();
         final Aabb everything = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
         world.forEach(new SparseBlockWorld.Visitor() {
@@ -1179,18 +1209,30 @@ public final class Route {
                     maxZ = Math.max(maxZ, b.maxZ);
                 }
                 // Room for the player somewhere on the footprint: at its centre, a corner or an
-                // edge (a fence under an open trapdoor has room only on one side).
+                // edge (a fence under an open trapdoor has room only on one side), or just
+                // overlapping it (an open trapdoor against a wall holds the player off the wall).
                 boolean room = false;
-                for (int i = 0; i < 9 && !room; i++) {
-                    double px = i % 3 == 0 ? minX : i % 3 == 1 ? (minX + maxX) / 2 : maxX;
-                    double pz = i / 3 == 0 ? minZ : i / 3 == 1 ? (minZ + maxZ) / 2 : maxZ;
+                for (int i = 0; i < 25 && !room; i++) {
+                    if (!thin && (i % 5 == 0 || i % 5 == 4 || i / 5 == 0 || i / 5 == 4)) continue;
+                    double px = at(i % 5, minX, maxX), pz = at(i / 5, minZ, maxZ);
                     room = hasRoom(world, x, y, z, px, top, pz);
                 }
                 if (!room) return;
                 // A fence or a pane through the middle of the block: the slivers either side belong
-                // to the blocks next to it, and the surface would let the route walk through.
+                // to the blocks next to it, and the surface would let the route walk through. Not a
+                // slab against a side of the block (an open trapdoor), whose middle is at that side.
+                // Nor a fence with posts that do not join standing on it: there is room between them,
+                // at the ends of the footprint.
                 double mx = (minX + maxX) / 2, mz = (minZ + maxZ) / 2;
-                if (blocks(world, mx - PROBE, top + 0.6, mz - PROBE, mx + PROBE, top + 1.7, mz + PROBE)) return;
+                boolean side = maxX - minX < 0.5 && (minX <= x + 1e-9 || maxX >= x + 1 - 1e-9)
+                        || maxZ - minZ < 0.5 && (minZ <= z + 1e-9 || maxZ >= z + 1 - 1e-9);
+                boolean pane = !thin || !side;
+                for (int i = 0; i < (thin ? 3 : 1) && pane; i++) {
+                    double px = maxX - minX >= maxZ - minZ ? (i == 0 ? mx : i == 1 ? minX + PROBE : maxX - PROBE) : mx;
+                    double pz = maxX - minX >= maxZ - minZ ? mz : (i == 0 ? mz : i == 1 ? minZ + PROBE : maxZ - PROBE);
+                    pane = blocks(world, px - PROBE, top + 0.6, pz - PROBE, px + PROBE, top + 1.7, pz + PROBE);
+                }
+                if (pane) return;
                 // Cobwebs at the body hold the player nearly still: the route jumps over them.
                 for (int yy = (int) Math.floor(top); yy <= (int) Math.floor(top + 1.8); yy++) {
                     if (isWeb(world.getBlock(x, yy, z))) return;
@@ -1235,6 +1277,11 @@ public final class Route {
             }
         }
         return !hit.isEmpty();
+    }
+
+    /** Of five places across a footprint from lo to hi, the i-th: just off it, an edge, the middle, an edge, just off it. */
+    private static double at(int i, double lo, double hi) {
+        return i == 0 ? lo - 0.29 : i == 1 ? lo : i == 2 ? (lo + hi) / 2 : i == 3 ? hi : hi + 0.29;
     }
 
     /** No collision box in the player's 0.6 x 1.8 box standing at (px, top, pz). */
