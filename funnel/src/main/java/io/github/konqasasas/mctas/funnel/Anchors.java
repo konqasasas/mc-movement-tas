@@ -39,6 +39,8 @@ final class Anchors {
         boolean moving;
         /** Real landings on it at speed, from other anchors' beams: roots for its beam at speed. */
         final List<Beam.Node> arrivals = new ArrayList<Beam.Node>();
+        /** Its time is a guess past a stretch no beam got across ({@link FunnelSolver}'s bridge), not a beam's. */
+        boolean provisional;
         /** An anchor near it was verified since its last attempt. */
         boolean retry;
 
@@ -137,7 +139,8 @@ final class Anchors {
         for (int[] p : blocks) {
             int x = p[0], y = p[1], z = p[2];
             BlockType type = g.world.getBlock(x, y, z);
-            if (Grid.hazard(type) || Grid.magma(type)) continue;
+            // Slime sends a landing back up by its fall, so a landing there has no time of its own.
+            if (Grid.hazard(type) || Grid.magma(type) || Grid.slime(type)) continue;
             boxes.clear();
             type.addCollisionBoxes(g.world, x, y, z, all, boxes);
             if (boxes.isEmpty()) continue;

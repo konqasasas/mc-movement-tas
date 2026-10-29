@@ -63,6 +63,12 @@ final class Course {
         /** Moves in {@link #next} that only another maneuver makes (through a body, down a hole), not a step. */
         final Set<Surface> notByStep = new HashSet<Surface>();
 
+        /** The id, so that sets of surfaces go round in the same order on every run and every build (E-528). */
+        @Override
+        public int hashCode() {
+            return id;
+        }
+
         Surface(int id, int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
             this.x = x;
@@ -179,6 +185,30 @@ final class Course {
             || n.equals("minecraft:flowing_lava");
     }
 
+    /** Something in the two blocks above covers the whole top (minX..maxX, minZ..maxZ at {@code top}) within the player's height. */
+    private boolean coveredAbove(int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
+        Aabb all = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
+        List<Aabb> boxes = new ArrayList<Aabb>();
+        for (int dy = 1; dy <= 2; dy++) {
+            boxes.clear();
+            world.getBlock(x, y + dy, z).addCollisionBoxes(world, x, y + dy, z, all, boxes);
+            for (Aabb b : boxes) {
+                if (b.minX <= minX + 1e-9 && b.maxX >= maxX - 1e-9 && b.minZ <= minZ + 1e-9 && b.maxZ >= maxZ - 1e-9 && b.minY < top + 1.8 && b.maxY > top) return true;
+            }
+        }
+        return false;
+    }
+
+    /** The point (px, pz) is off block x, y, z over a neighbour whose top is as high as {@code top}. */
+    private boolean level(int x, int y, int z, double top, double px, double pz) {
+        int nx = (int) Math.floor(px), nz = (int) Math.floor(pz);
+        if (nx == x && nz == z) return false;
+        List<Aabb> boxes = new ArrayList<Aabb>();
+        world.getBlock(nx, y, nz).addCollisionBoxes(world, nx, y, nz, new Aabb(nx, y, nz, nx + 1, y + 1.5, nz + 1), boxes);
+        for (Aabb b : boxes) if (b.maxY >= top - 1e-9) return true;
+        return false;
+    }
+
     private List<Surface> findSurfaces(final SparseBlockWorld sparse) {
         final List<Surface> out = new ArrayList<Surface>();
         final Aabb everything = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
@@ -209,7 +239,11 @@ final class Course {
                 }
                 // A thin top (an open trapdoor, a pane) can still be stood on overhanging its edge, out
                 // of the way of what is above it: look for room on the grid below.
-                if (rooms == 0 && Math.min(maxX - minX, maxZ - minZ) >= 0.5) return;
+                // A wide top with no room at its corners, edges or middle can still have room where a block
+                // standing on it (an anvil, narrower than its block, on a planks block) does not cover it:
+                // look on the grid below too, unless something above covers the whole top at head height.
+                final boolean beside = rooms == 0 && Math.min(maxX - minX, maxZ - minZ) >= 0.5;
+                if (beside && coveredAbove(x, y, z, top, minX, minZ, maxX, maxZ)) return;
                 if (rooms == 9) {
                     out.add(new Surface(out.size(), x, y, z, top, minX, minZ, maxX, maxZ));
                     return;
@@ -249,6 +283,9 @@ final class Course {
                                 }
                             }
                         }
+                        // Beside a block standing on a wide top, a part over a neighbour as high is already that one's.
+                        // A ring all round a small block (a skull) would be one foothold over the block it rings: left out.
+                        if (beside && (level(x, y, z, top, fx0 + (i0 + i1) * fdx / 2, fz0 + (k0 + k1) * fdz / 2) || i0 == 0 && k0 == 0 && i1 == n - 1 && k1 == n - 1)) continue;
                         // Feet rectangle of the part, given to the constructor as a footprint (it grows it by the half width).
                         out.add(new Surface(out.size(), x, y, z, top, fx0 + i0 * fdx + 0.3, fz0 + k0 * fdz + 0.3, fx0 + i1 * fdx - 0.3, fz0 + k1 * fdz - 0.3));
                     }
@@ -499,7 +536,7 @@ final class Course {
                 boolean wet = water(c[0], c[1], c[2]);
                 for (int[] d : wet ? WATER_NEIGHBOURS : CLIMB_NEIGHBOURS) {
                     long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
-                    if (cells.containsKey(k) && (!wet || water(c[0] + d[0], c[1] + d[1], c[2] + d[2])) && done.add(k)) q.add(cells.get(k));
+                    if (cells.containsKey(k) && (!wet || water(c[0] + d[0], c[1] + d[1], c[2] + d[2]) && near(c, d)) && done.add(k)) q.add(cells.get(k));
                 }
             }
             bodies.add(body);
@@ -541,7 +578,7 @@ final class Course {
      * feels water (feet + 0.4 to feet + 1.4, 0.6 wide) spans a block of air between two cells above
      * each other, and straddles the corner between diagonal ones (a staircase of single water blocks).
      */
-    private static final int[][] WATER_NEIGHBOURS;
+    static final int[][] WATER_NEIGHBOURS;
     /**
      * Ladder and vine cells the player climbs on from one to the other: any of the 26 around. The
      * player climbs while the cell at the feet is climbable, and the box (0.6 wide) straddles the line
@@ -555,6 +592,9 @@ final class Course {
         CLIMB_NEIGHBOURS = m.toArray(new int[0][]);
         List<int[]> l = new ArrayList<int[]>();
         for (int dx = -1; dx <= 1; dx++) for (int dy = -2; dy <= 2; dy++) for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) l.add(new int[] {dx, dy, dz});
+        // A water step two on and up to one up (or down, the same step seen from the upper one): swum
+        // out of against a wall and into the next (F-526).
+        for (int dy = -1; dy <= 1; dy++) for (int[] d : new int[][] {{2, 0}, {-2, 0}, {0, 2}, {0, -2}}) l.add(new int[] {d[0], dy, d[1]});
         WATER_NEIGHBOURS = l.toArray(new int[0][]);
     }
 
@@ -584,12 +624,31 @@ final class Course {
             for (int[] d : wet ? WATER_NEIGHBOURS : CLIMB_NEIGHBOURS) {
                 long k = key(c[0] + d[0], c[1] + d[1], c[2] + d[2]);
                 int[] n = cells.get(k);
-                if (n == null || prev.containsKey(k) || (wet && !water(n[0], n[1], n[2]))) continue;
+                if (n == null || prev.containsKey(k) || (wet && (!water(n[0], n[1], n[2]) || !near(c, d)))) continue;
                 prev.put(k, c);
                 q.add(n);
             }
         }
         return null;
+    }
+
+    /**
+     * Water cell c touches the one d on: next to it, or a water step two on with only air between and
+     * a wall beside the way to swim out against (F-526).
+     */
+    private boolean near(int[] c, int[] d) {
+        if (Math.abs(d[0]) < 2 && Math.abs(d[2]) < 2) return true;
+        // Both ways round, so that a body is the same whichever of its cells it is grown from.
+        int mx = c[0] + d[0] / 2, mz = c[2] + d[2] / 2, lo = c[1] + Math.min(0, d[1]);
+        for (int dy = 0; dy <= 1; dy++) if (water(mx, lo + dy, mz) || solid(mx, lo + dy, mz)) return false;
+        int sx = d[2] / 2, sz = d[0] / 2;
+        return solid(c[0] + sx, lo, c[2] + sz) || solid(c[0] - sx, lo, c[2] - sz);
+    }
+
+    private boolean solid(int x, int y, int z) {
+        List<Aabb> boxes = new ArrayList<Aabb>();
+        world.getBlock(x, y, z).addCollisionBoxes(world, x, y, z, new Aabb(x, y, z, x + 1, y + 1, z + 1), boxes);
+        return !boxes.isEmpty();
     }
 
     /** Connected groups of ladder, vine and water cells ({@link #linkClimbs}). */
