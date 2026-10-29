@@ -96,8 +96,9 @@ final class Beam {
         long deadlineNanos;
         float[] offsets = OFFSETS;
         /**
-         * The run-up only: the hits are the entries into the start box (value: the tick), ranked by the
-         * way to the box; a few per position and speed, so that the run after them can pick its speed.
+         * The run-up only: the hits are the entries into the start box (value: the field's ticks left
+         * from there, as the run-up's ticks are free), the states ranked by the way to the box; the
+         * best per position and speed.
          */
         boolean entries;
         /** States whose clock plus this share of the field's value is past the best hit are dropped. */
@@ -337,7 +338,10 @@ final class Beam {
                         if (firstEntry < 0) firstEntry = t;
                         long key = ((long) Math.floor(speed(m.s) / 0.04) * 64 + (long) Math.floor(m.s.posX * 2)) * 1000003L
                             + (long) Math.floor(m.s.posZ * 2) * 4 + (long) Math.floor(m.s.posY * 2) * 2 + (m.s.onGround ? 1 : 0);
-                        if (!entered.containsKey(key)) entered.put(key, new Hit(path(layers, t - 1, i, a), m, null, m.tick));
+                        // By what is left after the entry: the run-up's ticks are free.
+                        float left = toGo(m);
+                        Hit old = entered.get(key);
+                        if (left < Field.INF && (old == null || left < old.value)) entered.put(key, new Hit(path(layers, t - 1, i, a), m, null, left));
                         continue;
                     }
                     if (inGoal(m)) {
