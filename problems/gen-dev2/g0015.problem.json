@@ -10707,14 +10707,6 @@
     "from": [
      87,
      154,
-     70
-    ],
-    "block": "minecraft:stone"
-   },
-   {
-    "from": [
-     87,
-     154,
      74
     ],
     "block": "minecraft:stone_slab[half=bottom]"
