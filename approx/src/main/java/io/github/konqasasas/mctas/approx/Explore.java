@@ -129,7 +129,9 @@ final class Explore {
     List<PlayerInput> from(PlayerState s, List<PlayerInput> inputs, int lastToggle, int entry,
                            java.util.function.Predicate<PlayerState> done, long deadlineMillis, long segmentMillis) {
         PriorityQueue<Node> open = new PriorityQueue<Node>(Comparator.comparingDouble(n -> n.f));
-        open.add(new Node(s, new ArrayList<PlayerInput>(inputs), lastToggle, entry, 0, null));
+        // Standing on something: a run-up off it may be what the stretch needs.
+        Route.Surface on = s.onGround ? route.support(s.posX, s.posZ, s.posY - 1e-6, s.posY + 1e-6) : null;
+        open.add(new Node(s, new ArrayList<PlayerInput>(inputs), lastToggle, entry, 0, on));
         Node n = search(open, done, deadlineMillis, segmentMillis);
         return n == null ? null : n.inputs;
     }
@@ -139,15 +141,17 @@ final class Explore {
                         long segmentMillis) {
         Region goal = problem.goal;
         Set<Route.Surface> closed = new HashSet<Route.Surface>();
+        Set<Route.Surface> closedHeld = new HashSet<Route.Surface>();
         Set<Long> places = new HashSet<Long>();
         double[] h = route.costToGoal();
         int expanded = 0;
         while (!open.isEmpty() && System.currentTimeMillis() < deadlineMillis) {
             Node n = open.poll();
-            if (n.on != null && !closed.add(n.on)) continue;
+            // A node held still by sneaking at the edge of a post counts apart from one landed moving.
+            if (n.on != null && !(n.state.isSneaking() ? closedHeld.add(n.on) : closed.add(n.on))) continue;
             // One node per place: landings a block apart on the same floor lead to the same places.
             long cell = ((long) Math.floor(n.state.posX / 1.5) * 73856093L) ^ ((long) Math.floor(n.state.posZ / 1.5) * 19349663L)
-                    ^ ((long) Math.floor(n.state.posY * 2) * 83492791L);
+                    ^ ((long) Math.floor(n.state.posY * 2) * 83492791L) ^ (n.state.isSneaking() ? 1L : 0L);
             if (!places.add(cell)) continue;
             expanded++;
             PlayerState s = n.state;
@@ -196,7 +200,17 @@ final class Explore {
                         g = segment(s, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
                     }
                     if (g != null) {
-                        m = advance(n, held(g, c), c);
+                        // Held at the edge, and also as landed: the hold helps a jump on from the edge
+                        // but costs a run-up the ticks to let go of sneaking.
+                        List<PlayerInput> hold = held(g, c);
+                        m = advance(n, hold, c);
+                        if (hold != g.inputs) {
+                            Node plain = advance(n, g, c);
+                            if (plain != null) {
+                                if (stop != null && stop.test(plain.state)) return plain;
+                                open.add(plain);
+                            }
+                        }
                     } else if (k < WIDE && n.on != null && !n.on.climb) {
                         m = runUp(n, e, c, deadlineMillis, segmentMillis);
                     } else {
@@ -286,8 +300,10 @@ final class Explore {
         // A block back from the middle, away from the landing, as far as the surface reaches.
         double dx = c.cx() - n.on.cx(), dz = c.cz() - n.on.cz(), d = Math.hypot(dx, dz);
         if (d < 1e-6) return null;
-        double bx = Math.max(on.minX + 0.15, Math.min(on.maxX - 0.15, n.on.cx() - dx / d));
-        double bz = Math.max(on.minZ + 0.15, Math.min(on.maxZ - 0.15, n.on.cz() - dz / d));
+        // On a post, right to the edge: sneaking holds the player there, and every bit of run-up counts.
+        double m = narrow(n.on) ? 0.01 : 0.15;
+        double bx = Math.max(on.minX + m, Math.min(on.maxX - m, n.on.cx() - dx / d));
+        double bz = Math.max(on.minZ + m, Math.min(on.maxZ - m, n.on.cz() - dz / d));
         if (Math.hypot(bx - s.posX, bz - s.posZ) < 0.15) return null;
         // Walk there and let friction stop the player, no sprinting.
         boolean narrow = narrow(n.on);
@@ -295,8 +311,9 @@ final class Explore {
         PlayerState w = s;
         for (int t = 0; t < 40; t++) {
             double ex = bx - w.posX, ez = bz - w.posZ, v = Math.hypot(w.motionX, w.motionZ);
-            if (Math.hypot(ex, ez) < 0.2 && v < 0.02) break;
-            boolean go = Math.hypot(ex, ez) > v * 2.2 + 0.05;
+            // On a post sneaking walks right up to the edge and stops there.
+            if (narrow ? t > 0 && (Math.hypot(ex, ez) < 0.05 || v < 0.003) : Math.hypot(ex, ez) < 0.2 && v < 0.02) break;
+            boolean go = narrow ? Math.hypot(ex, ez) > 0.05 : Math.hypot(ex, ez) > v * 2.2 + 0.05;
             // Sneaking on a post or wall top, which holds the player at its edge.
             PlayerInput a = PlayerInput.of((go ? PlayerInput.W : 0) | (narrow ? PlayerInput.SNEAK : 0),
                     (float) Math.toDegrees(Math.atan2(-ex, ez)));
@@ -310,6 +327,11 @@ final class Explore {
         Node b = advance(n, walk, n.on);
         if (b == null) return null;
         int since = Math.max(0, Math.min(1000, b.inputs.size() - b.lastToggle));
+        if (!c.climb && narrow(c)) {
+            List<PlayerInput> h = hop(b.state, since, c);
+            say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") hop to " + c + (h == null ? " failed" : " in " + h.size() + " ticks"));
+            if (h != null) return advance(b, h, c);
+        }
         Technique.Segment j = segment(b.state, since, exit, c.cx(), c.cz(), deadlineMillis, segmentMillis);
         if (j == null && !c.climb && narrow(c)) j = segment(b.state, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
         say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") to " + c + (j == null ? " failed" : " in " + j.inputs.size() + " ticks"));
@@ -358,7 +380,7 @@ final class Explore {
      * sneaking that hold the player at the edge (when they do).
      */
     private List<PlayerInput> held(Technique.Segment g, Route.Surface c) {
-        if (c == null || c.climb || !narrow(c) || g.inputs.isEmpty()) return g.inputs;
+        if (c == null || c.climb || !narrow(c) || g.inputs.isEmpty() || System.getenv("NO_HOLD") != null) return g.inputs;
         PlayerState s = g.exit;
         Target t = target(c);
         double x = s.posX + 1.2 * s.motionX, z = s.posZ + 1.2 * s.motionZ;
@@ -372,6 +394,55 @@ final class Explore {
             out.add(a);
         }
         return out;
+    }
+
+    /**
+     * A sprint jump from standing still onto the post or wall top {@code c}, sneaking from the landing
+     * to stay on: every heading near the one to {@code c} and a jump on one of the first ticks, the
+     * fastest that lands and holds. Null when none does.
+     */
+    private List<PlayerInput> hop(PlayerState s0, int since, Route.Surface c) {
+        List<PlayerInput> wait = new ArrayList<PlayerInput>();
+        PlayerState s = s0;
+        // Sprinting or letting go of sneaking is a change: three ticks after the last one.
+        for (int t = since; t < 3; t++) {
+            PlayerInput a = PlayerInput.of(s.isSneaking() ? PlayerInput.SNEAK : 0, 0F);
+            s = Physics.tick(problem.world, s, a);
+            wait.add(a);
+        }
+        double head = Math.toDegrees(Math.atan2(-(c.cx() - s.posX), c.cz() - s.posZ));
+        List<PlayerInput> best = null;
+        for (double off = -30; off <= 30; off += 1.5) {
+            float yaw = (float) (head + off);
+            for (int jt = 0; jt < 3; jt++) {
+                List<PlayerInput> in = new ArrayList<PlayerInput>(wait);
+                PlayerState w = s;
+                boolean ok = false;
+                for (int t = 0; t < 30; t++) {
+                    PlayerInput a = PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT | (t == jt ? PlayerInput.JUMP : 0), yaw);
+                    w = Physics.tick(problem.world, w, a);
+                    in.add(a);
+                    if (t > jt && w.onGround) {
+                        ok = Math.abs(w.posY - c.top) < 1e-6 && w.posX >= c.minX && w.posX <= c.maxX && w.posZ >= c.minZ && w.posZ <= c.maxZ;
+                        break;
+                    }
+                    if (w.posY < c.top - 2) break;
+                }
+                if (!ok || (best != null && in.size() >= best.size())) continue;
+                // Sneak to stay on (a change too: three ticks after the jump's).
+                PlayerState h = w;
+                int held = 0;
+                for (int t = 0; t < 6 && ok; t++) {
+                    PlayerInput a = PlayerInput.of(PlayerInput.SNEAK, yaw);
+                    h = Physics.tick(problem.world, h, a);
+                    in.add(a);
+                    ok = h.onGround && Math.abs(h.posY - c.top) < 1e-6;
+                    if (Math.hypot(h.motionX, h.motionZ) < 0.01) break;
+                }
+                if (ok) best = in;
+            }
+        }
+        return best;
     }
 
     /** True when sneaking from {@code s} keeps the player standing on {@code c}. */
