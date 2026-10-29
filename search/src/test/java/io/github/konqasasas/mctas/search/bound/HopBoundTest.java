@@ -29,7 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.Assert.assertTrue;
@@ -147,6 +149,36 @@ public class HopBoundTest {
             box(a.posX, a.posY, a.posZ), box(b.posX, b.posY, b.posZ), 400, -64, null);
         assertTrue("air ticks after a jump " + new SpeedBound(p).airTicks, new SpeedBound(p).airTicks == 1);
         assertTrue("bound above the run", segment(p, path, 0, 4) >= 0);
+    }
+
+    /**
+     * A tick that falls onto a lower top beside a top and hits its side can hover (F-119), but only
+     * where the box fits over the lower top clear of the boxes at the top's height (F-121): a top in
+     * the middle of a row of blocks with a floor under its own column has none; open a side and the
+     * floor there counts.
+     */
+    @Test
+    public void aHoverNeedsRoomOverTheLowerTop() {
+        Map<Long, List<double[]>> byColumn = new HashMap<Long, List<double[]>>();
+        double[] top = cube(byColumn, 0, 2, 0);
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                cube(byColumn, x, 0, z);
+                if (x != 0 || z != 0) cube(byColumn, x, 2, z);
+            }
+        }
+        assertTrue(HopBound.hoverFrom(byColumn, top, 0.4).length == 0);
+        HopBound.list(byColumn, 1, 0).remove(1);
+        double[] h = HopBound.hoverFrom(byColumn, top, 0.4);
+        assertTrue(h.length == 1 && h[0] == 1);
+        // The room starts where the box clears the top: a tick has to move to reach its side from there.
+        assertTrue(HopBound.hoverFrom(byColumn, top, 0).length == 0);
+    }
+
+    private static double[] cube(Map<Long, List<double[]>> byColumn, int x, int y, int z) {
+        double[] b = {x, y, z, x + 1, y + 1, z + 1, 0, x, z};
+        HopBound.list(byColumn, x, z).add(b);
+        return b;
     }
 
     /**
