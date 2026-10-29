@@ -948,6 +948,33 @@ final class Course {
     /** Blocks per tick climbing a ladder while pushing into it: (0.2 - 0.08) * 0.98. */
     static final double CLIMB_SPEED = 0.1176;
 
+    /**
+     * A search stalled: the optimistic moves off {@code platform} to lower bounds on platforms
+     * the search never landed on were not made by any move, so they are dropped and the bound is
+     * worked out again, unless that leaves no way from ({@code x}, {@code y}, {@code z}). Returns the moves dropped.
+     */
+    synchronized int dropUnmade(int platform, Set<Integer> landed, double x, double y, double z) {
+        List<Surface[]> dropped = new ArrayList<Surface[]>();
+        for (Surface a : platforms.get(platform)) {
+            for (java.util.Iterator<Surface> it = a.next.iterator(); it.hasNext();) {
+                Surface b = it.next();
+                if (b.platform != a.platform && b.toGo < a.toGo && !landed.contains(b.platform)) {
+                    it.remove();
+                    dropped.add(new Surface[] {a, b});
+                }
+            }
+        }
+        if (dropped.isEmpty()) return 0;
+        costToGo();
+        // Not the last way on from the spawn: then the search was only slow, and the moves stay.
+        if (toGo(x, y, z) == Double.POSITIVE_INFINITY) {
+            for (Surface[] e : dropped) e[0].next.add(e[1]);
+            costToGo();
+            return 0;
+        }
+        return dropped.size();
+    }
+
     private void costToGo() {
         double v = reach.maxSpeed();
         PriorityQueue<double[]> pq = new PriorityQueue<double[]>(16, (p, q) -> Double.compare(p[0], q[0]));
