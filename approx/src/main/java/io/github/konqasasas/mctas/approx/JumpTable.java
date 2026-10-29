@@ -86,6 +86,12 @@ final class JumpTable {
         return dist[landingTick(dy)];
     }
 
+    /** Height relative to the takeoff once the centre has covered {@code d} horizontally. */
+    double riseAt(double d) {
+        for (int i = 0; i < dist.length; i++) if (dist[i] >= d) return rise[i];
+        return rise[rise.length - 1];
+    }
+
     double airTicks(double dy) {
         return landingTick(dy) + 1;
     }

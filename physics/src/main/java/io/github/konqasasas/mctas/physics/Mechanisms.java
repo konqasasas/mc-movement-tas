@@ -166,17 +166,35 @@ public final class Mechanisms {
         return k >= WOODEN_PLATE && k <= TRAPDOOR;
     }
 
-    /** A copy with the client's blocks replaced, for the recorder that reads them off the live world. */
+    /**
+     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A plate
+     * the world shows with the power this one has keeps its name here (it may be named without its power).
+     */
     public Mechanisms withClient(BlockType[] shown) {
         if (shown.length != client.length) {
             throw new IllegalArgumentException("one block per entry");
         }
-        return new Mechanisms(xyz, server, shown.clone(), due, maybe);
+        BlockType[] c = shown.clone();
+        for (int i = 0; i < c.length; i++) {
+            if (samePlate(client[i], c[i])) {
+                c[i] = client[i];
+            }
+        }
+        return new Mechanisms(xyz, server, c, due, maybe);
     }
 
     public static boolean isPlate(BlockType t) {
         int k = t.mechanism();
         return k >= WOODEN_PLATE && k <= HEAVY_PLATE;
+    }
+
+    /**
+     * True if {@code a} and {@code b} are the same plate with the same power, a plate named without its power
+     * (an older problem file) counting as unpressed.
+     */
+    public static boolean samePlate(BlockType a, BlockType b) {
+        return isPlate(a) && isPlate(b) && VanillaBlocks.blockId(a.name()).equals(VanillaBlocks.blockId(b.name()))
+                && power(a) == power(b);
     }
 
     /** {@code tickRate}: 20 for wooden and stone plates, 10 for weighted ones. */

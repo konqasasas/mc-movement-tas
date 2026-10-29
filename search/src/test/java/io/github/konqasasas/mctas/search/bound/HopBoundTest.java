@@ -150,6 +150,79 @@ public class HopBoundTest {
     }
 
     /**
+     * A ladder climbs 0.1176 a tick: walking into one and up a wall 6 high takes 69 ticks from
+     * standing, and the bound knows it takes more than half of that (it used to be 7).
+     */
+    @Test
+    public void climbingALadderTakesAboutAsLongAsTheBound() {
+        SparseBlockWorld world = ladderWall(6);
+        List<PlayerState> path = new ArrayList<PlayerState>();
+        PlayerState s = PlayerState.standing(0.5, 1, 7.0, 0);
+        path.add(s);
+        while (!(s.onGround && s.box.minY > 6.99) && path.size() < 200) {
+            s = Physics.tick(world, s, PlayerInput.of(PlayerInput.W, 0));
+            path.add(s);
+        }
+        int took = path.size() - 1;
+        assertTrue("the run gets up the wall: " + s, s.onGround && took < 200);
+        PlayerState a = path.get(0);
+        Problem p = new Problem("ladder", "", world, new Spawn(new Vec3(a.posX, a.posY, a.posZ), 0, 0),
+            box(a.posX, a.posY, a.posZ), box(s.posX, s.box.minY, s.posZ), 400, -64, null);
+        int bound = new HopBound(p, p.start, p.goal, 0).ticks();
+        assertTrue("bound " + bound + " against " + took, bound <= took && bound * 2 > took);
+    }
+
+    /** On walls with ladders, the bound between two states of a random run is never above what the run took. */
+    @Test
+    @Category(Slow.class)
+    public void randomLadderSegmentsTakeNoLessThanTheBound() {
+        int checked = 0, onLadder = 0;
+        for (long seed = 1; seed <= 40; seed++) {
+            Random rnd = new Random(seed);
+            SparseBlockWorld world = ladderWall(2 + rnd.nextInt(6));
+            if (rnd.nextBoolean()) world.fill(-3, 1, 5 + rnd.nextInt(3), 3, 1 + rnd.nextInt(2), 5 + rnd.nextInt(3),
+                VanillaBlocks.require("minecraft:stone_slab[half=bottom]"));
+            PlayerState s = PlayerState.standing(-1.5 + 3 * rnd.nextDouble(), 1, 3 + 4 * rnd.nextDouble(), 0);
+            List<PlayerState> path = new ArrayList<PlayerState>();
+            path.add(s);
+            int keys = PlayerInput.W;
+            float yaw = 0;
+            for (int t = 0; t < 150; t++) {
+                if (rnd.nextInt(6) == 0) {
+                    keys = (rnd.nextInt(5) > 0 ? PlayerInput.W : rnd.nextBoolean() ? PlayerInput.S : 0)
+                        | (rnd.nextInt(3) == 0 ? PlayerInput.A : rnd.nextInt(3) == 0 ? PlayerInput.D : 0)
+                        | (rnd.nextInt(3) == 0 ? PlayerInput.JUMP : 0) | (rnd.nextBoolean() ? PlayerInput.SPRINT : 0)
+                        | (rnd.nextInt(8) == 0 ? PlayerInput.SNEAK : 0);
+                    yaw = (float) (rnd.nextGaussian() * 40);
+                }
+                s = Physics.tick(world, s, PlayerInput.of(keys, yaw));
+                if (s.posY < 0) break;
+                path.add(s);
+                if (world.getBlock((int) Math.floor(s.posX), (int) Math.floor(s.box.minY), (int) Math.floor(s.posZ)).name().contains("ladder")) onLadder++;
+            }
+            for (int k = 0; k < 4 && path.size() > 20; k++) {
+                int i = rnd.nextInt(path.size() - 10);
+                int j = Math.min(path.size() - 1, i + 1 + rnd.nextInt(60));
+                PlayerState a = path.get(i), b = path.get(j);
+                Problem p = new Problem("ladder" + seed, "", world, new Spawn(new Vec3(a.posX, a.posY, a.posZ), 0, 0),
+                    box(a.posX, a.posY, a.posZ), box(b.posX, b.posY, b.posZ), 400, -64, null);
+                if (segment(p, path, i, j) < 0) fail("seed " + seed + ": bound from tick " + i + " to " + j + " above the run (" + a + " -> " + b + ")");
+                checked++;
+            }
+        }
+        assertTrue(checked > 100 && onLadder > 500);
+    }
+
+    /** A floor, a stone wall {@code h} high along z = 10 and three ladders up it (x = -1..1). */
+    private static SparseBlockWorld ladderWall(int h) {
+        SparseBlockWorld world = new SparseBlockWorld();
+        world.fill(-3, 0, 0, 3, 0, 14, VanillaBlocks.require("minecraft:stone"));
+        world.fill(-3, 1, 10, 3, h, 14, VanillaBlocks.require("minecraft:stone"));
+        world.fill(-1, 1, 9, 1, h, 9, VanillaBlocks.require("minecraft:ladder[facing=north]"));
+        return world;
+    }
+
+    /**
      * Checks the bound from state {@code i} to entering a small box round state {@code j} (also from
      * its speed when it is on the ground); the run's ticks, or -1.
      */

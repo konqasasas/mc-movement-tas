@@ -636,7 +636,7 @@ public final class RecorderController {
                     return;
                 }
                 BlockType now = live.getBlock(x + originX, y, z + originZ);
-                if (!now.name().equals(type.name())) {
+                if (!now.name().equals(type.name()) && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
                     first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                 }
             }
@@ -1148,7 +1148,8 @@ public final class RecorderController {
                         // A button the engine pressed: checkPressed follows it.
                         return;
                     }
-                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
+                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))
+                            && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
                         first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                     }
                 }
