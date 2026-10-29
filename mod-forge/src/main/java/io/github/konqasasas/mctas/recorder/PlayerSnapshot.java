@@ -34,6 +34,8 @@ public final class PlayerSnapshot {
     private static final Field LAST_REPORTED_Z = field(EntityPlayerSP.class, "lastReportedPosZ", "field_175167_bK");
     private static final Field POSITION_UPDATE_TICKS = field(EntityPlayerSP.class, "positionUpdateTicks", "field_175168_bP");
     private static final Field SERVER_SNEAK_STATE = field(EntityPlayerSP.class, "serverSneakState", "field_175170_bN");
+    private static final Field SHULKER_PROGRESS = field(net.minecraft.tileentity.TileEntityShulkerBox.class, "progress", "field_190600_j");
+    private static final Field SHULKER_PROGRESS_OLD = field(net.minecraft.tileentity.TileEntityShulkerBox.class, "progressOld", "field_190601_k");
 
     private PlayerSnapshot() {
     }
@@ -72,6 +74,33 @@ public final class PlayerSnapshot {
             return f.getBoolean(o);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * The client's side of the shulker box {@code ref} (the engine) opened: its tile entity's lid and
+     * whether its screen is open. What the server has yet to send cannot be seen and is taken from
+     * {@code ref}; a box the engine did not open is not looked at (an unexpected screen is caught when
+     * it opens).
+     */
+    public static void readShulker(Minecraft mc, PlayerState real, PlayerState ref) {
+        io.github.konqasasas.mctas.physics.Shulker e = ref.shulker;
+        real.shulker = io.github.konqasasas.mctas.physics.Shulker.NONE;
+        if (e.isNone()) {
+            return;
+        }
+        net.minecraft.tileentity.TileEntity te = mc.world.getTileEntity(new net.minecraft.util.math.BlockPos(e.x, e.y, e.z));
+        if (!(te instanceof net.minecraft.tileentity.TileEntityShulkerBox)) {
+            return;
+        }
+        net.minecraft.tileentity.TileEntityShulkerBox b = (net.minecraft.tileentity.TileEntityShulkerBox) te;
+        try {
+            real.shulker = io.github.konqasasas.mctas.physics.Shulker.of(e.x, e.y, e.z, e.block, e.facing,
+                    io.github.konqasasas.mctas.physics.Shulker.Status.valueOf(b.getAnimationStatus().name()),
+                    SHULKER_PROGRESS.getFloat(b), SHULKER_PROGRESS_OLD.getFloat(b),
+                    mc.currentScreen instanceof net.minecraft.client.gui.inventory.GuiShulkerBox, e.event);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 

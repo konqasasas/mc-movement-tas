@@ -37,7 +37,7 @@ public final class ImproveMain {
     private static final String USAGE = String.join("\n",
             "usage:",
             "  mctas-improve run <problem.json|problem-dir> --seeds <file|dir>[,...] --out <dir> [--budget seconds]",
-            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--quiet]",
+            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--quiet]",
             "    Improves the seed runs of each problem for --budget seconds (default 60) and writes",
             "    <id with / as _>.solution.json and .tas to --out. Seeds are .tas or .solution.json files; in a",
             "    directory, a .solution.json is matched by the problem id inside, a .tas by its file name",
@@ -73,6 +73,8 @@ public final class ImproveMain {
                 }
                 case "--quiet": quiet = true; break;
                 case "--fixed-shares": o.adaptive = false; break;
+                case "--no-toggle-fix": o.fixToggles = false; break;
+                case "--no-drift": o.useDrift = false; break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);
@@ -168,6 +170,7 @@ public final class ImproveMain {
         if (a.has(PlayerInput.SPRINT)) k.add(Key.SPRINT);
         if (a.has(PlayerInput.SNEAK)) k.add(Key.SNEAK);
         if (a.has(PlayerInput.USE)) k.add(Key.USE);
+        if (a.has(PlayerInput.CLOSE)) k.add(Key.CLOSE);
         return new TickInput(k, a.yaw, a.pitch, a.slot);
     }
 

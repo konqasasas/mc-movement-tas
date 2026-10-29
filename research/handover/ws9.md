@@ -4,9 +4,10 @@
 - **v2・v3**: 床の穴、水の階段、スライム(跳ね返りの高さの計算、2 段の制御、跳ねて水・はしごへ入る)、はしごの登り方と溝の入口、制御器が外したはしごを局所探索で補う。realdev 6/6(E-510)、human6 remaining 328(E-509)
 - **v4**: 同じ台の中の壁を回る角(F-514)、1 ブロックのはしごへの跳びつきとジグザグのはしご(F-515、F-516)、最初の探索を重み 6 に(F-517)。realdev 9/9(exp1〜3 を含む、E-512)、自作の要素別コース `planner/courses/elem-dev` 7/7(E-511)
 - **v4 の後**: 時間配分(F-518)、開発用コースの生成器 `tools/devgen` と gen-dev 15 問(F-519、作業版で 11/15)。はしごへの入口の並べ方と角(F-520)で gen-dev 15/15(E-516)
+- **v5 の後**: 難しい生成コース gen-dev2 と gen-dev2-holdout(F-521、v5 で 13/15)、手作りの waza(problems/waza/waza1 は開発用、waza2 は報告専用。仕掛けありの 4 問は外す)、足場グラフの切れ目の診断と、はしごの出口・開いたトラップドアの上面の直し(F-522、waza1 の採点対象 3/3)
 - **解の置き場**: realdev と human6 で解けたものは `/mnt/project-files/solutions/ws9/` に置く(WS10 が初期解に使う)
 - **次**: (1) realdev ex2〜ex6 の詰まり(ex2・ex3 はスタート直後で止まる、ex5 は見積もり残り 35、ex6 は z 165 の鉄格子と石の壁の前で後続が動けない。ex6 は辺が壁を越えている疑い)。(2) 区間を `Technique.chain` に途中の着地面ごと渡す(出口から一度遠ざかる区間)。(3) `ClimbStep` の代わりに、はしご・つた・水の区間も局所探索に任せる(WS8 のつたは 75、自前は 121)。(4) 展開が遅い(長いコースで 1 秒に 50〜100 ノード)
-- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、gen-dev、elem-dev、自作の塔コース(`tools/towergen`)だけ。human6、v1-holdout、gen-holdout(種 101〜115)は報告だけ(版の節目ごとに 1 回)
+- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、gen-dev、gen-dev2、waza/waza1、elem-dev、自作の塔コース(`tools/towergen`)だけ。human6、v1-holdout、gen-holdout(種 101〜115)、gen-dev2-holdout(種 301〜315)、waza/waza2 は報告だけ(版の節目ごとに 1 回)
 - **注意**: 台の中は自由に歩けるものとして扱うので、台の分け方が誤ると壁の前で止まる(F-504)。`PLANNER_DEBUG=1` の出力で止まり方を分けてから直す(L-500)
 
 ## 自分の PR をマージするとき
@@ -15,7 +16,13 @@
 
 ## 次にやること(優先順。1 つ終えたら指示を待たずに次へ)
 
-1. 解の質: 重み 6 にしてから realdev のタイムが v3 の最良より遅い(F-517、F-518)。後の段の展開を速くする(1 ノードの後続が 100 前後。`StepManeuver` のジャンプの枝を、遠いうちは間引く)。solutions/ws9 は問題ごとに過去の最良を残す
-2. gen-dev を全部解けるようになったので、生成器を難しくする(モジュールの間隔を詰める、はしごのジグザグを長くする、モジュールを足す)。dev は gen-dev と realdev と elem-dev。モジュールは単独の短いコースで通れることを確かめてから。human6 は見ない(F-513 の要素の分類まではよい)
-3. realdev ex3 の別の道: 浮いた 1 ブロックの水を、柱を押して(水の中で横にぶつかると上へ 0.3)伝う動き
-- human6 の残り 3 問は版の節目ごとに固定設定で 1 回だけ回して報告する。解けた解は `/mnt/project-files/solutions/ws9/` に置く
+human6 の verdure は開発用に移した(D-501、2026-10-29)。残り 5 問は「human5」として報告専用。verdure は F-525(作れなかった見積もり上の辺を外す)で解けた(684 tick)。poseidon・rampart に効くかは、節目で 1 回だけ確かめる。
+
+全体指揮の方針(2026-10-28): 解の質は後回しにして、human6 の残り 3 問(poseidon、rampart、verdure)を解けるようにする。この方式で 2〜3 回改良して駄目なら利用者と相談する約束で、v5 が 1 回目、v6 が 2 回目、v7 が 3 回目。
+
+1. waza3(報告専用)は v7 で 5 問ともスタートから足場グラフが切れる(E-523)。同じ形の切れ目を waza1・waza2・elem-dev の短いコースで作って直す(waza3 では調整しない)。h1 の感圧板と h4 のピストンが本当に要るかは、切れ目を直してから決める
+2. gen-dev2 は v7 で 15/15(g0003 は生成器の誤り、g0014 は F-523)。次は gen-dev2-holdout で落ちる問題の種類を、dev で同じ要素を作って直す(holdout では調整しない)
+3. 版の節目ごとに、human6 の残り 3 問、waza2(仕掛けなし 3 問)、gen-holdout、gen-dev2-holdout を固定設定で 1 回だけ回して報告する
+4. 解の質(E-518 では、枝を減らす案・通り道に絞る案・重みの段を変える案のどれも揺れの中だった)
+- 解けた解は `/mnt/project-files/solutions/ws9/` に置く(問題ごとに過去の最良を残す)
+- グラフが切れているときは `PLANNER_DEBUG=1` の「footholds reachable from the spawn」と「with a way to the goal」の行から見る(`PLANNER_GAP_BOX=x0,x1,z0,z1` でその範囲の到達できる足場も出る)

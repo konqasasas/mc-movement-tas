@@ -41,6 +41,8 @@ final class Planner {
         final List<Move> moves;
         final List<PlayerInput> inputs;
         final int time;
+        /** The platforms the plan lands on (from the search; empty for a plan built elsewhere). */
+        final java.util.Set<Integer> platforms = new java.util.HashSet<Integer>();
 
         Plan(Runup.Root root, List<Move> moves, List<PlayerInput> inputs, int time) {
             this.root = root;
@@ -65,6 +67,8 @@ final class Planner {
     double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
+    /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
+    java.util.Set<Integer> corridor;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
@@ -73,6 +77,14 @@ final class Planner {
     int expanded, generated;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
+    /** Expansions without coming a tick nearer the goal before a search without a plan gives up as stalled (0: never). */
+    int stallAfter = 0;
+    /** Set when the search gave up stalled. */
+    boolean stalled;
+    /** The platforms the search landed on, with the nearest it came to the goal on each (with {@link #stallAfter}). */
+    final Map<Integer, Double> nearest = new HashMap<Integer, Double>();
+    /** The platforms the search landed on. */
+    final java.util.Set<Integer> landed = new java.util.HashSet<Integer>();
 
     Planner(Course course) {
         this.course = course;
@@ -102,10 +114,24 @@ final class Planner {
         Node best = null;
         int bestTime = bound;
         List<Maneuver.Successor> succ = new ArrayList<Maneuver.Successor>();
+        double near = Double.POSITIVE_INFINITY;
+        int nearAt = 0;
         while (!open.isEmpty() && System.currentTimeMillis() < deadline) {
             Node n = open.poll();
             double hn = h(n.run);
             if (n.g + hn >= bestTime) continue;
+            if (hn < near - 1) {
+                near = hn;
+                nearAt = expanded;
+            }
+            if (stallAfter > 0 && n.run.s.onGround) {
+                Course.Surface on = course.support(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
+                if (on != null) nearest.merge(on.platform, hn, Math::min);
+            }
+            if (best == null && stallAfter > 0 && expanded - nearAt > stallAfter && !nearest.isEmpty()) {
+                stalled = true;
+                return null;
+            }
             boolean trace = false;
             if (DEBUG && hn < closest) {
                 closest = hn;
@@ -118,6 +144,7 @@ final class Planner {
             expanded++;
             succ.clear();
             List<double[]> aims = aims(n.run);
+            if (trace) for (double[] a : aims) System.err.printf("      aim (%.2f, %.2f) top %.2f%s%n", a[0], a[1], a[2], a.length == 8 ? " corner" : a.length >= 14 ? " bounce" : a.length >= 9 ? String.format(" via (%.2f, %.2f)", a[7], a[8]) : "");
             expandParallel(steps, n.run, aims, succ);
             for (Maneuver m : maneuvers) {
                 long t0 = DEBUG ? System.nanoTime() : 0;
@@ -180,7 +207,12 @@ final class Planner {
             moves.add(chain.get(i).move);
             inputs.addAll(chain.get(i).inputs);
         }
-        return new Plan(root, moves, inputs, bestTime);
+        Plan plan = new Plan(root, moves, inputs, bestTime);
+        for (Node k : chain) {
+            int pl = course.platformAt(k.run.s);
+            if (pl >= 0) plan.platforms.add(pl);
+        }
+        return plan;
     }
 
     /**
@@ -253,6 +285,7 @@ final class Planner {
         if (n.run.s.onGround) {
             Course.Surface c = course.support(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
             if (c != null) {
+                landed.add(c.platform);
                 Integer b = bestOnSurface.get(c.id);
                 if (b != null && n.g > b + window) return false;
                 if (b == null || n.g < b) bestOnSurface.put(c.id, n.g);
@@ -314,10 +347,35 @@ final class Planner {
             }
         }
         cand.sort((p, q) -> Double.compare(Math.hypot(p.cx() - x, p.cz() - z) / v + p.toGo, Math.hypot(q.cx() - x, q.cz() - z) / v + q.toGo));
+        if (here >= 0 && cand.size() > targets) {
+            // Keep the straight-line order, but make room among the targets for the best candidate by
+            // the walk over this platform: the nearest ones may all be behind a wall (a slab up out of
+            // a slalom of panes, F-523).
+            Map<Course.Surface, Double> walk = walkFrom(course.support(x, y, z));
+            Course.Surface pick = null;
+            double ps = Double.POSITIVE_INFINITY;
+            for (Course.Surface b : cand) {
+                for (Map.Entry<Course.Surface, Double> e : walk.entrySet()) {
+                    Course.Surface a = e.getKey();
+                    if (!a.next.contains(b) || a.notByStep.contains(b)) continue;
+                    double sc = (e.getValue() + Math.hypot(b.cx() - a.cx(), b.cz() - a.cz())) / v + b.toGo;
+                    if (sc < ps) {
+                        ps = sc;
+                        pick = b;
+                    }
+                }
+            }
+            int i = pick == null ? -1 : cand.indexOf(pick);
+            if (i >= targets - 1) {
+                cand.remove(i);
+                cand.add(targets - 1, pick);
+            }
+        }
         Map<Integer, Integer> perPlatform = new HashMap<Integer, Integer>();
         int taken = 0;
         for (Course.Surface b : cand) {
             if (taken >= targets) break;
+            if (corridor != null && !corridor.contains(b.platform)) continue;
             int k = perPlatform.getOrDefault(b.platform, 0);
             if (k >= 2) continue;
             perPlatform.put(b.platform, k + 1);
@@ -378,6 +436,43 @@ final class Planner {
             if (here >= 0) addCorner(r, ga, a -> a.nearGoal, out);
         }
         return out;
+    }
+
+    private final Map<Course.Surface, Map<Course.Surface, Double>> walks = new java.util.concurrent.ConcurrentHashMap<Course.Surface, Map<Course.Surface, Double>>();
+
+    /**
+     * Walking distances over the platform from a foothold (Dijkstra over neighbouring footholds of the
+     * same height with a clear line between their middles; the first step from the start is not
+     * checked, since the start's middle may be inside a wall the player stands beside).
+     */
+    private Map<Course.Surface, Double> walkFrom(Course.Surface start) {
+        if (start == null) return Collections.emptyMap();
+        return walks.computeIfAbsent(start, st -> {
+            Map<Course.Surface, Double> d = new HashMap<Course.Surface, Double>();
+            PriorityQueue<Object[]> q = new PriorityQueue<Object[]>((p, o) -> Double.compare((Double) p[1], (Double) o[1]));
+            d.put(st, 0.0);
+            q.add(new Object[] {st, 0.0});
+            while (!q.isEmpty() && d.size() < CORNER_SEARCH) {
+                Object[] e = q.poll();
+                Course.Surface a = (Course.Surface) e[0];
+                double da = (Double) e[1];
+                if (da > d.get(a)) continue;
+                for (int[] dd : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                    List<Course.Surface> col = course.column(a.x + dd[0], a.z + dd[1]);
+                    if (col == null) continue;
+                    for (Course.Surface n : col) {
+                        if (n.platform != a.platform || n.top != a.top) continue;
+                        if (a != st && course.blockedLine(a.cx(), a.cz(), n.cx(), n.cz(), a.top)) continue;
+                        double dn = da + Math.hypot(n.cx() - a.cx(), n.cz() - a.cz());
+                        Double old = d.get(n);
+                        if (old != null && old <= dn) continue;
+                        d.put(n, dn);
+                        q.add(new Object[] {n, dn});
+                    }
+                }
+            }
+            return d;
+        });
     }
 
     /** Bodies off the platform that a corner towards an entry is looked for. */

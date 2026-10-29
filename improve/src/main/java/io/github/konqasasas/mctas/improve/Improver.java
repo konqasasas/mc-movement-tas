@@ -29,6 +29,10 @@ public final class Improver {
         public long seed = 1;
         public int maxWidth = 8000;
         public int maxWindow = 80;
+        /** Mend rebuilt runs that break the toggle rule further on ({@link ToggleFix}). */
+        public boolean fixToggles = true;
+        /** Start repairs where a spliced run drifts from the old run ({@link Rebuild#drift}). */
+        public boolean useDrift = true;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -125,6 +129,8 @@ public final class Improver {
         Rebuild rebuild = new Rebuild();
         rebuild.maxWidth = o.maxWidth;
         rebuild.maxWindow = o.maxWindow;
+        rebuild.fixToggles = o.fixToggles;
+        rebuild.useDrift = o.useDrift;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();

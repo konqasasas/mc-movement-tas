@@ -73,10 +73,14 @@ public final class InputDriver {
         }
     }
 
-    /** Sets the view angles and the keys for the tick that is about to run. */
+    /** Sets the view angles and the keys for the tick that is about to run, after closing the screen if asked. */
     public void apply(PlayerInput in) {
         if (player == null) {
             return;
+        }
+        if (in.has(PlayerInput.CLOSE) && mc.currentScreen != null) {
+            // As the engine has it: the screen closes before anything else in the tick.
+            player.closeScreen();
         }
         player.prevRotationYaw = player.rotationYaw;
         player.prevRotationPitch = player.rotationPitch;

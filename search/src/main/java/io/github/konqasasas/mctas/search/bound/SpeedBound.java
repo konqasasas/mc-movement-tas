@@ -412,6 +412,8 @@ public final class SpeedBound {
                         if (g >= -EPS && g < 1.26) ceilings.add(Math.max(0, g));
                         double h = b[1] - y;
                         if (h < 1.26 && h > -6) floors.add(h);
+                        // A jump tick can step up onto a top up to 0.6 higher, and lands on the next tick.
+                        if (h > EPS && h <= STEP + EPS) return 1;
                     }
                     for (double[] f : get(features, x + dx, z + dz)) {
                         if (f[1] < y - 6 || f[1] > y + 3) continue;

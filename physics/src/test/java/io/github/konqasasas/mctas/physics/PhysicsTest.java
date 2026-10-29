@@ -48,6 +48,46 @@ public class PhysicsTest {
         assertEquals(4, t.hotbar.count(0));
     }
 
+    /**
+     * Standing on a shulker box facing up: the click opens it a tick later (F-704), the lid lifts the
+     * player 0.06 in the first tick it moves, as on the real game, and once the screen is closed the lid
+     * goes down again and the box is the world's block once more.
+     */
+    @Test
+    public void aShulkerBoxLidLiftsThePlayer() {
+        SparseBlockWorld w = floor();
+        w.setBlock(0, 63, 0, VanillaBlocks.require("minecraft:purple_shulker_box[facing=up]"));
+        PlayerState s = PlayerState.standing(0.5, 64, 0.5, 0.0F);
+        PlayerInput still = new PlayerInput(0, 0.0F, 90.0F);
+        Physics.step(w, s, new PlayerInput(PlayerInput.USE, 0.0F, 90.0F));
+        assertEquals(Shulker.Event.OPEN, s.shulker.event);
+        assertEquals(64.0D, s.posY, 0.0D);
+        Physics.step(w, s, still);
+        assertTrue(s.shulker.screen);
+        assertEquals(Shulker.Status.OPENING, s.shulker.status);
+        assertEquals(64.06D, s.posY, 1e-6D);
+        for (int i = 0; i < 10; i++) {
+            Physics.step(w, s, still);
+        }
+        assertEquals(Shulker.Status.OPENED, s.shulker.status);
+        assertEquals(64.5D, s.posY, 0.02D);
+        assertFalse(s.unsupportedAction);
+
+        Physics.step(w, s, new PlayerInput(PlayerInput.CLOSE, 0.0F, 90.0F));
+        assertFalse(s.shulker.screen);
+        for (int i = 0; i < 30; i++) {
+            Physics.step(w, s, still);
+        }
+        assertTrue(s.shulker.isNone());
+        assertEquals(64.0D, s.posY, 0.0D);
+        assertFalse(s.unsupportedAction);
+
+        PlayerState t = PlayerState.standing(0.5, 64, 0.5, 0.0F);
+        Physics.step(w, t, new PlayerInput(PlayerInput.USE, 0.0F, 90.0F));
+        Physics.step(w, t, new PlayerInput(PlayerInput.W, 0.0F, 90.0F));
+        assertTrue("keys do nothing while the screen is open", t.unsupportedAction);
+    }
+
     @Test
     public void tickDoesNotModifyItsArgument() {
         SparseBlockWorld w = floor();

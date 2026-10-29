@@ -81,6 +81,20 @@ public class ImproveTest {
         in[t] = new PlayerInput(in[t].keys & ~PlayerInput.SPRINT & ~PlayerInput.W, in[t].yaw, 0);
         Run r = new Course(p).evaluate(in);
         assertFalse(r.valid());
+        assertTrue(ToggleFix.clash(r) > 0);
+    }
+
+    @Test
+    public void toggleFixMendsAClash() throws Exception {
+        Problem p = problem("08-two-jumps");
+        Course c = new Course(p);
+        PlayerInput[] in = witness(p, "08-two-jumps");
+        int t = c.evaluate(in).startTick() / 2;
+        in[t] = new PlayerInput(in[t].keys & ~PlayerInput.SPRINT & ~PlayerInput.W, in[t].yaw, 0);
+        Run r = c.evaluate(in);
+        assertTrue(r.toString(), ToggleFix.clash(r) > 0);
+        Run fixed = new ToggleFix().apply(c, r, new Random(1));
+        assertTrue(r + " -> " + fixed, fixed.valid());
     }
 
     @Test
@@ -138,5 +152,20 @@ public class ImproveTest {
         assertEquals(sneak, w.get(1));
         assertEquals(jump, w.get(2));
         assertEquals(2, Rebuild.windowInputs(in, 3, 5).size());
+    }
+
+    @Test
+    public void driftFindsWhereARunLeavesTheOldOne() throws Exception {
+        Problem p = problem("08-two-jumps");
+        Course c = new Course(p);
+        PlayerInput[] in = witness(p, "08-two-jumps");
+        Run old = c.evaluate(in);
+        assertEquals(old.length, Rebuild.drift(old, old, 0, 0));
+        // Stop moving after tick 10: the run falls behind the old one a few ticks later.
+        PlayerInput[] stop = in.clone();
+        for (int i = 10; i < stop.length; i++) stop[i] = PlayerInput.of(0, in[i].yaw);
+        Run r = c.evaluate(stop);
+        int d = Rebuild.drift(r, old, 0, 0);
+        assertTrue(d > 10 && d < r.length);
     }
 }

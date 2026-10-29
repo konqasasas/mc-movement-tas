@@ -81,10 +81,14 @@ public final class Main {
         for (int t = 0; t < res.goalTick; t++) {
             if (t >= res.startTick && s.onGround) {
                 int left = res.goalTick - t;
-                int lb = Math.max(sb.ticksFrom(s.posX, s.box.minY, s.posZ, s.motionX, s.motionZ),
-                    hb.ticksFromGround(s.posX, s.box.minY, s.posZ));
+                int speedLb = sb.ticksFrom(s.posX, s.box.minY, s.posZ, s.motionX, s.motionZ);
+                int hopLb = hb.ticksFromGround(s.posX, s.box.minY, s.posZ);
+                int lb = Math.max(speedLb, hopLb);
                 int gap = left - lb;
-                if (lb > left) System.out.println("  UNSOUND at tick " + t + ": bound " + lb + " > " + left + " left");
+                if (lb > left) {
+                    System.out.printf("  UNSOUND at tick %d (%.4f, %.4f, %.4f) motion (%.4f, %.4f, %.4f): bound %d (speed %d, hops %d) > %d left%n",
+                        t, s.posX, s.box.minY, s.posZ, s.motionX, s.motionY, s.motionZ, lb, speedLb, hopLb, left);
+                }
                 if (last < 0 || t - last >= 20 || Math.abs(gap - lastGap) >= 10) {
                     System.out.printf("  tick %4d at (%.1f, %.1f, %.1f): %4d left, bound %4d, gap %4d%n", t - res.startTick, s.posX, s.box.minY, s.posZ, left, lb, gap);
                     last = t;

@@ -50,6 +50,7 @@ public final class PhysicsModel implements MovementModel<PlayerState> {
         if (in.has(Key.SPRINT)) k |= PlayerInput.SPRINT;
         if (in.has(Key.SNEAK)) k |= PlayerInput.SNEAK;
         if (in.has(Key.USE)) k |= PlayerInput.USE;
+        if (in.has(Key.CLOSE)) k |= PlayerInput.CLOSE;
         return new PlayerInput(k, in.yaw, in.pitch, in.slot);
     }
 }
