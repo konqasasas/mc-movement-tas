@@ -24,8 +24,6 @@ final class Planner {
         final List<PlayerInput> inputs;
         final int g;
         final double f;
-        /** The bound at the node (set by the search when it is put on the open list). */
-        double h;
 
         Node(Run run, Node parent, Move move, List<PlayerInput> inputs, double f) {
             this.run = run;
@@ -73,9 +71,11 @@ final class Planner {
     java.util.Set<Integer> corridor;
     /** When set, every expansion is recorded for the learned guide (WS13). */
     GuideData.Recorder recorder;
-    /** The learned guide (WS13), and how much of its correction to the priority is used. */
-    GuideModel guide;
-    double guideWeight = 1;
+    /**
+     * The learned guide (WS13): when set, the priority uses its estimate instead of the bound. The
+     * bound still prunes and ranks the aims (reranking them pushed needed aims out, as in F-523).
+     */
+    GuideField field;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
@@ -115,7 +115,7 @@ final class Planner {
         Map<Integer, Integer> bestOnSurface = new HashMap<Integer, Integer>();
         Map<Node, Runup.Root> rootOf = new HashMap<Node, Runup.Root>();
         for (Runup.Root r : roots) {
-            Node n = new Node(r.run, null, null, r.inputs, weight * h(r.run));
+            Node n = new Node(r.run, null, null, r.inputs, weight * guided(r.run, h(r.run)));
             if (admit(n, seen, bestOnSurface)) {
                 open.add(n);
                 rootOf.put(n, r);
@@ -130,8 +130,10 @@ final class Planner {
             Node n = open.poll();
             double hn = h(n.run);
             if (n.g + hn >= bestTime) continue;
-            if (hn < near - 1) {
-                near = hn;
+            // Progress by the estimate the search orders by: a guided search may go round where the bound does not fall.
+            double hp = field == null ? hn : field.toGo(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
+            if (hp < near - 1) {
+                near = hp;
                 nearAt = expanded;
             }
             if (stallAfter > 0 && n.run.s.onGround) {
@@ -152,7 +154,6 @@ final class Planner {
             Integer s = seen.get(key(n.run));
             if (s != null && s < n.g) continue;
             expanded++;
-            if (recorder != null) recorder.popped(n);
             succ.clear();
             List<double[]> aims = aims(n.run);
             if (trace) for (double[] a : aims) System.err.printf("      aim (%.2f, %.2f) top %.2f%s%n", a[0], a[1], a[2], a.length == 8 ? " corner" : a.length >= 14 ? " bounce" : a.length >= 9 ? String.format(" via (%.2f, %.2f)", a[7], a[8]) : "");
@@ -164,21 +165,7 @@ final class Planner {
             }
             if (recorder != null) recorder.expanded(course, n.run, aims, succ);
             int[] why = new int[4];
-            // The learned guide (WS13): a correction in ticks to the priority of each successor that
-            // passes the bounds below, from its features (GuideFeatures#node).
-            double[][] fs = guide != null || recorder != null ? new double[succ.size()][] : null;
-            double[] pen = new double[succ.size()];
-            if (fs != null) {
-                for (int i = 0; i < succ.size(); i++) {
-                    Run xr = succ.get(i).run;
-                    double hx = xr.done() ? 0 : h(xr);
-                    if (!xr.done() && (hx > hn + backSlack || xr.clock() + hx >= bestTime)) continue;
-                    fs[i] = GuideFeatures.node(course, xr, n.run, hx, hn);
-                    if (guide != null) pen[i] = guideWeight * guide.score(fs[i]);
-                }
-            }
-            for (int xi = 0; xi < succ.size(); xi++) {
-                Maneuver.Successor x = succ.get(xi);
+            for (Maneuver.Successor x : succ) {
                 generated++;
                 if (x.run.done()) {
                     int t = x.run.time();
@@ -191,7 +178,6 @@ final class Planner {
                         }
                         bestTime = t;
                         best = new Node(x.run, n, x.move, x.inputs, t);
-                        if (recorder != null && fs[xi] != null) recorder.child(best, fs[xi]);
                         if (DEBUG) System.err.printf("  found %d ticks, %d expanded, %d ms before the deadline%n", t, expanded, deadline - System.currentTimeMillis());
                     }
                     continue;
@@ -207,9 +193,7 @@ final class Planner {
                     why[1]++;
                     continue;
                 }
-                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc + pen[xi]);
-                c.h = hc;
-                if (recorder != null && fs[xi] != null) recorder.child(c, fs[xi]);
+                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * guided(x.run, hc));
                 if (admit(c, seen, bestOnSurface)) {
                     open.add(c);
                     why[3]++;
@@ -225,7 +209,6 @@ final class Planner {
             if (trace) System.err.printf("    %d successors: %d fall back, %d over the bound, %d seen or out of the window, %d open (open list %d)%n",
                 succ.size(), why[0], why[1], why[2], why[3], open.size());
         }
-        if (recorder != null) recorder.found(best, weight, course);
         if (best == null) return null;
         List<Node> chain = new ArrayList<Node>();
         for (Node k = best; k != null; k = k.parent) chain.add(k);
@@ -308,6 +291,11 @@ final class Planner {
 
     private double h(Run r) {
         return course.toGo(r.s.posX, r.s.posY, r.s.posZ);
+    }
+
+    /** The estimate the priority uses: the guide's when there is one, else the bound {@code h}. */
+    private double guided(Run r, double h) {
+        return field == null ? h : field.toGo(r.s.posX, r.s.posY, r.s.posZ);
     }
 
     private boolean admit(Node n, Map<Long, Integer> seen, Map<Integer, Integer> bestOnSurface) {

@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Training data for the learned guide (WS13): the moves between platforms that solutions made, and the
@@ -182,104 +181,6 @@ public final class GuideData {
                 e[0]++;
                 if (made.contains(q)) e[1]++;
             }
-        }
-
-        /** The {@link GuideFeatures#node} features of each successor the current search generated. */
-        private final java.util.IdentityHashMap<Planner.Node, double[]> feats = new java.util.IdentityHashMap<Planner.Node, double[]>();
-        /** The nodes the current search generated (true) and expanded (false), in order. */
-        private final List<Planner.Node> events = new ArrayList<Planner.Node>();
-        private final List<Boolean> generatedAt = new ArrayList<Boolean>();
-        /** Only searches with this heuristic weight are kept (the greedy first round's). */
-        double keepWeight = 6;
-        /** At most this many pairs per search. */
-        int maxPairs = 20000;
-        /**
-         * Pairs from the searches that found a plan: the node of the plan that was waiting in the open
-         * list, and a node off the plan that the search expanded meanwhile (which it should not have
-         * taken first), or one generated meanwhile and never expanded (which it rightly left). Each is
-         * {clock g, bound h, features...} for the plan's node, then the same for the other.
-         */
-        final List<double[][]> nodePairs = new ArrayList<double[][]>();
-        private final Random rnd = new Random(5);
-
-        synchronized void child(Planner.Node child, double[] f) {
-            feats.put(child, f);
-            events.add(child);
-            generatedAt.add(true);
-        }
-
-        synchronized void popped(Planner.Node n) {
-            events.add(n);
-            generatedAt.add(false);
-        }
-
-        /** The search with heuristic weight {@code weight} ended with plan {@code goal} (or none). */
-        synchronized void found(Planner.Node goal, double weight, Course c) {
-            if (goal != null && weight == keepWeight) {
-                List<Planner.Node> path = new ArrayList<Planner.Node>();
-                for (Planner.Node k = goal; k != null; k = k.parent) path.add(k);
-                java.util.Collections.reverse(path);
-                java.util.IdentityHashMap<Planner.Node, Integer> onPath = new java.util.IdentityHashMap<Planner.Node, Integer>();
-                for (int i = 0; i < path.size(); i++) onPath.put(path.get(i), i);
-                // The plan's node waiting at each event: the one after the deepest plan node expanded so far.
-                int pending = -1;
-                java.util.IdentityHashMap<Planner.Node, Integer> bornWith = new java.util.IdentityHashMap<Planner.Node, Integer>();
-                java.util.Set<Planner.Node> expanded = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Planner.Node, Boolean>());
-                List<double[][]> mine = new ArrayList<double[][]>(), left = new ArrayList<double[][]>();
-                for (int e = 0; e < events.size(); e++) {
-                    Planner.Node q = events.get(e);
-                    Integer i = onPath.get(q);
-                    if (generatedAt.get(e)) {
-                        if (i == null) bornWith.put(q, pending);
-                        continue;
-                    }
-                    expanded.add(q);
-                    if (i != null) {
-                        pending = Math.max(pending, i + 1);
-                        continue;
-                    }
-                    add(mine, path, pending, q);
-                }
-                for (Map.Entry<Planner.Node, Integer> e : bornWith.entrySet()) if (!expanded.contains(e.getKey())) add(left, path, e.getValue(), e.getKey());
-                java.util.Collections.shuffle(left, rnd);
-                mine.addAll(left.subList(0, Math.min(left.size(), mine.size())));
-                java.util.Collections.shuffle(mine, rnd);
-                nodePairs.addAll(mine.subList(0, Math.min(maxPairs, mine.size())));
-            }
-            feats.clear();
-            events.clear();
-            generatedAt.clear();
-        }
-
-        private void add(List<double[][]> to, List<Planner.Node> path, int pending, Planner.Node q) {
-            if (pending <= 0 || pending >= path.size()) return;
-            Planner.Node pn = path.get(pending);
-            double[] fp = feats.get(pn), fq = feats.get(q);
-            if (fp != null && fq != null) to.add(new double[][] {row(pn, fp), row(q, fq)});
-        }
-
-        private static double[] row(Planner.Node n, double[] f) {
-            double[] r = new double[f.length + 2];
-            r[0] = n.g;
-            r[1] = n.h;
-            System.arraycopy(f, 0, r, 2, f.length);
-            return r;
-        }
-
-        String nodeCsv(String problem) {
-            StringBuilder b = new StringBuilder();
-            for (int i = 0; i < nodePairs.size(); i++) {
-                for (int j = 0; j < 2; j++) {
-                    b.append(problem).append(',').append(i).append(',').append(j == 0 ? 1 : 0);
-                    for (double v : nodePairs.get(i)[j]) b.append(',').append(String.format(Locale.ROOT, "%.4f", v));
-                    b.append('\n');
-                }
-            }
-            return b.toString();
-        }
-
-        static String nodeHeader() {
-            return "problem,pair,plan,g,h," + String.join(",", GuideFeatures.NODE_NAMES);
         }
 
         static long key(int p, int q) {

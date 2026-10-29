@@ -68,7 +68,7 @@ public final class PlannerSolver {
     private boolean segments = true;
     private GuideData.Recorder recorder;
     private GuideModel guide;
-    private double guideWeight = 1;
+    private double guidePenalty = 10;
     /** The rounds (from 0) up to which the guide steers the A*. */
     static final int GUIDE_UP_TO = Integer.getInteger("planner.guideUpTo", Integer.MAX_VALUE);
     private Course course;
@@ -91,12 +91,13 @@ public final class PlannerSolver {
     }
 
     /**
-     * Steers the A* with a learned guide (WS13, {@link GuideModel}): each successor's priority gets
-     * the model's correction in ticks, times {@code weight}.
+     * Steers the A* with a learned guide (WS13, {@link GuideField}): moves between platforms that the
+     * model ({@link GuideModel}) thinks the search will not make cost {@code penalty} ticks more per
+     * unit of minus the log of their probability in the estimate the A* orders by.
      */
-    public PlannerSolver guide(java.nio.file.Path model, double weight) throws java.io.IOException {
+    public PlannerSolver guide(java.nio.file.Path model, double penalty) throws java.io.IOException {
         this.guide = GuideModel.read(model);
-        this.guideWeight = weight;
+        this.guidePenalty = penalty;
         return this;
     }
 
@@ -126,6 +127,11 @@ public final class PlannerSolver {
             + (under == null ? " (spawn not on a foothold)" : "") + " (" + (System.currentTimeMillis() - t0) + " ms)");
         if (Planner.DEBUG) for (Map.Entry<Integer, List<Course.Hole>> e : course.holes.entrySet()) say("holes in platform " + e.getKey() + ": " + e.getValue());
         if (Planner.DEBUG && under != null && under.toGo == Double.POSITIVE_INFINITY) gap(course, under);
+        GuideField field = null;
+        if (guide != null) {
+            field = new GuideField(course, guide, guidePenalty);
+            say("guide estimate from spawn " + String.format("%.1f", field.toGo(spawn.s.posX, spawn.s.posY, spawn.s.posZ)) + " ticks (" + (System.currentTimeMillis() - t0) + " ms)");
+        }
         List<Runup.Root> roots = Runup.roots(course);
         List<Runup.Root> picked = ROOTS > 0 ? new Planner(course).pickRoots(roots, ROOTS) : roots;
         say(roots.size() + " run-up roots, searching from " + picked.size() + " (" + (System.currentTimeMillis() - t0) + " ms)");
@@ -140,10 +146,7 @@ public final class PlannerSolver {
         for (int level = 0; System.currentTimeMillis() < deadline; level++) {
             Planner planner = new Planner(course);
             planner.recorder = recorder;
-            if (level <= GUIDE_UP_TO) {
-                planner.guide = guide;
-                planner.guideWeight = guideWeight;
-            }
+            if (level <= GUIDE_UP_TO) planner.field = field;
             planner.weight = level == 0 ? FIRST_WEIGHT : WEIGHTS[Math.min(level, WEIGHTS.length) - 1];
             planner.targets = Math.min(4 + TARGETS_STEP * level, 10);
             planner.window = 4 + 2 * level;
@@ -165,6 +168,14 @@ public final class PlannerSolver {
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)"
                 + (planner.firstAt > 0 && best == null ? ", first plan after " + planner.firstExpanded + " expanded at " + (planner.firstAt - t0) + " ms" : ""));
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
+            if (p == null && planner.stalled && field != null) {
+                // A guided search that stalls goes on unguided, with the graph as it was: the guide may be
+                // what led it astray (realdev ex2).
+                field = null;
+                say("stalled with the guide: going on without it");
+                level--;
+                continue;
+            }
             if (p == null && planner.stalled) {
                 // Stalled with no plan: the bound promised moves that no move makes. Off the platform the
                 // search came nearest the goal on that still has such moves, they are dropped.

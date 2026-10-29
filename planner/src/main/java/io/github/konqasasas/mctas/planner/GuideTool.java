@@ -101,7 +101,6 @@ public final class GuideTool {
     /** {@code guide-record}: runs the planner on each problem and writes what its A* aimed at and made. */
     public static int record(List<Path> problems, Path out, long budgetMillis, int minTries) throws IOException {
         StringBuilder csv = new StringBuilder(GuideData.header()).append('\n');
-        StringBuilder nodes = new StringBuilder(GuideData.Recorder.nodeHeader()).append('\n');
         for (Path p : problems) {
             Problem problem = ProblemIO.read(p);
             if (reportOnly(problem.id)) {
@@ -123,70 +122,65 @@ public final class GuideTool {
                 csv.append(x.csv()).append('\n');
                 made += x.made;
             }
-            nodes.append(rec.nodeCsv(problem.id));
-            System.err.println(problem.id + ": " + (sol == null ? "no solution" : sol.ticks + " ticks") + ", " + ss.size() + " pairs, " + made + " made, "
-                + rec.nodePairs.size() + " node pairs");
+            System.err.println(problem.id + ": " + (sol == null ? "no solution" : sol.ticks + " ticks") + ", " + ss.size() + " pairs, " + made + " made");
         }
         Files.write(out, csv.toString().getBytes(StandardCharsets.UTF_8));
-        Files.write(Paths.get(out + ".nodes.csv"), nodes.toString().getBytes(StandardCharsets.UTF_8));
         return 0;
     }
 
     /**
-     * {@code guide-train}: fits the guide to the pairs of {@code guide-record} and writes it. Pairs of
-     * problems whose id starts with a {@code --holdout} prefix are only scored, not fitted.
+     * {@code guide-train}: fits the guide's model to the pairs of platforms of {@code guide-record} and
+     * writes it. Problems whose id starts with a {@code --holdout} prefix are only scored, and those
+     * with a {@code --drop} prefix are left out.
      */
     public static int train(List<String> args) throws IOException {
         Path out = Paths.get(args.get(0));
         List<Path> csvs = new ArrayList<Path>();
         List<String> holdout = new ArrayList<String>(), drop = new ArrayList<String>();
-        int hidden = 8, epochs = 20;
-        double l2 = 1e-4, weight = 6;
+        int steps = 2000;
+        double l2 = 1e-3;
         for (int i = 1; i < args.size(); i++) {
             String a = args.get(i);
-            if (a.equals("--hidden")) hidden = Integer.parseInt(args.get(++i));
-            else if (a.equals("--epochs")) epochs = Integer.parseInt(args.get(++i));
+            if (a.equals("--steps")) steps = Integer.parseInt(args.get(++i));
             else if (a.equals("--l2")) l2 = Double.parseDouble(args.get(++i));
-            else if (a.equals("--weight")) weight = Double.parseDouble(args.get(++i));
             else if (a.equals("--holdout")) holdout.add(args.get(++i));
             else if (a.equals("--drop")) drop.add(args.get(++i));
             else csvs.add(Paths.get(a));
         }
-        List<double[][]> tp = new ArrayList<double[][]>(), vp = new ArrayList<double[][]>();
-        String[] names = null;
+        List<double[]> tf = new ArrayList<double[]>(), vf = new ArrayList<double[]>();
+        List<Integer> ty = new ArrayList<Integer>(), vy = new ArrayList<Integer>();
         for (Path csv : csvs) {
             List<String> lines = Files.readAllLines(csv, StandardCharsets.UTF_8);
-            String[] head = lines.get(0).split(",");
-            String[] nm = java.util.Arrays.copyOfRange(head, 5, head.length);
-            if (names == null) names = nm;
-            else if (!java.util.Arrays.equals(names, nm)) throw new IllegalArgumentException(csv + ": other features");
-            for (int li = 1; li + 1 < lines.size(); li += 2) {
-                String[] a = lines.get(li).split(","), b = lines.get(li + 1).split(",");
-                String problem = a[0];
+            if (!lines.get(0).equals(GuideData.header())) throw new IllegalArgumentException(csv + ": not a guide-record file");
+            for (int li = 1; li < lines.size(); li++) {
+                String[] p = lines.get(li).split(",");
+                String problem = p[0];
                 if (reportOnly(problem)) throw new IllegalArgumentException(problem + " is for reporting only");
                 boolean skip = false, val = false;
                 for (String d : drop) skip |= problem.startsWith(d);
                 for (String h : holdout) val |= problem.startsWith(h);
                 if (skip) continue;
-                (val ? vp : tp).add(new double[][] {nums(a), nums(b)});
+                double[] f = new double[GuideFeatures.N];
+                for (int i = 0; i < f.length; i++) f[i] = Double.parseDouble(p[i + 1]);
+                (val ? vf : tf).add(f);
+                (val ? vy : ty).add(Integer.parseInt(p[GuideFeatures.N + 1]));
             }
         }
-        System.err.println(tp.size() + " training pairs, " + vp.size() + " held-out pairs, " + names.length + " features");
-        GuideModel m = GuideModel.fit(names, hidden, tp, weight, epochs, l2, 13);
-        GuideModel zero = new GuideModel(names, 0);
-        double[] tr = m.evaluate(tp, weight), tz = zero.evaluate(tp, weight);
-        System.err.printf(java.util.Locale.ROOT, "train: right %.3f (without the guide %.3f), loss %.3f (%.3f)%n", tr[0], tz[0], tr[1], tz[1]);
-        if (!vp.isEmpty()) {
-            double[] va = m.evaluate(vp, weight), vz = zero.evaluate(vp, weight);
-            System.err.printf(java.util.Locale.ROOT, "held out: right %.3f (without the guide %.3f), loss %.3f (%.3f)%n", va[0], vz[0], va[1], vz[1]);
+        System.err.println(tf.size() + " training moves (" + share(ty) + " made), " + vf.size() + " held out (" + share(vy) + " made)");
+        GuideModel m = GuideModel.fit(tf, ty, steps, l2);
+        double[] tr = m.evaluate(tf, ty);
+        System.err.printf(java.util.Locale.ROOT, "train: log-likelihood %.3f, right %.3f%n", tr[0], tr[1]);
+        if (!vf.isEmpty()) {
+            double[] va = m.evaluate(vf, vy);
+            System.err.printf(java.util.Locale.ROOT, "held out: log-likelihood %.3f, right %.3f%n", va[0], va[1]);
         }
         Files.write(out, m.write().getBytes(StandardCharsets.UTF_8));
         return 0;
     }
 
-    private static double[] nums(String[] p) {
-        double[] f = new double[p.length - 3];
-        for (int i = 0; i < f.length; i++) f[i] = Double.parseDouble(p[i + 3]);
-        return f;
+    private static String share(List<Integer> y) {
+        int s = 0;
+        for (int v : y) s += v;
+        return String.format(java.util.Locale.ROOT, "%.3f", s / (double) Math.max(1, y.size()));
     }
 }

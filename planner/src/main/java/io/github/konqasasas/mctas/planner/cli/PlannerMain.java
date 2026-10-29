@@ -23,11 +23,11 @@ import java.util.List;
 public final class PlannerMain {
     private static final String USAGE = String.join("\n",
         "usage:",
-        "  mctas-planner solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet] [--no-technique] [--guide MODEL [--guide-weight TICKS]]",
+        "  mctas-planner solve <problem.json|problem-dir> <out-dir> [--budget SECONDS] [--quiet] [--no-technique] [--guide MODEL [--guide-penalty TICKS]]",
         "",
         "  mctas-planner guide-data <problems-root> <out.csv> <solution.json|dir>...",
         "  mctas-planner guide-record <problem.json|problem-dir> <out.csv> [--budget SECONDS] [--min-tries N]",
-        "  mctas-planner guide-train <out-model> <nodes.csv>... [--hidden N] [--epochs N] [--l2 X] [--holdout PREFIX]...",
+        "  mctas-planner guide-train <out-model> <record.csv>... [--steps N] [--l2 X] [--holdout PREFIX]... [--drop PREFIX]...",
         "",
         "Writes <id>.solution.json (and a .tas copy) per problem into out-dir. The budget is per problem.",
         "guide-data and guide-record collect the learned guide's training data (WS13); report-only problems are refused.");
@@ -60,11 +60,11 @@ public final class PlannerMain {
         boolean quiet = false;
         boolean technique = true;
         Path guide = null;
-        double guideWeight = 1;
+        double guidePenalty = 10;
         for (int i = 3; i < args.length; i++) {
             if (args[i].equals("--budget")) budget = Double.parseDouble(args[++i]);
             else if (args[i].equals("--guide")) guide = Paths.get(args[++i]);
-            else if (args[i].equals("--guide-weight")) guideWeight = Double.parseDouble(args[++i]);
+            else if (args[i].equals("--guide-penalty")) guidePenalty = Double.parseDouble(args[++i]);
             else if (args[i].equals("--quiet")) quiet = true;
             else if (args[i].equals("--no-technique")) technique = false;
             else {
@@ -81,7 +81,7 @@ public final class PlannerMain {
             long t0 = System.currentTimeMillis();
             System.out.println(problem.id + ":");
             PlannerSolver solver = new PlannerSolver(problem, (long) (budget * 1000)).segments(technique);
-            if (guide != null) solver.guide(guide, guideWeight);
+            if (guide != null) solver.guide(guide, guidePenalty);
             if (!quiet) solver.log(System.out);
             PlannerSolver.Solution sol = solver.solve();
             long ms = System.currentTimeMillis() - t0;
