@@ -55,8 +55,6 @@ public final class FunnelSolver {
 
     /** Forward expansions per anchor, and how much the anchor's time weighs in the order of the forward search. */
     static final int PER_ANCHOR = 3;
-    /** Entries into the start box the forward run starts from, when the spawn is outside it. */
-    static final int ENTRIES = 6;
     static final float DEPTH = 0.15F;
 
     static final int MAX_ATTEMPTS = 4;
@@ -69,8 +67,6 @@ public final class FunnelSolver {
     static final float GAP = 30;
     /** A verified anchor lets the failed anchors this close (blocks) try again. */
     static final double RETRY_RADIUS = 8;
-    /** A verified anchor covers the anchors on the same floor height this close (blocks; the 8 around it). */
-    static final double COVER = 1.5;
     static final boolean DEBUG = System.getenv("FUNNEL_DEBUG") != null;
 
     private final Problem problem;
@@ -182,10 +178,8 @@ public final class FunnelSolver {
                     near.seed(a.cells, 0);
                     verified++;
                     for (Anchors.Anchor b : anchors.list) {
-                        if (b.verified()) continue;
+                        if (b.verified() || b.attempts == 0 || b.attempts >= MAX_ATTEMPTS) continue;
                         double dx = b.cx - a.cx, dy = b.top - a.top, dz = b.cz - a.cz;
-                        if (Math.abs(dy) < 1e-6 && dx * dx + dz * dz <= COVER * COVER) b.covered = true;
-                        if (b.attempts == 0 || b.attempts >= MAX_ATTEMPTS) continue;
                         if (dx * dx + dy * dy + dz * dz <= RETRY_RADIUS * RETRY_RADIUS) b.retry = true;
                     }
                     nearest = Math.min(nearest, minFwd(a.cells));
@@ -316,7 +310,6 @@ public final class FunnelSolver {
             if (a.verified() || a.attempts >= MAX_ATTEMPTS) continue;
             // Retry only once an anchor near it has been verified.
             if (a.attempts > 0 && !a.retry && !stalled) continue;
-            if (a.covered && !stalled) continue;
             float[] g = guess(a);
             if (g[0] == Field.INF || g[1] == Field.INF) continue;
             // Only near the verified set: a beam has to get there.
@@ -423,6 +416,7 @@ public final class FunnelSolver {
         // By the estimate, a little in favour of the chains nearer the goal (the anchors' times from rest
         // overrate what is left after an arrival at speed, so the estimates of a whole corridor tie).
         PriorityQueue<Chain> open = new PriorityQueue<Chain>((p, q) -> Float.compare(p.key(), q.key()));
+        open.add(new Chain(null, new ArrayList<PlayerInput>(), spawn(), null, 0, false));
         // Expansions per anchor: the first few landings on it (by the order above) stand for the rest.
         Map<Integer, Integer> closed = new HashMap<Integer, Integer>();
         Field toStart = new Field(grid, false);
@@ -435,25 +429,6 @@ public final class FunnelSolver {
         Beam.Node sp = spawn();
         float fromStart = fwd.at(sp.s.posX, sp.s.posY, sp.s.posZ);
         int runUp = fromStart < Field.INF ? (int) Math.ceil(fromStart * 1.2) : 0;
-        Chain root = new Chain(null, new ArrayList<PlayerInput>(), sp, null, 0, false);
-        if (sp.entry < 0) {
-            // The run-up on its own: the entries into the start box, each a root of the run. Inside the
-            // run's beam, states that hop over the box in step with each other can leave none that enter.
-            Beam.Options o = new Beam.Options();
-            o.width = 300;
-            o.maxTicks = runUp + 60;
-            o.hits = ENTRIES;
-            o.entries = true;
-            o.judgeStart = true;
-            o.deadlineNanos = System.nanoTime() + Math.max(0, deadline - System.currentTimeMillis()) * 1_000_000L;
-            List<Beam.Hit> in = beam.search(sp, o);
-            if (DEBUG) say(String.format("    run-up: %d entries (%d ms)", in.size(), System.currentTimeMillis() - t0));
-            for (Beam.Hit h : in) {
-                PlayerState e = h.end.s;
-                open.add(new Chain(root, h.inputs, h.end, null, back.at(e.posX, e.posY, e.posZ), false));
-            }
-        }
-        if (open.isEmpty()) open.add(root);
         while (!open.isEmpty() && System.currentTimeMillis() < deadline && expansions < 2000) {
             Chain c = open.poll();
             if (c.anchor != null && (deepest == null || c.anchor.v < deepest.anchor.v)) deepest = c;

@@ -234,16 +234,17 @@ final class Field {
             if (bi < 0) return null;
             id = bi;
         }
-        double[] t = g.fit(id);
+        double tx = g.cx(g.ix(id)), tz = g.cz(g.iz(id));
         int cur = id;
         for (int step = 0; step < 24; step++) {
             int n = next[cur];
             if (n < 0) break;
             cur = n;
-            t = g.fit(cur);
-            if ((t[0] - x) * (t[0] - x) + (t[1] - z) * (t[1] - z) >= reach * reach) break;
+            tx = g.cx(g.ix(cur));
+            tz = g.cz(g.iz(cur));
+            if ((tx - x) * (tx - x) + (tz - z) * (tz - z) >= reach * reach) break;
         }
-        return t;
+        return new double[] {tx, tz};
     }
 
     private void push(float v, int id) {
