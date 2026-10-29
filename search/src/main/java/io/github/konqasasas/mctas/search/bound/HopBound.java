@@ -221,7 +221,7 @@ public final class HopBound {
             if (covered(col, b)) continue;
             boolean slime = b[6] > 0;
             double[] stepFrom = stepFrom(byColumn, (int) b[7], (int) b[8], b[4]);
-            double[] hoverFrom = hoverFrom(byColumn, (int) b[7], (int) b[8], b[4]);
+            double[] hoverFrom = hoverFrom(byColumn, b, far[1]);
             double drop = hoverFrom.length > 0 ? STEP : b[4] - stepFrom[0];
             // A hover landing leaves the feet up to drop under the top (see low), over a lower top
             // that can be a slime block.
@@ -324,11 +324,11 @@ public final class HopBound {
         solve();
     }
 
-    private static long key(int x, int z) {
+    static long key(int x, int z) {
         return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
     }
 
-    private static List<double[]> list(Map<Long, List<double[]>> m, int x, int z) {
+    static List<double[]> list(Map<Long, List<double[]>> m, int x, int z) {
         List<double[]> l = m.get(key(x, z));
         if (l == null) m.put(key(x, z), l = new ArrayList<double[]>());
         return l;
@@ -391,15 +391,23 @@ public final class HopBound {
         return out;
     }
 
-    /** Tops in the columns around (x, z) that a tick falling from 0.6 under {@code y} or higher can land on. */
-    private static double[] hoverFrom(Map<Long, List<double[]>> byColumn, int x, int z, double y) {
+    /**
+     * Tops in the columns around the top {@code t} that a tick falling from 0.6 under it or higher can
+     * land on while hitting its side: the tick starts with the box over the lower top, clear of t and
+     * of every box at t's height (its feet are under t's top and its head over it), and within a
+     * tick's move {@code reach} of t.
+     */
+    static double[] hoverFrom(Map<Long, List<double[]>> byColumn, double[] t, double reach) {
+        int x = (int) t[7], z = (int) t[8];
+        double y = t[4];
         TreeSet<Double> hs = new TreeSet<Double>();
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 List<double[]> col = byColumn.get(key(x + dx, z + dz));
                 if (col == null) continue;
                 for (double[] b : col) {
-                    if (b[4] < y - STEP - EPS && b[4] > y - STEP - TERMINAL) hs.add(b[4]);
+                    if (b[4] < y - STEP - EPS && b[4] > y - STEP - TERMINAL && !hs.contains(b[4])
+                        && room(byColumn, b, t, y, reach)) hs.add(b[4]);
                 }
             }
         }
@@ -407,6 +415,53 @@ public final class HopBound {
         int i = 0;
         for (double h : hs) out[i++] = h;
         return out;
+    }
+
+    /**
+     * Whether some place for the feet over the box {@code f}, within {@code reach} of the box
+     * {@code t}, has the player's box clear of every box that spans the height just under {@code y}.
+     */
+    private static boolean room(Map<Long, List<double[]>> byColumn, double[] f, double[] t, double y, double reach) {
+        double x0 = Math.max(f[0] - HALF, t[0] - HALF - reach), x1 = Math.min(f[3] + HALF, t[3] + HALF + reach);
+        double z0 = Math.max(f[2] - HALF, t[2] - HALF - reach), z1 = Math.min(f[5] + HALF, t[5] + HALF + reach);
+        if (x0 >= x1 - EPS || z0 >= z1 - EPS) return false;
+        List<double[]> walls = new ArrayList<double[]>();
+        TreeSet<Double> xs = new TreeSet<Double>(), zs = new TreeSet<Double>();
+        xs.add(x0);
+        xs.add(x1);
+        zs.add(z0);
+        zs.add(z1);
+        for (int cx = (int) Math.floor(x0) - 1; cx <= (int) Math.floor(x1) + 1; cx++) {
+            for (int cz = (int) Math.floor(z0) - 1; cz <= (int) Math.floor(z1) + 1; cz++) {
+                List<double[]> col = byColumn.get(key(cx, cz));
+                if (col == null) continue;
+                for (double[] b : col) {
+                    if (b[1] >= y - EPS || b[4] <= y - EPS) continue;
+                    double[] w = {b[0] - HALF, b[3] + HALF, b[2] - HALF, b[5] + HALF};
+                    walls.add(w);
+                    if (w[0] > x0 && w[0] < x1) xs.add(w[0]);
+                    if (w[1] > x0 && w[1] < x1) xs.add(w[1]);
+                    if (w[2] > z0 && w[2] < z1) zs.add(w[2]);
+                    if (w[3] > z0 && w[3] < z1) zs.add(w[3]);
+                }
+            }
+        }
+        // Each cell between the edges is either inside a wall or clear of all of them.
+        Double[] ex = xs.toArray(new Double[0]), ez = zs.toArray(new Double[0]);
+        for (int i = 0; i + 1 < ex.length; i++) {
+            for (int j = 0; j + 1 < ez.length; j++) {
+                double cx = (ex[i] + ex[i + 1]) / 2, cz = (ez[j] + ez[j + 1]) / 2;
+                boolean free = true;
+                for (double[] w : walls) {
+                    if (cx > w[0] + EPS && cx < w[1] - EPS && cz > w[2] + EPS && cz < w[3] - EPS) {
+                        free = false;
+                        break;
+                    }
+                }
+                if (free) return true;
+            }
+        }
+        return false;
     }
 
     /**
