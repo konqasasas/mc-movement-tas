@@ -189,6 +189,10 @@ final class Explore {
                         if (g != null) c = t;
                     }
                     if (g == null) g = segment(s, since, e, c.cx(), c.cz(), deadlineMillis, k < WIDE ? segmentMillis : 0);
+                    // Onto a post at speed after all: a jump on from the landing tick may still carry on.
+                    if (g == null && !c.climb && narrow(c)) {
+                        g = segment(s, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
+                    }
                     if (g != null) {
                         m = advance(n, g, c);
                     } else if (k < WIDE && n.on != null && !n.on.climb) {
@@ -282,7 +286,7 @@ final class Explore {
         double bz = Math.max(on.minZ + 0.15, Math.min(on.maxZ - 0.15, n.on.cz() - dz / d));
         if (Math.hypot(bx - s.posX, bz - s.posZ) < 0.15) return null;
         // Walk there and let friction stop the player, no sprinting.
-        boolean narrow = n.on.maxX - n.on.minX < 1.5 || n.on.maxZ - n.on.minZ < 1.5;
+        boolean narrow = narrow(n.on);
         List<PlayerInput> walk = new ArrayList<PlayerInput>();
         PlayerState w = s;
         for (int t = 0; t < 40; t++) {
@@ -322,7 +326,7 @@ final class Explore {
     static Exit landing(Route.Surface c) {
         Target t = target(c);
         Exit e = Exit.landing(t);
-        if (c.maxX - c.minX >= 1.5 && c.maxZ - c.minZ >= 1.5) return e;
+        if (!narrow(c)) return e;
         return new Exit() {
             @Override
             public boolean reached(PlayerState before, PlayerState after) {
@@ -337,6 +341,11 @@ final class Explore {
                 return e.progress(s, along);
             }
         };
+    }
+
+    /** A post or wall top: narrower than a block either way (footprints are grown by the half width). */
+    static boolean narrow(Route.Surface c) {
+        return c.maxX - c.minX < 1.5 || c.maxZ - c.minZ < 1.5;
     }
 
     /** True when the floor under the player runs on to {@code c}'s centre at the same height. */
