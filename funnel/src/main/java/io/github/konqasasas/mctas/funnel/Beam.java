@@ -116,6 +116,8 @@ final class Beam {
     static final float FREE = 0.6F;
     /** The run-up beam ({@link Options#entries}) goes on this many ticks past its first entry. */
     static final int ENTRY_TICKS = 12;
+    /** With the judge's start ({@link Options#judgeStart}), the beam goes on this many ticks past its first hit. */
+    static final int HIT_TICKS = 40;
     /** Towards the start box, for states before their first entry (judgeStart), and the field's best value in the box. */
     private Field toStart;
     private float startValue;
@@ -302,7 +304,7 @@ final class Beam {
         Map<Integer, Hit> fast = new HashMap<Integer, Hit>();
         float bestValue = Field.INF;
         Map<Long, Hit> entered = new HashMap<Long, Hit>();
-        int firstEntry = -1;
+        int firstEntry = -1, firstHit = -1;
         float lastHeading = field.heading(root.s.posX, root.s.posY, root.s.posZ);
         if (Float.isNaN(lastHeading)) lastHeading = root.s.rotationYaw;
         for (int t = 1; t <= o.maxTicks; t++) {
@@ -313,6 +315,9 @@ final class Beam {
             for (int i = 0; i < cur.size; i++) least = Math.min(least, cur.nodes[i].clock());
             if (least >= bestValue) break;
             if (firstEntry >= 0 && t > firstEntry + ENTRY_TICKS) break;
+            // States that step back into the start box restart the clock, so the clock alone never
+            // rules them out: the beam goes on only so long past its first hit.
+            if (o.judgeStart && firstHit >= 0 && t > firstHit + HIT_TICKS) break;
             Map<Long, Cand> merged = new HashMap<Long, Cand>();
             for (int i = 0; i < cur.size; i++) {
                 Node n = cur.nodes[i];
@@ -349,6 +354,7 @@ final class Beam {
                         Hit old = best.get(-1);
                         if (old == null || v < old.value) best.put(-1, new Hit(path(layers, t - 1, i, a), m, null, v));
                         bestValue = Math.min(bestValue, v);
+                        if (firstHit < 0) firstHit = t;
                         continue;
                     }
                     if (o.collect && m.s.onGround && !n.s.onGround) {
@@ -368,6 +374,7 @@ final class Beam {
                                 fast.put(an.id, hit != null ? hit : new Hit(path(layers, t - 1, i, a), m, an, v));
                             }
                             if (v < bestValue) bestValue = v;
+                            if (firstHit < 0) firstHit = t;
                         }
                     }
                     float h = toGo(m);

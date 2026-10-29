@@ -488,7 +488,7 @@ public final class FunnelSolver {
                 o.maxTicks = 240;
                 hits = beam.search(c.end, o);
             }
-            if (DEBUG) say(String.format("    expand %s @%d est %.1f: %d hits (%d ms)", c.anchor, c.end.clock(), c.est, hits.size(), System.currentTimeMillis() - t0));
+            if (DEBUG) say(String.format("    expand %s @%d est %.1f: %d hits, %d steps (%d ms)", c.anchor, c.end.clock(), c.est, hits.size(), beam.expanded, System.currentTimeMillis() - t0));
             for (Beam.Hit h : hits) {
                 open.add(new Chain(c, h.inputs, h.end, h.anchor, h.value, h.goal()));
             }
