@@ -273,9 +273,10 @@ public final class Mechanisms {
 
     /**
      * True if a block the client is about to take in from the server has a collision box that overlaps
-     * {@code box}: a trapdoor shutting or opening into the player.
+     * {@code box}: a trapdoor shutting or opening into the player. {@code base} is the world without them.
      */
-    boolean arrivalHits(BlockWorld world, Aabb box) {
+    public boolean arrivalHits(BlockWorld base, Aabb box) {
+        BlockWorld world = serverOver(base);
         List<Aabb> out = new ArrayList<Aabb>();
         for (int i = 0; i < server.length; i++) {
             if (server[i] != client[i]) {

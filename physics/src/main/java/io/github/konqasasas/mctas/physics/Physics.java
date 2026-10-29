@@ -60,7 +60,7 @@ public final class Physics {
         }
         if (!s.mech.isNone()) {
             // The blocks the server changed during the last tick.
-            if (s.mech.arrivalHits(s.mech.serverOver(base), s.box)) {
+            if (s.mech.arrivalHits(base, s.box)) {
                 s.unsupportedAction = true;
             }
             s.mech = s.mech.arrive();
