@@ -121,6 +121,19 @@ public class PlannerSolverTest {
     }
 
     @Test
+    public void climbsOutOfTheTopOfTheLadderWhenTheJumpsOffItFallShort() throws Exception {
+        // F-535 (cut from gen-dev2 g0305): the three footholds ranked first are reached from the ladder
+        // only by a jump across a gap, which a climb step (leaving the ladder in the air) falls short
+        // of. The top of the ladder, ranked fourth, is tried in their place.
+        Course c = new Course(ProblemIO.read(Paths.get("src/test/resources/climb/ladder-top-past-gaps.problem.json")));
+        java.util.List<Maneuver.Successor> out = new java.util.ArrayList<Maneuver.Successor>();
+        new ClimbManeuver().expand(Run.spawn(c), new java.util.ArrayList<double[]>(), out);
+        boolean top = false;
+        for (Maneuver.Successor q : out) top |= q.run.s.onGround && q.run.s.posY == 97.0;
+        assertTrue(top);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));
