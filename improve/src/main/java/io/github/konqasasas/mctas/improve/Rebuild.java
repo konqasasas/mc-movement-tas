@@ -1,5 +1,6 @@
 package io.github.konqasasas.mctas.improve;
 
+import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.technique.Exit;
@@ -44,6 +45,12 @@ final class Rebuild {
     };
 
     Run apply(Course c, Run cur, Random rnd) {
+        Run direct = null;
+        boolean aim = aimChance > 0 && rnd.nextDouble() < aimChance;
+        if (aim) {
+            direct = aimLanding(c, cur, rnd);
+            if (aimHead == null) return direct;
+        }
         int goal = cur.goalTick;
         int lo = Math.max(0, cur.startTick - 12);
         if (goal - lo < 4) return null;
@@ -54,7 +61,10 @@ final class Rebuild {
         }
         // The run whose inputs and states come before a: cur, or cur with a landing made a jump.
         Run head = cur;
-        if (landChance > 0 && rnd.nextDouble() < landChance) {
+        if (aim) {
+            head = aimHead;
+            a = aimFrom;
+        } else if (landChance > 0 && rnd.nextDouble() < landChance) {
             int[] ls = shortLandings(cur, lo, goal - 8);
             if (ls.length > 0) {
                 int land = ls[rnd.nextInt(ls.length)];
@@ -139,7 +149,8 @@ final class Rebuild {
                 : !anyValid ? Stage.SPLICE_FAILS : best != null && best.betterThan(cur) ? Stage.IMPROVED : Stage.NOT_BETTER;
         STAGES[st.ordinal()].incrementAndGet();
         if (DEBUG) System.err.print(log.append("  -> ").append(st).append('\n'));
-        return best;
+        if (aim && best != null && best.betterThan(cur)) AIM[3].incrementAndGet();
+        return direct != null && direct.betterThan(best) ? direct : best;
     }
 
     /** What became of a rebuild, for {@code MCTAS_IMPROVE_DEBUG}. */
@@ -264,6 +275,106 @@ final class Rebuild {
      * most of the lead), and goes on with the old inputs, until the run finishes or a round finds no
      * way. Among failing runs the one that gets furthest is kept.
      */
+    /**
+     * Chance that a rebuild jumps on a short landing and steers the jump at the old run's next
+     * landing point ({@link #aimLanding}) instead of searching a stretch. WS13 (F-907): from the landing
+     * state, a jump steered at where the run lands next reaches it, and often sooner, in two thirds of
+     * the short landings; keeping the old take-off's view (F-612) mostly misses.
+     */
+    double aimChance = 0;
+    /** Strafe keys and view offsets the steered jump tries: none, then A and D at plus or minus 45 degrees. */
+    private static final int[] AIM_KEYS = {0, PlayerInput.A, PlayerInput.A, PlayerInput.D, PlayerInput.D};
+    private static final float[] AIM_OFFSETS = {0, 45, -45, 45, -45};
+    /** The steered run the rebuild goes on from, and its landing tick ({@link #aimLanding}). */
+    private Run aimHead;
+    private int aimFrom;
+    /** How near the old landing point a steered jump must land (blocks): a landing short of it loses the ticks it gained. */
+    static double AIM_NEAR = Double.parseDouble(System.getProperty("improve.aimNear", "0.5"));
+    /** Landings in a row the steered jumps go on to. */
+    static final int AIM_CHAIN = 3;
+    static final java.util.concurrent.atomic.AtomicLong[] AIM = new java.util.concurrent.atomic.AtomicLong[4];
+
+    static {
+        for (int i = 0; i < AIM.length; i++) AIM[i] = new java.util.concurrent.atomic.AtomicLong();
+    }
+
+    /**
+     * Picks a landing that stays on the ground 2 to 4 ticks, jumps on it (or a tick later) and steers
+     * the jump each tick at the point where the old run lands next, holding sprint and the take-off's
+     * other keys. When the steered jump lands at that height near the point, the old inputs from the
+     * old landing follow, shifted, and the joint is mended and repaired as for a splice. The best valid
+     * run, or null. {@link #AIM} counts: tried, landed near, valid, better.
+     */
+    Run aimLanding(Course c, Run cur, Random rnd) {
+        int lo = Math.max(1, cur.startTick - 12);
+        int[] ls = shortLandings(cur, lo, cur.goalTick - 8);
+        if (ls.length == 0) return null;
+        int land = ls[rnd.nextInt(ls.length)];
+        // The old run's next landings: the steered jumps aim at them one after another.
+        int[] next = new int[AIM_CHAIN];
+        int n = 0;
+        for (int t = land + groundTicks(cur, land) + 1; t <= cur.length && n < next.length; t++) {
+            if (cur.states[t].onGround && !cur.states[t - 1].onGround) next[n++] = t;
+        }
+        if (n == 0) return null;
+        AIM[0].incrementAndGet();
+        PlayerInput take = cur.inputs[land + groundTicks(cur, land) - 1];
+        int hold = take.keys & (PlayerInput.SPRINT | PlayerInput.SNEAK);
+        Run best = null;
+        aimHead = null;
+        int headShift = 0;
+        boolean near = false, valid = false;
+        for (int delay = 0; delay <= 1; delay++) {
+            for (int v = 0; v < AIM_KEYS.length; v++) {
+                PlayerInput[] in = cur.inputs.clone();
+                PlayerState s = cur.states[land];
+                int t = land;
+                for (; t < land + delay; t++) s = Physics.tick(c.world, s, in[t]);
+                for (int k = 0; k < n; k++) {
+                    PlayerState target = cur.states[next[k]];
+                    int jumpAt = t, landed = -1;
+                    for (; t < Math.min(in.length, next[k] + 10); t++) {
+                        double dx = target.posX - s.posX, dz = target.posZ - s.posZ;
+                        float yaw = dx * dx + dz * dz < 0.09 ? in[Math.max(0, t - 1)].yaw
+                                : Technique.headingTo(s, target.posX, target.posZ) + AIM_OFFSETS[v];
+                        int keys = PlayerInput.W | hold | AIM_KEYS[v] | (t == jumpAt ? PlayerInput.JUMP : 0);
+                        in[t] = new PlayerInput(keys, yaw, take.pitch, take.slot);
+                        s = Physics.tick(c.world, s, in[t]);
+                        if (s.onGround && t > jumpAt) {
+                            landed = t + 1;
+                            t++;
+                            break;
+                        }
+                    }
+                    if (landed < 0 || landed >= next[k] + 3) break;
+                    double dx = target.posX - s.posX, dz = target.posZ - s.posZ;
+                    if (Math.abs(s.posY - target.posY) > 0.01 || dx * dx + dz * dz > AIM_NEAR * AIM_NEAR) break;
+                    near = true;
+                    // The old inputs from the old landing follow, shifted to the new one.
+                    int shift = next[k] - landed;
+                    PlayerInput[] out = new PlayerInput[in.length - shift];
+                    System.arraycopy(in, 0, out, 0, landed);
+                    System.arraycopy(cur.inputs, next[k], out, landed, cur.inputs.length - next[k]);
+                    Run run = c.evaluate(cur, land, out);
+                    if (run.length > landed && landed < cur.goalTick - 6 && shift > headShift) {
+                        // The rebuild after this goes on from the landing that gains the most.
+                        aimHead = run;
+                        aimFrom = landed;
+                        headShift = shift;
+                    }
+                    if (fixToggles) run = toggleFix.apply(c, run, rnd);
+                    if (run != null && run.valid) valid = true;
+                    if (run != null && run.betterThan(best)) best = run;
+                    // Then jump again on the landing tick, at the next landing.
+                }
+            }
+        }
+        if (near) AIM[1].incrementAndGet();
+        if (valid) AIM[2].incrementAndGet();
+        if (best != null && best.betterThan(cur)) AIM[3].incrementAndGet();
+        return best;
+    }
+
     private Run repair(Course c, Run cur, Run failed, int joint, int shift, Random rnd) {
         Run run = failed;
         int goal = cur.goalTick;
