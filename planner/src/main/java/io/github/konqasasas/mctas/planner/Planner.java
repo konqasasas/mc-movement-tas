@@ -24,6 +24,8 @@ final class Planner {
         final List<PlayerInput> inputs;
         final int g;
         final double f;
+        /** The bound at the node (set by the search when it is put on the open list). */
+        double h;
 
         Node(Run run, Node parent, Move move, List<PlayerInput> inputs, double f) {
             this.run = run;
@@ -69,12 +71,20 @@ final class Planner {
     boolean through = true;
     /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
     java.util.Set<Integer> corridor;
+    /** When set, every expansion is recorded for the learned guide (WS13). */
+    GuideData.Recorder recorder;
+    /** The learned guide (WS13), and how much of its correction to the priority is used. */
+    GuideModel guide;
+    double guideWeight = 1;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
     /** Time spent in each maneuver (with {@link #DEBUG}). */
     final Map<String, Long> maneuverNanos = new java.util.TreeMap<String, Long>();
     int expanded, generated;
+    /** When the search found its first plan, and after how many expansions (0 before). */
+    long firstAt;
+    int firstExpanded;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
     /** Expansions without coming a tick nearer the goal before a search without a plan gives up as stalled (0: never). */
@@ -142,6 +152,7 @@ final class Planner {
             Integer s = seen.get(key(n.run));
             if (s != null && s < n.g) continue;
             expanded++;
+            if (recorder != null) recorder.popped(n);
             succ.clear();
             List<double[]> aims = aims(n.run);
             if (trace) for (double[] a : aims) System.err.printf("      aim (%.2f, %.2f) top %.2f%s%n", a[0], a[1], a[2], a.length == 8 ? " corner" : a.length >= 14 ? " bounce" : a.length >= 9 ? String.format(" via (%.2f, %.2f)", a[7], a[8]) : "");
@@ -151,18 +162,36 @@ final class Planner {
                 m.expand(n.run, aims, succ);
                 if (DEBUG) maneuverNanos.merge(m.getClass().getSimpleName(), System.nanoTime() - t0, Long::sum);
             }
+            if (recorder != null) recorder.expanded(course, n.run, aims, succ);
             int[] why = new int[4];
-            for (Maneuver.Successor x : succ) {
+            // The learned guide (WS13): a correction in ticks to the priority of each successor that
+            // passes the bounds below, from its features (GuideFeatures#node).
+            double[][] fs = guide != null || recorder != null ? new double[succ.size()][] : null;
+            double[] pen = new double[succ.size()];
+            if (fs != null) {
+                for (int i = 0; i < succ.size(); i++) {
+                    Run xr = succ.get(i).run;
+                    double hx = xr.done() ? 0 : h(xr);
+                    if (!xr.done() && (hx > hn + backSlack || xr.clock() + hx >= bestTime)) continue;
+                    fs[i] = GuideFeatures.node(course, xr, n.run, hx, hn);
+                    if (guide != null) pen[i] = guideWeight * guide.score(fs[i]);
+                }
+            }
+            for (int xi = 0; xi < succ.size(); xi++) {
+                Maneuver.Successor x = succ.get(xi);
                 generated++;
                 if (x.run.done()) {
                     int t = x.run.time();
                     if (t < bestTime) {
                         if (best == null) {
                             long now = System.currentTimeMillis();
+                            firstAt = now;
+                            firstExpanded = expanded;
                             deadline = Math.min(deadline, now + (long) ((deadline - now) * afterFirst));
                         }
                         bestTime = t;
                         best = new Node(x.run, n, x.move, x.inputs, t);
+                        if (recorder != null && fs[xi] != null) recorder.child(best, fs[xi]);
                         if (DEBUG) System.err.printf("  found %d ticks, %d expanded, %d ms before the deadline%n", t, expanded, deadline - System.currentTimeMillis());
                     }
                     continue;
@@ -178,7 +207,9 @@ final class Planner {
                     why[1]++;
                     continue;
                 }
-                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc);
+                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc + pen[xi]);
+                c.h = hc;
+                if (recorder != null && fs[xi] != null) recorder.child(c, fs[xi]);
                 if (admit(c, seen, bestOnSurface)) {
                     open.add(c);
                     why[3]++;
@@ -194,6 +225,7 @@ final class Planner {
             if (trace) System.err.printf("    %d successors: %d fall back, %d over the bound, %d seen or out of the window, %d open (open list %d)%n",
                 succ.size(), why[0], why[1], why[2], why[3], open.size());
         }
+        if (recorder != null) recorder.found(best, weight, course);
         if (best == null) return null;
         List<Node> chain = new ArrayList<Node>();
         for (Node k = best; k != null; k = k.parent) chain.add(k);
