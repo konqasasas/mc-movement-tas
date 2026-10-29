@@ -48,6 +48,10 @@ final class Rebuild {
         int lo = Math.max(0, cur.startTick - 12);
         if (goal - lo < 4) return null;
         int a = lo + rnd.nextInt(goal - lo - 2);
+        if (focusChance > 0 && rnd.nextDouble() < focusChance) {
+            int[] spots = slowSpots(cur, lo, goal - 2);
+            if (spots.length > 0) a = Math.max(lo, spots[rnd.nextInt(spots.length)] - rnd.nextInt(11));
+        }
         boolean toGoal = goal - a <= 100 && rnd.nextDouble() < 0.3;
         boolean deep = rnd.nextDouble() < deepChance;
         int len = toGoal ? goal - a : Math.min(goal - a, deep ? 15 + rnd.nextInt(46)
@@ -118,6 +122,29 @@ final class Rebuild {
     }
 
     static final boolean DEBUG = System.getenv("MCTAS_IMPROVE_DEBUG") != null;
+
+    /**
+     * Chance that a rebuild starts at a slow spot ({@link #slowSpots}) instead of anywhere. The human
+     * gap analysis (WS11) found the AI runs lose ticks where they run on the ground without jumping
+     * and where a jump hits a wall.
+     */
+    double focusChance = 0;
+    /** Ground ticks in a row without a jump that count as running without jumping. */
+    static final int FLAT_RUN = 6;
+
+    /** Ticks in {@code [lo, hi)} that start a stretch of {@link #FLAT_RUN} ground ticks without a jump, or hit a wall in the air. */
+    static int[] slowSpots(Run run, int lo, int hi) {
+        int[] out = new int[Math.max(0, hi - lo)];
+        int n = 0;
+        int flat = 0;
+        for (int t = Math.max(1, lo); t < hi && t < run.states.length; t++) {
+            PlayerState s = run.states[t];
+            boolean jump = t < run.inputs.length && run.inputs[t].has(PlayerInput.JUMP);
+            flat = s.onGround && !jump ? flat + 1 : 0;
+            if (flat == FLAT_RUN || (!s.onGround && s.collidedHorizontally)) out[n++] = t - (flat == FLAT_RUN ? FLAT_RUN - 1 : 0);
+        }
+        return java.util.Arrays.copyOf(out, n);
+    }
 
     /** Start repairs where the run drifts from the old one, not where it fails ({@link #drift}). */
     boolean useDrift = true;

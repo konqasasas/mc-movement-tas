@@ -23,6 +23,15 @@ final class Bridge {
     private final Route route;
     private final Pilot pilot;
     private PrintStreamLog log;
+    private Explore explore;
+    /** The explorer's time for a stretch, in segment budgets. */
+    static final int EXPLORE_SEGMENTS = 4;
+    /** Stretches the explorer backs up over when it cannot go on from the last one. */
+    static final int BACK = 2;
+    /** The quick search's budget. */
+    static final long QUICK_MILLIS = 1500;
+    /** The explorer's time with quick searches only. */
+    static final long QUICK_EXPLORE_MILLIS = 8000;
 
     interface PrintStreamLog {
         void say(String s);
@@ -32,6 +41,12 @@ final class Bridge {
         this.problem = problem;
         this.route = route;
         this.pilot = new Pilot(problem, route);
+    }
+
+    /** Searches a stretch the segment search cannot with the best-first explorer (off by default). */
+    Bridge explore(Explore explore) {
+        this.explore = explore;
+        return this;
     }
 
     Bridge log(PrintStreamLog log) {
@@ -48,7 +63,10 @@ final class Bridge {
         int lastToggle = Integer.MIN_VALUE / 2;
         int stage = 0;
         int tick = 0;
+        // Where each stretch started, to back up to when the explorer cannot go on from the last.
+        List<Object[]> marks = new ArrayList<Object[]>();
         while (System.currentTimeMillis() < deadlineMillis && tick < problem.maxTicks) {
+            marks.add(new Object[] {s, inputs.size(), stage, entry, inStart, lastToggle});
             Pilot.Run r = pilot.play(s, tick, stage, entry, inStart, lastToggle, 1, problem.maxTicks - tick, true);
             if (r.finished) {
                 inputs.addAll(r.inputs);
@@ -78,21 +96,63 @@ final class Bridge {
             long budget = Math.min(segmentMillis, deadlineMillis - System.currentTimeMillis());
             if (budget <= 0) return null;
             int since = Math.max(0, Math.min(1000, tick - lastToggle));
-            List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, budget / 2, o);
+            // A quick search first (one beam of 200, it stops on its own), the full one only when that fails.
+            SegmentSearch.Options quick = SegmentSearch.Options.fast();
+            quick.maxTicks = 80;
+            quick.voidY = problem.voidY;
+            List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, Math.min(budget / 2, QUICK_MILLIS), quick);
+            java.util.function.Predicate<PlayerState> past = st -> st.onGround && route.after(from, st.posX, st.posY, st.posZ, true) > from;
+            List<PlayerInput> stretch = null;
+            if (segs.isEmpty() && explore != null) {
+                // Then the explorer with quick searches only, before the slow full search.
+                long until = Math.min(deadlineMillis, System.currentTimeMillis() + QUICK_EXPLORE_MILLIS);
+                List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, 0);
+                if (in != null) {
+                    stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
+                    say("bridge: explored past waypoint " + from + " in " + stretch.size() + " ticks, quickly");
+                }
+            }
+            if (segs.isEmpty() && stretch == null) segs = Technique.solve(problem.world, s, since, exit, heading, budget / 2, o);
             // Ranked by the distance still to go, the beam can crowd against an obstacle the
             // route string bends round; then rank by the distance along the heading instead.
-            if (segs.isEmpty()) {
+            if (segs.isEmpty() && stretch == null) {
                 budget = Math.min(budget / 2, deadlineMillis - System.currentTimeMillis());
                 if (budget > 0) segs = Technique.solve(problem.world, s, since, exit(from, s, true), heading, budget, o);
             }
-            if (segs.isEmpty()) {
+            if (stretch != null) {
+                // found by the quick explorer
+            } else if (!segs.isEmpty()) {
+                stretch = segs.get(0).inputs;
+                say("bridge: towards waypoint " + from + " in " + stretch.size() + " ticks");
+            } else if (explore != null) {
+                // Best first over the surfaces, for a stretch that takes more than one segment
+                // (onto a post to reach a ladder, a bounce): until past the waypoint.
+                // From where this stretch starts, then from where the ones before started: the
+                // pilot may have come in too fast or at a bad angle.
+                for (int back = 0; back <= BACK && back < marks.size() && stretch == null; back++) {
+                    Object[] m = marks.get(marks.size() - 1 - back);
+                    if (back > 0) {
+                        s = (PlayerState) m[0];
+                        inputs.subList((Integer) m[1], inputs.size()).clear();
+                        tick = inputs.size();
+                        entry = (Integer) m[3];
+                        inStart = (Boolean) m[4];
+                        lastToggle = (Integer) m[5];
+                    }
+                    long until = Math.min(deadlineMillis, System.currentTimeMillis() + EXPLORE_SEGMENTS * segmentMillis);
+                    List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, segmentMillis);
+                    if (in != null) {
+                        stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
+                        say("bridge: explored past waypoint " + from + " in " + stretch.size() + " ticks" + (back > 0 ? ", " + back + " back" : ""));
+                    }
+                }
+            }
+            if (stretch == null) {
                 say("bridge: no way towards waypoint " + from + " from (" + fmt(s.posX) + ", " + fmt(s.posY) + ", " + fmt(s.posZ) + ")");
                 return null;
             }
-            Technique.Segment g = segs.get(0);
-            say("bridge: towards waypoint " + from + " in " + g.ticks() + " ticks");
             // Replay to keep the start entry, the toggles and the stage.
-            for (PlayerInput a : g.inputs) {
+            for (PlayerInput a : stretch) {
                 tick++;
                 PlayerState ns = Physics.tick(problem.world, s, a);
                 if (ToggleRule.toggles(s, ns)) {
@@ -147,8 +207,10 @@ final class Bridge {
         };
     }
 
+    private long started = System.currentTimeMillis();
+
     private void say(String s) {
-        if (log != null) log.say(s);
+        if (log != null) log.say(s + " [" + (System.currentTimeMillis() - started) + " ms]");
     }
 
     private static String fmt(double v) {

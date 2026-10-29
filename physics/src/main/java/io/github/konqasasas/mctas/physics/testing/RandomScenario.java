@@ -4,6 +4,7 @@ import io.github.konqasasas.mctas.physics.BlockType;
 import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.Facing;
 import io.github.konqasasas.mctas.physics.Hotbar;
+import io.github.konqasasas.mctas.physics.Mechanisms;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
@@ -46,7 +47,7 @@ public final class RandomScenario {
             "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
 
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker", "plate"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -67,7 +68,7 @@ public final class RandomScenario {
         int i = java.util.Arrays.asList(COURSES).indexOf(course);
         if (i < 0) {
             throw new IllegalArgumentException("unknown course kind " + course
-                    + ", expected full, shapes, fluids, place, press or shulker");
+                    + ", expected full, shapes, fluids, place, press, shulker or plate");
         }
         return i;
     }
@@ -113,11 +114,20 @@ public final class RandomScenario {
         return generate(seed, ticks, 5, null, null);
     }
 
+    /**
+     * {@link #generate} courses with pressure plates of every kind on the floor around the start, and
+     * trapdoors that they power: beside them, above them and in the floor beside the block under them; now and
+     * then a block the engine does not model reacting to power, or another power source.
+     */
+    public static RandomScenario generatePlates(long seed, int ticks) {
+        return generate(seed, ticks, 6, null, null);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind, BlockWorld simWorld, PlayerState simStart) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
-        boolean shapes = kind != 0;
+        boolean shapes = kind != 0 && kind != 6;
         boolean pressing = kind == 4;
         boolean shulkers = kind == 5;
         boolean placing = kind == 3 || pressing || shulkers;
@@ -127,6 +137,9 @@ public final class RandomScenario {
         }
         if (kind == 2) {
             addFluids(r, w, base, palette);
+        }
+        if (kind == 6) {
+            addPlates(r, w, base);
         }
         double sx = 0.3 + r.nextDouble() * 1.4 - 0.5;
         double sz = 0.3 + r.nextDouble() * 1.4 - 0.5;
@@ -314,6 +327,48 @@ public final class RandomScenario {
                 if (w.getBlock(px - f.dx, y, pz - f.dz).isAir()) {
                     w.setBlock(px - f.dx, y, pz - f.dz, VanillaBlocks.require(reacting[r.nextInt(reacting.length)]));
                 }
+            }
+        }
+    }
+
+    /** Pressure plates on stone, with trapdoors around them; see {@link #generatePlates}. */
+    private static void addPlates(Random r, SparseBlockWorld w, int base) {
+        String[] plates = {"minecraft:wooden_pressure_plate[powered=false]", "minecraft:stone_pressure_plate[powered=false]",
+                "minecraft:light_weighted_pressure_plate[power=0]", "minecraft:heavy_weighted_pressure_plate[power=0]"};
+        String[] facings = {"north", "south", "west", "east"};
+        for (int n = 3 + r.nextInt(10); n > 0; n--) {
+            int x = r.nextInt(9) - 4;
+            int z = r.nextInt(9) - 4;
+            if (Math.abs(x) <= 1 && Math.abs(z) <= 1) {
+                // Not under the start: the real player stands there before the run begins.
+                continue;
+            }
+            w.setBlock(x, base - 1, z, BlockType.STONE);
+            w.setBlock(x, base, z, VanillaBlocks.require(plates[r.nextInt(plates.length)]));
+            w.setBlock(x, base + 1, z, BlockType.AIR);
+            for (int t = r.nextInt(3); t > 0; t--) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                int roll = r.nextInt(4);
+                // Beside the plate, above it, or in the floor beside the block under it.
+                int tx = roll == 1 ? x : x + f.dx;
+                int ty = roll == 1 ? base + 1 : roll == 2 ? base - 1 : base;
+                int tz = roll == 1 ? z : z + f.dz;
+                if (Mechanisms.isPlate(w.getBlock(tx, ty + 1, tz))) {
+                    // Every plate stays on stone.
+                    continue;
+                }
+                String id = r.nextBoolean() ? "minecraft:trapdoor" : "minecraft:iron_trapdoor";
+                w.setBlock(tx, ty, tz, VanillaBlocks.require(id + "[facing=" + facings[r.nextInt(4)] + ",half="
+                        + (r.nextBoolean() ? "top" : "bottom") + ",open=" + (r.nextDouble() < 0.3) + "]"));
+            }
+            double odd = r.nextDouble();
+            if (odd < 0.06) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + f.dx, base, z + f.dz, VanillaBlocks.require("minecraft:redstone_lamp"));
+            } else if (odd < 0.12) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + 2 * f.dx, base - 1, z + 2 * f.dz, BlockType.STONE);
+                w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x]"));
             }
         }
     }

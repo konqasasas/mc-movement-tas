@@ -168,6 +168,8 @@ public final class PlannerSolver {
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)"
                 + (planner.firstAt > 0 && best == null ? ", first plan after " + planner.firstExpanded + " expanded at " + (planner.firstAt - t0) + " ms" : ""));
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
+            // Nothing to search from (no way to the goal in the foothold graph): more rounds change nothing.
+            if (best == null && planner.expanded == 0) break;
             if (p == null && planner.stalled && field != null) {
                 // A guided search that stalls goes on unguided, with the graph as it was: the guide may be
                 // what led it astray (realdev ex2).

@@ -20,6 +20,12 @@ final class ToggleFix {
 
     int maxRounds = 8;
     int tries = 24;
+    /**
+     * Count only clashes as progress: a run that passes the clash but then wanders off and never
+     * reaches the goal is worse, not further. Off for splices, where such runs still feed the repair
+     * rounds (F-607); on for mending whole seeds.
+     */
+    boolean onlyClashes;
 
     /** The tick of a toggle-gap failure, or -1 for any other run. */
     static int clash(Run r) {
@@ -36,28 +42,54 @@ final class ToggleFix {
             Run best = null;
             for (int k = 0; k < tries; k++) {
                 PlayerInput[] in = run.inputs.clone();
-                int from = edit(in, l, t, rnd);
+                int from = edit(in, l, t, rnd, onlyClashes);
                 if (from < 0) continue;
                 Run x = c.evaluate(run, from, in);
-                if (better(x, best)) best = x;
+                if (better(x, best, onlyClashes)) best = x;
             }
-            if (best == null || !better(best, run)) return run;
+            if (best == null || !better(best, run, onlyClashes)) return run;
             run = best;
         }
         return run;
     }
 
-    private static boolean better(Run x, Run o) {
+    private static boolean better(Run x, Run o, boolean onlyClashes) {
         if (o == null) return true;
         if (x.valid || o.valid) return x.betterThan(o);
+        if (onlyClashes) return progress(x) > progress(o);
         return x.length > o.length;
     }
 
+    /** How far an invalid run gets while it still only breaks the toggle rule: its clash tick, or -1. */
+    private static int progress(Run r) {
+        return clash(r);
+    }
+
     /** One random edit near the toggles at {@code l} and {@code t}; returns the first changed input, or -1. */
-    private static int edit(PlayerInput[] in, int l, int t, Random rnd) {
+    private static int edit(PlayerInput[] in, int l, int t, Random rnd, boolean more) {
         // in[i] makes tick i + 1, so the toggle at t comes from in[t - 1].
         int n = in.length;
-        switch (rnd.nextInt(5)) {
+        switch (rnd.nextInt(more ? 7 : 5)) {
+            case 5: { // press sprint again a few ticks later instead of at the later change
+                int d = 1 + rnd.nextInt(3);
+                if (t - 1 + d >= n || !in[t - 1].has(PlayerInput.SPRINT)) return -1;
+                in[t - 1] = Edits.withKeys(in[t - 1], in[t - 1].keys & ~PlayerInput.SPRINT);
+                for (int i = t; i <= t - 1 + d; i++) in[i] = Edits.withKeys(in[i], in[i].keys & ~PlayerInput.SPRINT);
+                in[t - 1 + d] = Edits.withKeys(in[t - 1 + d], in[t - 1 + d].keys | PlayerInput.SPRINT);
+                return t - 1;
+            }
+            case 6: { // keep W down on a strafe-only tick near the clash, facing so it moves the same way
+                int from = Math.max(0, l - 2);
+                for (int i = from; i < Math.min(n, t); i++) {
+                    PlayerInput x = in[i];
+                    if (x.has(PlayerInput.W) || x.has(PlayerInput.S) || x.has(PlayerInput.A) == x.has(PlayerInput.D)) continue;
+                    float yaw = x.has(PlayerInput.A) ? x.yaw - 90 : x.yaw + 90;
+                    int k = (x.keys & ~(PlayerInput.A | PlayerInput.D)) | PlayerInput.W;
+                    in[i] = new PlayerInput(k, yaw, x.pitch, x.slot);
+                    return i;
+                }
+                return -1;
+            }
             case 0: { // delay the later key change: hold the keys from before it
                 int d = 1 + rnd.nextInt(3);
                 int keys = in[t - 2].keys & KEYS;

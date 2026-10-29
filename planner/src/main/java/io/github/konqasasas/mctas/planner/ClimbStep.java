@@ -120,11 +120,34 @@ final class ClimbStep implements Move {
 
     /** Along the path: towards the next cell's middle, swimming up unless the cell is below the feet. */
     private PlayerInput swim(Run r, int[] c, boolean in) {
-        float yaw = (float) Math.toDegrees(Math.atan2(-(c[0] + 0.5 - r.s.posX), c[2] + 0.5 - r.s.posZ));
+        double dx = c[0] + 0.5 - r.s.posX, dz = c[2] + 0.5 - r.s.posZ;
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         int keys = PlayerInput.W | PlayerInput.SPRINT;
         if (c[1] + 0.6 > r.s.posY) keys |= PlayerInput.JUMP;
+        // Up to a cell more than a block on (water steps with air between): swim out against a wall
+        // beside the way, which lifts the player out of the water like a ledge (F-526).
+        if (r.s.inWater && c[1] + 0.6 > r.s.posY && Math.hypot(dx, dz) > 1.2) {
+            double ux = dx / Math.hypot(dx, dz), uz = dz / Math.hypot(dx, dz);
+            int fy = (int) Math.floor(r.s.posY + 0.5);
+            for (int side = -1; side <= 1; side += 2) {
+                int wx = (int) Math.floor(r.s.posX - side * uz), wz = (int) Math.floor(r.s.posZ + side * ux);
+                if (solid(r.course, wx, fy, wz)) {
+                    yaw += side * WALL_ANGLE;
+                    break;
+                }
+            }
+        }
         return new PlayerInput(keys, yaw, 0F);
     }
+
+    private static boolean solid(Course c, int x, int y, int z) {
+        java.util.List<io.github.konqasasas.mctas.physics.Aabb> boxes = new java.util.ArrayList<io.github.konqasasas.mctas.physics.Aabb>();
+        c.world.getBlock(x, y, z).addCollisionBoxes(c.world, x, y, z, new io.github.konqasasas.mctas.physics.Aabb(x, y, z, x + 1, y + 1, z + 1), boxes);
+        return !boxes.isEmpty();
+    }
+
+    /** Degrees to turn from the way into the wall beside it when swimming out of a water step. */
+    static final float WALL_ANGLE = 30F;
 
     private boolean atExit(Run r) {
         return Math.abs(r.s.posX - (exit[0] + 0.5)) < 0.7 && Math.abs(r.s.posZ - (exit[2] + 0.5)) < 0.7 && r.s.posY >= exit[1] - 0.2;

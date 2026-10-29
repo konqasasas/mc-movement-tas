@@ -24,16 +24,19 @@ import java.util.TreeSet;
  * <ul>
  *   <li>the speed bound needs for the horizontal distance between the two places,</li>
  *   <li>a climb needs: one tick for a step of 0.6 or less, otherwise the jump arc up to the new top
- *       and back down onto it (under the lowest ceiling near the take-off), and 0.6 a tick out of a
- *       ladder, liquid or web,</li>
+ *       and back down onto it (under the lowest ceiling near the take-off), 0.6 a tick out of a
+ *       liquid or web, and on a ladder what the motion it got there with and then climbing (0.1176
+ *       a tick) give,</li>
  *   <li>a fall needs from the fastest the player can be falling there,</li>
  * </ul>
  * and a hop that the longest flight cannot cover does not exist. The shortest path over the anchors
  * from the start box to the goal (Dijkstra, backwards from the goal) is a lower bound on the run.
  *
  * <p>Places are boxes, not points: a top is the collision box's top face widened by the player's
- * half width (the player stands on it while overlapping it), and a ladder, liquid or web is its
- * block widened the same way over a range of feet heights. The game moves y before x and z, so the
+ * half width (the player stands on it while overlapping it), a liquid or web is its block widened
+ * the same way over a range of feet heights, and a ladder (the block at the feet) is its block cut
+ * into slices of feet height, each once per phase: how many ticks in a row the player has been on
+ * it, which limits how fast it can still be going up. The game moves y before x and z, so the
  * top under a landing is under the position at the start or at the end of that tick; each hop
  * therefore gets one tick more of horizontal reach than it has ticks. Walking along a floor therefore costs a
  * tick per block crossed, less than the speed bound's own rate, so this bound is meant for courses
@@ -49,6 +52,12 @@ public final class HopBound {
     private static final double JUMP = (double) 0.42F;
     private static final double STEP = 0.6000000238418579D;
     private static final double TERMINAL = 3.92D;
+    /** A ladder tick that pushes against a wall sets motionY to 0.2, so the next one climbs this much. */
+    private static final double CLIMB = (0.2D - 0.08D) * 0.9800000190734863D;
+    /** A tick that starts on a ladder falls 0.15 at most and moves 0.15 at most along x and along z. */
+    private static final double LADDER_FALL = 0.15000000596046448D, LADDER_MOVE = 0.15000000596046448D * Math.sqrt(2);
+    /** Ladder cells are cut into this many feet ranges, each a little higher than a climbing tick. */
+    private static final int LADDER_SLICES = 8;
     public static final int INF = Integer.MAX_VALUE / 4;
 
     static final class Node {
@@ -68,6 +77,22 @@ public final class HopBound {
         double stepUp = Double.NaN;
         /** The fastest upward and downward motionY at the start of the first tick of a flight from here. */
         final double up, down;
+        /**
+         * For a place on a ladder or vine (0 otherwise): how long the player has been on it, as an index
+         * into {@link #climb}; the next tick moves up {@code climb[phase]} (its {@link #up}) at most.
+         */
+        int phase;
+        /**
+         * For a ladder: the fastest the player can be going up at the start of the n-th tick in a row on
+         * it (n from 0), from the fastest it can get there going up; ends at {@link #CLIMB}.
+         */
+        double[] climb;
+        /**
+         * How far below its feet range a flight can come down and still end in it by stepping up onto
+         * a top: for a top the depth of the lowest top up to 0.6 under it (see {@link #stepFrom}),
+         * nothing for a ladder (a tick that steps up ends on the ground), 0.6 for the rest.
+         */
+        double drop = STEP;
 
         Node(int type, double x0, double x1, double z0, double z1, double yLo, double yHi, double up, double down) {
             this.type = type;
@@ -189,16 +214,71 @@ public final class HopBound {
             Node n = new Node(SURFACE, b[0] - HALF, b[3] + HALF, b[2] - HALF, b[5] + HALF, b[4], b[4], up, -0.0784D);
             n.ceilingBoxes = ceilings(byColumn, (int) b[7], (int) b[8], b[4], ceilingReach);
             n.stepFrom = stepFrom(byColumn, (int) b[7], (int) b[8], b[4]);
+            n.drop = b[4] - n.stepFrom[0];
             n.stepUp = stepUp(byColumn, (int) b[7], (int) b[8], b[4]);
             add(n, (int) b[7], (int) b[8]);
         }
+        // How fast the player can be going up at the start of each tick on a ladder: a flight gets
+        // there going up 0.42 at most (more off a slime block or from a start on slime within a hop of
+        // it), slows down as in the air, and from then on climbs CLIMB a tick.
+        // (A start on the ground jumps at most, unless it stands on slime.)
+        boolean onSlime = slimeWorld[0];
+        if (groundSpeed >= 0 && onSlime) {
+            onSlime = false;
+            for (double[] b : boxes) {
+                if (b[6] > 0 && b[4] >= from.minY - EPS && b[4] <= from.maxY + EPS && b[0] - HALF < from.maxX && b[3] + HALF > from.minX
+                    && b[2] - HALF < from.maxZ && b[5] + HALF > from.minZ) onSlime = true;
+            }
+        }
+        double startUp = onSlime ? impact(highest - from.minY) : JUMP;
+        double hopReach = far[Math.min(far.length - 1, latestLanding(Math.max(JUMP, Math.max(startUp, impact(highest - lowest))),
+            lowest - highest) + 1)] + 1;
+        Map<Double, double[]> chains = new HashMap<Double, double[]>();
         for (double[] s : specials) {
             int x = (int) s[0], y = (int) s[1], z = (int) s[2];
-            double down = s[3] == 0 ? -0.2254D : -TERMINAL;
-            add(new Node(SPECIAL, x - HALF, x + 1 + HALF, z - HALF, z + 1 + HALF, y - 2, y + 1, JUMP, down), x, z);
+            if (s[3] == 0) {
+                double fastest = JUMP;
+                if (slimeWorld[0]) {
+                    for (double[] b : boxes) {
+                        if (b[6] > 0 && Math.hypot(Math.max(0, Math.max(b[0] - x - 1, x - b[3])), Math.max(0, Math.max(b[2] - z - 1, z - b[5]))) <= hopReach) {
+                            fastest = Math.max(fastest, impact(highest - b[4]));
+                        }
+                    }
+                    if (Math.hypot(Math.max(0, Math.max(from.minX - x - 1, x - from.maxX)), Math.max(0, Math.max(from.minZ - z - 1, z - from.maxZ))) <= hopReach) {
+                        fastest = Math.max(fastest, startUp);
+                    }
+                }
+                double[] climb = chains.get(fastest);
+                if (climb == null) {
+                    List<Double> ups = new ArrayList<Double>();
+                    for (double u = fastest; ; u = Math.max(CLIMB, (u - 0.08D) * 0.9800000190734863D)) {
+                        ups.add(u);
+                        if (u <= CLIMB) break;
+                    }
+                    climb = new double[ups.size()];
+                    for (int i = 0; i < climb.length; i++) climb[i] = ups.get(i);
+                    chains.put(fastest, climb);
+                }
+                // The block at the feet decides whether the player is on a ladder; one place per slice of
+                // feet heights and per phase (the phases faster than a jump only off slime, as one).
+                for (int i = 0; i < LADDER_SLICES; i++) {
+                    for (int p = 1; p < climb.length; p++) {
+                        if (!kept(climb, p)) continue;
+                        Node n = new Node(SPECIAL, x, x + 1, z, z + 1, y + (double) i / LADDER_SLICES, y + (double) (i + 1) / LADDER_SLICES,
+                            climb[p], -0.2254D);
+                        n.phase = p;
+                        n.climb = climb;
+                        n.drop = 0;
+                        add(n, x, z);
+                    }
+                }
+            } else {
+                add(new Node(SPECIAL, x - HALF, x + 1 + HALF, z - HALF, z + 1 + HALF, y - 2, y + 1, JUMP, -TERMINAL), x, z);
+            }
         }
+        // A start that has just ended a tick on the ground falls 0.0784 on the next one at most.
         start = new Node(START, from.minX, from.maxX, from.minZ, from.maxZ, from.minY, from.maxY,
-            slimeWorld[0] ? impact(highest - from.minY) : JUMP, -TERMINAL);
+            startUp, groundSpeed >= 0 ? -0.0784D : -TERMINAL);
         goal = new Node(GOAL, to.minX, to.maxX, to.minZ, to.maxZ, to.minY, to.maxY, 0, 0);
         for (Node n : new Node[] {start, goal}) {
             int id = nodes.size();
@@ -385,10 +465,10 @@ public final class HopBound {
     }
 
     /** The first tick a flight {@code y} has the feet in [lo, hi] (relative to the take-off), or INF. */
-    private static int passes(double[] y, double lo, double hi) {
+    private static int passes(double[] y, double lo, double hi, double drop) {
         for (int t = 1; t < y.length; t++) {
             if (y[t] >= lo - EPS && y[t] <= hi + EPS) return t;
-            if (y[t] < y[t - 1] && y[t] < lo - STEP - EPS) return INF;
+            if (y[t] < y[t - 1] && y[t] < lo - drop - EPS) return INF;
         }
         return INF;
     }
@@ -405,18 +485,23 @@ public final class HopBound {
             for (double h : b.stepFrom) best = Math.min(best, landsOn(y, h - a.yHi));
             return best;
         }
-        double lo = b.yLo - a.yHi, hi = b.yHi - a.yLo;
-        int best = passes(y, lo, hi);
+        double lo = b.yLo - a.yHi, hi = b.yHi - a.yLo, d = drop(b);
+        int best = passes(y, lo, hi, d);
         for (int t = 1; t < y.length && best == INF; t++) {
-            if (y[t] < y[t - 1] && y[t] <= hi + EPS && y[t - 1] >= lo - STEP - EPS) best = t;
-            if (y[t] < y[t - 1] && y[t - 1] < lo - STEP - EPS) break;
+            if (y[t] < y[t - 1] && y[t] <= hi + EPS && y[t - 1] >= lo - d - EPS) best = t;
+            if (y[t] < y[t - 1] && y[t - 1] < lo - d - EPS) break;
         }
         return best;
     }
 
+    /** How far below a place a flight can come down and still end in it, stepping up (see {@link Node#drop}). */
+    private static double drop(Node b) {
+        return b.drop;
+    }
+
     /** The last tick a flight {@code y} can still end standing in {@code b} (see {@link #earliest}). */
     private static int latest(double[] y, Node a, Node b) {
-        double lo = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - STEP) - a.yHi;
+        double lo = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - drop(b)) - a.yHi;
         for (int t = 1; t < y.length; t++) {
             if (y[t] < y[t - 1] && y[t] <= lo + EPS) return t;
         }
@@ -474,6 +559,45 @@ public final class HopBound {
      * from walking off, or a jump (under a ceiling it can be under on the way).
      */
     int[] ranges(Node a, Node b) {
+        if (b.phase == 0) return flights(a, b);
+        // Into a ladder: a hop of n ticks from motionY climb[s] at most ends going up no faster than
+        // climb[s + n] (it slows down as in the air, or climbs), so it ends in phase s + n. Nothing
+        // that starts faster than b's climb[0] is within a hop of it.
+        int s = b.climb.length - 1, last = s;
+        while (s >= 0 && b.climb[s] < a.up - EPS) s--;
+        if (s < 0) return new int[0];
+        // Phases that are not kept count as the kept one before them.
+        int next = b.phase + 1;
+        while (next <= last && !kept(b.climb, next)) next++;
+        int lo = Math.max(1, b.phase - s), hi = b.phase < last ? next - 1 - s : INF;
+        // Between two ticks on a ladder: the move of one tick that starts on it.
+        boolean one = a.phase > 0 && lo <= 1 && hi >= 1 && b.yLo - a.yHi <= a.up + EPS && a.yLo - b.yHi <= LADDER_FALL + EPS
+            && a.distance(b) <= LADDER_MOVE + EPS;
+        if (a.phase > 0) lo = Math.max(lo, 2);
+        int[] r = flights(a, b);
+        int[] out = new int[r.length + 2];
+        int k = 0;
+        if (one) {
+            out[k++] = 1;
+            out[k++] = 1;
+        }
+        for (int i = 0; i < r.length; i += 2) {
+            int x = Math.max(lo, r[i]), y = Math.min(hi, r[i + 1]);
+            if (x <= y) {
+                out[k++] = x;
+                out[k++] = y;
+            }
+        }
+        return Arrays.copyOf(out, k);
+    }
+
+    /** Whether phase p of a ladder has its own places: phase 1, and those no faster than a jump. */
+    private static boolean kept(double[] climb, int p) {
+        return p == 1 || climb[p] <= JUMP + EPS;
+    }
+
+    /** {@link #ranges} as far as the flight goes, without the phases of ladders. */
+    private int[] flights(Node a, Node b) {
         boolean lands = b.type == SURFACE;
         // Feet heights of b relative to a: the range to reach.
         double lo = b.yLo - a.yHi, hi = b.yHi - a.yLo;
@@ -481,13 +605,14 @@ public final class HopBound {
         int k = 0;
         if (a.type == SURFACE && a.up <= JUMP) {
             // One tick on the ground, stepping up 0.6 at most or dropping onto a top just below.
-            if (lo <= STEP + EPS && hi >= -0.0784D - EPS) {
+            // (Into a ladder: the jump tick itself, up 0.42 at most.)
+            if (lo <= (b.phase > 0 ? a.up : STEP) + EPS && hi >= -0.0784D - EPS) {
                 out[k++] = 1;
                 out[k++] = 1;
             }
             // Walking off: landing on tick n on a top between walkDrop(n - 1) and walkDrop(n) down (b's
             // own, or one it steps up from), or into the goal or a ladder, liquid or web on the way down.
-            double reachLo = lands ? b.stepFrom[0] - a.yHi : lo - STEP;
+            double reachLo = lands ? b.stepFrom[0] - a.yHi : lo - drop(b);
             double reachHi = lands ? b.yHi - a.yLo : hi;
             int first = Math.max(2, reachHi < -EPS ? fallTicks(a.down, -reachHi) : 1);
             if (first < INF && -walkDrop(first - 1) >= reachLo - EPS) {
@@ -504,14 +629,17 @@ public final class HopBound {
             return Arrays.copyOf(out, k);
         }
         // Out of a ladder, liquid or web, from the start, or bouncing off slime: motionY at most a.up
-        // (0.6 a tick out of a ladder, liquid or web), and a step of 0.6 at the end.
+        // (0.6 a tick out of a liquid or web), and a step of 0.6 at the end.
         int fewest;
-        if (lo > STEP + EPS) {
-            if (a.type == SPECIAL) {
-                fewest = (int) Math.ceil((lo - STEP) / STEP - 1e-9);
+        double d = drop(b);
+        if (lo > d + EPS) {
+            if (a.type == SPECIAL && a.phase == 0) {
+                fewest = (int) Math.ceil((lo - d) / STEP - 1e-9);
             } else {
-                int t = riseTicks(a.up, lo - STEP);
-                fewest = t < INF && lands ? t + 1 : t;
+                // Up to 0.6 below it and then a later tick that comes down there and steps up, or (not
+                // onto a top) straight into its feet range.
+                int t = riseTicks(a.up, lo - d);
+                fewest = t < INF ? t + 1 : t;
                 if (!lands) fewest = Math.min(fewest, riseTicks(a.up, lo));
             }
         } else if (hi < -EPS) {
@@ -520,7 +648,7 @@ public final class HopBound {
             fewest = 1;
         }
         if (fewest >= INF) return new int[0];
-        int latest = Math.min(far.length - 2, Math.max(1, latestLanding(a.up, lo - STEP)));
+        int latest = Math.min(far.length - 2, Math.max(1, latestLanding(a.up, lo - d)));
         fewest = Math.max(1, fewest);
         return fewest <= latest ? new int[] {fewest, latest} : new int[0];
     }
@@ -537,7 +665,7 @@ public final class HopBound {
         double[] free = jumpArc(Double.POSITIVE_INFINITY);
         int last = latest(free, a, b);
         int firstJump = earliest(free, a, b);
-        double lowest = lands ? b.stepFrom[0] - a.yHi : lo - STEP;
+        double lowest = lands ? b.stepFrom[0] - a.yHi : lo - drop(b);
         for (double[] c : a.ceilingBoxes) {
             if (c[0] < lowest - EPS) continue;
             double[] y = jumpArc(c[0]);
@@ -874,7 +1002,7 @@ public final class HopBound {
                     if (bi == s || !seen.add(bi)) continue;
                     Node b = nodes.get(bi);
                     // Cheap check first: no flight down to b's lowest landing height lasts longer.
-                    double deepest = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - STEP) - a.yHi;
+                    double deepest = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - drop(b)) - a.yHi;
                     int longest = Math.min(far.length - 1, latestLanding(Math.max(a.up, JUMP), deepest) + 1);
                     if (a.distance(b) - 3 * step > far[longest]) continue;
                     int[] r = ranges(a, b);
