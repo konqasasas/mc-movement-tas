@@ -39,6 +39,8 @@ public final class Improver {
         public double rejumpChance = 0;
         /** Chance that a rebuild starts by jumping on a short landing ({@link Rebuild#jumpOnLanding}). */
         public double landChance = 0;
+        /** Chance that a rebuild ends on a landing of the old run ({@link Rebuild#landExitChance}). */
+        public double landExitChance = 0;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -172,6 +174,7 @@ public final class Improver {
         rebuild.focusChance = o.focusChance;
         Micro.rejumpChance = o.rejumpChance;
         rebuild.landChance = o.landChance;
+        rebuild.landExitChance = o.landExitChance;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();

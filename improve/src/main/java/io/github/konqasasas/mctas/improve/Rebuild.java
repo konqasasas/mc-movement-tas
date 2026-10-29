@@ -81,6 +81,15 @@ final class Rebuild {
                 }
             }
         }
+        if (head == cur && !toGoal && landExitChance > 0 && rnd.nextDouble() < landExitChance) {
+            // End on the old run's next landing: a standing state the old inputs after it fit better.
+            for (int t = a + len; t < Math.min(goal - 1, a + maxWindow); t++) {
+                if (t > a + 3 && cur.states[t].onGround && !cur.states[t - 1].onGround) {
+                    len = t - a;
+                    break;
+                }
+            }
+        }
         int b = a + len;
         SegmentSearch.Options o = options(c, rnd, deep);
         o.maxTicks = len + 1;
@@ -179,6 +188,12 @@ final class Rebuild {
      * on the ground for 2 to 4 ticks before the next jump; the human jumps on the landing tick.
      */
     double landChance = 0;
+    /**
+     * Chance that a rebuild ends on the old run's next landing instead of any tick. Most splices that
+     * fail drift away from the old run after the joint (F-608); a standing state at the joint leaves
+     * less of the old motion (vertical speed, jump phase) for the old inputs to depend on.
+     */
+    double landExitChance = 0;
 
     /** The first ground tick of each landing in {@code [lo, hi)} that stays on the ground for 2 to 4 ticks. */
     static int[] shortLandings(Run run, int lo, int hi) {
