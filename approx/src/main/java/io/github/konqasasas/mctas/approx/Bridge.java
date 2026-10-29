@@ -54,6 +54,20 @@ final class Bridge {
         return this;
     }
 
+    /** Most one stretch may take, or 0 for no limit but the deadline. */
+    private long stallMillis;
+
+    Bridge stall(long millis) {
+        this.stallMillis = millis;
+        return this;
+    }
+
+    /**
+     * After {@link #run} gave up on a stretch: where that stretch started, as {state, inputs from the
+     * spawn, last toggle, start entry}; null otherwise.
+     */
+    Object[] stuck;
+
     /** Inputs from the spawn into the goal, or null when a stretch is not found before the deadline. */
     List<PlayerInput> run(long deadlineMillis, long segmentMillis) {
         List<PlayerInput> inputs = new ArrayList<PlayerInput>();
@@ -82,7 +96,9 @@ final class Bridge {
                 lastToggle = r.lastToggle;
                 continue;
             }
-            // The pilot does not make it to the next waypoint: search the stretch.
+            // The pilot does not make it to the next waypoint: search the stretch, for at most
+            // the stall time (another route may get past where this one is stuck).
+            long stretchDeadline = stallMillis > 0 ? Math.min(deadlineMillis, System.currentTimeMillis() + stallMillis) : deadlineMillis;
             Route.Waypoint w = route.waypoints.get(stage);
             final int from = stage;
             Exit exit = exit(from, s, false);
@@ -93,7 +109,7 @@ final class Bridge {
             o.maxTicks = 80;
             o.sneak = true;
             o.voidY = problem.voidY;
-            long budget = Math.min(segmentMillis, deadlineMillis - System.currentTimeMillis());
+            long budget = Math.min(segmentMillis, stretchDeadline - System.currentTimeMillis());
             if (budget <= 0) return null;
             int since = Math.max(0, Math.min(1000, tick - lastToggle));
             // A quick search first (one beam of 200, it stops on its own), the full one only when that fails.
@@ -105,7 +121,7 @@ final class Bridge {
             List<PlayerInput> stretch = null;
             if (segs.isEmpty() && explore != null) {
                 // Then the explorer with quick searches only, before the slow full search.
-                long until = Math.min(deadlineMillis, System.currentTimeMillis() + QUICK_EXPLORE_MILLIS);
+                long until = Math.min(stretchDeadline, System.currentTimeMillis() + QUICK_EXPLORE_MILLIS);
                 List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, 0);
                 if (in != null) {
                     stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
@@ -116,9 +132,11 @@ final class Bridge {
             // Ranked by the distance still to go, the beam can crowd against an obstacle the
             // route string bends round; then rank by the distance along the heading instead.
             if (segs.isEmpty() && stretch == null) {
-                budget = Math.min(budget / 2, deadlineMillis - System.currentTimeMillis());
+                budget = Math.min(budget / 2, stretchDeadline - System.currentTimeMillis());
                 if (budget > 0) segs = Technique.solve(problem.world, s, since, exit(from, s, true), heading, budget, o);
             }
+            final PlayerState here = s;
+            segs.removeIf(g -> Hazard.hurts(problem.world, here, g.inputs));
             if (stretch != null) {
                 // found by the quick explorer
             } else if (!segs.isEmpty()) {
@@ -139,7 +157,7 @@ final class Bridge {
                         inStart = (Boolean) m[4];
                         lastToggle = (Integer) m[5];
                     }
-                    long until = Math.min(deadlineMillis, System.currentTimeMillis() + EXPLORE_SEGMENTS * segmentMillis);
+                    long until = Math.min(stretchDeadline, System.currentTimeMillis() + EXPLORE_SEGMENTS * segmentMillis);
                     List<PlayerInput> in = explore.from(s, inputs, lastToggle, entry, past, until, segmentMillis);
                     if (in != null) {
                         stretch = new ArrayList<PlayerInput>(in.subList(inputs.size(), in.size()));
@@ -149,6 +167,7 @@ final class Bridge {
             }
             if (stretch == null) {
                 say("bridge: no way towards waypoint " + from + " from (" + fmt(s.posX) + ", " + fmt(s.posY) + ", " + fmt(s.posZ) + ")");
+                stuck = new Object[] {s, new ArrayList<PlayerInput>(inputs), lastToggle, entry};
                 return null;
             }
             // Replay to keep the start entry, the toggles and the stage.
@@ -159,6 +178,7 @@ final class Bridge {
                     if (!ToggleRule.allowed(lastToggle, tick)) return null;
                     lastToggle = tick;
                 }
+                if (Hazard.hurts(problem.world, s, ns)) return null;
                 s = ns;
                 inputs.add(a);
                 boolean in = problem.start.contains(s.posX, s.posY, s.posZ);

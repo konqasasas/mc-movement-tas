@@ -86,6 +86,10 @@ final class Pilot {
                 }
                 lastToggle = t;
             }
+            if (Hazard.hurts(problem.world, s, ns)) {
+                r.failed = true;
+                return finish(r, s, k - 1, stage, entry, inStart, lastToggle);
+            }
             if (!ns.onGround && ns.posY < s.posY) {
                 double top = route.waypoints.get(stage).goal ? goal.minY : route.waypoints.get(stage).top;
                 if (s.posY >= top && ns.posY < top) r.miss = route.missDistance(stage, s.posX, s.posZ);

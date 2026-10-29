@@ -162,7 +162,7 @@ public final class TickBeam {
             if (!ToggleRule.allowed(lastToggle, t)) return null;
             lastToggle = t;
         }
-        if (ns.posY < problem.voidY) return null;
+        if (ns.posY < problem.voidY || Hazard.hurts(problem.world, n.state, ns)) return null;
         boolean in = problem.start.contains(ns.posX, ns.posY, ns.posZ);
         int entry = in && !n.inStart ? t : n.entry;
         int stage = n.stage;

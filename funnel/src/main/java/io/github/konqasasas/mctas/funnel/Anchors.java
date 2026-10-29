@@ -44,6 +44,9 @@ final class Anchors {
         boolean provisional;
         /** An anchor near it was verified since its last attempt. */
         boolean retry;
+        /** Debugging: the last attempt's time and the last run of its beam (0 at rest, 1 at speed). */
+        long lastMillis;
+        int lastRun;
 
         Anchor(int id, int bx, int by, int bz, double top, double cx, double cz, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;

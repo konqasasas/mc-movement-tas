@@ -149,14 +149,11 @@ final class Tightener {
                 }
             }
             for (int i = 0; i < moves.size() && System.currentTimeMillis() < deadline; i++) {
-                for (Move v : variants(moves.get(i))) {
-                    List<Move> trial = new ArrayList<Move>(moves);
-                    if (v == null) trial.remove(i);
-                    else trial.set(i, v);
+                for (List<Move> trial : trials(moves, i)) {
                     if (trial.isEmpty()) continue;
                     tried++;
                     int t = finish(cur.before.get(i).copy(), trial, i, Planner.DEBUG ? Integer.MAX_VALUE : best);
-                    if (Planner.DEBUG) System.err.println("    move " + i + " " + v + ": " + t + " (best " + best + ")");
+                    if (Planner.DEBUG) System.err.println("    move " + i + " " + trial.subList(i, Math.min(i + 2, trial.size())) + ": " + t + " (best " + best + ")");
                     if (t >= 0 && t < best) {
                         cur = replay(root, trial, Integer.MAX_VALUE);
                         moves = new ArrayList<Move>(trial.subList(0, cur.before.size()));
@@ -170,6 +167,45 @@ final class Tightener {
             }
         }
         return new Planner.Plan(root, moves, cur.inputs, best);
+    }
+
+    /**
+     * The plans to try with move {@code i} changed: each of its {@link #variants}, and, when it jumps
+     * right after landing instead of running first ({@link #quick}), that with each variant of the move
+     * after it too, since the landing point and speed change (F-908).
+     */
+    private static List<List<Move>> trials(List<Move> moves, int i) {
+        List<List<Move>> out = new ArrayList<List<Move>>();
+        for (Move v : variants(moves.get(i))) {
+            List<Move> trial = new ArrayList<Move>(moves);
+            if (v == null) trial.remove(i);
+            else trial.set(i, v);
+            out.add(trial);
+        }
+        if (i + 1 < moves.size()) {
+            for (Move q : quick(moves.get(i))) {
+                for (Move v : variants(moves.get(i + 1))) {
+                    List<Move> trial = new ArrayList<Move>(moves);
+                    trial.set(i, q);
+                    if (v == null) trial.remove(i + 1);
+                    else trial.set(i + 1, v);
+                    out.add(trial);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** The move jumping right after landing (F-907), when it runs on the ground first; else none. */
+    private static List<Move> quick(Move m) {
+        List<Move> out = new ArrayList<Move>();
+        if (!(m instanceof Step)) return out;
+        Step s = (Step) m;
+        if (s.jumpAt == Step.NO_JUMP || s.jumpAt <= 2) return out;
+        out.add(s.withJump(0));
+        out.add(s.withJump(1));
+        if (s.jumpAt > 5) out.add(s.withJump(s.jumpAt / 2));
+        return out;
     }
 
     /** Changed versions of a move; null stands for dropping it. */
@@ -186,11 +222,7 @@ final class Tightener {
         }
         if (s.jumpAt != Step.NO_JUMP) out.add(s.withJump(Step.NO_JUMP));
         // Jumping again right after landing (F-907): a long run on the ground first is often slower.
-        if (s.jumpAt != Step.NO_JUMP && s.jumpAt > 2) {
-            out.add(s.withJump(0));
-            out.add(s.withJump(1));
-            if (s.jumpAt > 5) out.add(s.withJump(s.jumpAt / 2));
-        }
+        out.addAll(quick(s));
         for (int st : StepManeuver.ALL_STRAFES) if (st != s.strafe) out.add(s.withStrafe(st));
         if (s.jumpAt != Step.NO_JUMP) for (float t : TURNS) out.add(s.withJumpTurn(s.jumpTurn + t));
         for (double d : NUDGES) {

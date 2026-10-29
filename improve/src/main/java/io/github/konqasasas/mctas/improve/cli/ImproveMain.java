@@ -79,6 +79,7 @@ public final class ImproveMain {
                 case "--rejump": o.rejumpChance = Double.parseDouble(args[++i]); break;
                 case "--land": o.landChance = Double.parseDouble(args[++i]); break;
                 case "--land-exit": o.landExitChance = Double.parseDouble(args[++i]); break;
+                case "--aim": o.aimChance = Double.parseDouble(args[++i]); break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);
@@ -148,6 +149,7 @@ public final class ImproveMain {
         }
         System.out.printf("%s: %d -> %d ticks in %.1f s (%s)%n  moves:%s%n  seed %s; best %s%n", p.id, seedBest.ticks(),
                 best.ticks(), nanos / 1e9, check, sb, Improver.landings(seedBest), Improver.landings(best));
+        if (o.aimChance > 0) System.out.printf("  steered jumps: %s%n", Improver.aimCounts());
         return true;
     }
 

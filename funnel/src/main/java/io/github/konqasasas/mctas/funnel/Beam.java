@@ -114,7 +114,15 @@ final class Beam {
          */
         float guess;
         float guessBelow = Field.INF;
+        /**
+         * Above 0, the beam gives up when its best rank has gone up by {@link #STALL_RATE} a tick for
+         * this many ticks, with no hit yet: every state is stuck (the clock runs, the way left does not
+         * shrink).
+         */
+        int stall;
     }
+
+    static final float STALL_RATE = 0.9F;
 
     static final float GUESS_ADD = 10;
     static final int GUESSES = 4;
@@ -322,6 +330,7 @@ final class Beam {
         Map<Long, Hit> entered = new HashMap<Long, Hit>();
         Map<Integer, Hit> guessed = new HashMap<Integer, Hit>();
         int firstEntry = -1, firstHit = -1;
+        float[] bestF = o.stall > 0 ? new float[o.maxTicks + 1] : null;
         float lastHeading = field.heading(root.s.posX, root.s.posY, root.s.posZ);
         if (Float.isNaN(lastHeading)) lastHeading = root.s.rotationYaw;
         for (int t = 1; t <= o.maxTicks; t++) {
@@ -423,6 +432,10 @@ final class Beam {
             }
             List<Cand> cands = new ArrayList<Cand>(merged.values());
             Collections.sort(cands, (p, q) -> Float.compare(p.f, q.f));
+            if (o.stall > 0) {
+                bestF[t] = cands.isEmpty() ? Field.INF : cands.get(0).f;
+                if (bestValue == Field.INF && t > o.stall && bestF[t] >= bestF[t - o.stall] + STALL_RATE * o.stall) break;
+            }
             Layer next = new Layer(Math.min(o.width, cands.size()));
             Map<Long, int[]> counts = new HashMap<Long, int[]>();
             int cap = Math.max(4, o.width / 6);
