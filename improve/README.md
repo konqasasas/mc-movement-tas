@@ -8,7 +8,7 @@ improve/build/install/mctas-improve/bin/mctas-improve run PROBLEM.json --seeds a
 problem/build/install/mctas-problem/bin/mctas-problem score PROBLEM_DIR out/
 ```
 
-- `run <問題|問題のフォルダ> --seeds <ファイル|フォルダ>[,...] --out <フォルダ> [--budget 秒] [--threads N] [--rng N] [--width N] [--window N] [--shares a,b,c,d] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)改善し、`<id の / を _ に>.solution.json` と `.tas` を書きます。ティック数が縮むたびに書き直すので、途中で止めても最良の解が残ります。初期解は `.tas` か `.solution.json`。フォルダを渡すと、`.solution.json` は中の問題 id で、`.tas` は `<id の / を _ に>.tas` か `<問題ファイル名>.tas` で対応づけます。問題の目標の解(`target.witness`)も初期解に入ります。
+- `run <問題|問題のフォルダ> --seeds <ファイル|フォルダ>[,...] --out <フォルダ> [--budget 秒] [--threads N] [--rng N] [--width N] [--window N] [--shares a,b,c,d] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)改善し、`<id の / を _ に>.solution.json` と `.tas` を書きます。ティック数が縮むたびに書き直すので、途中で止めても最良の解が残ります。初期解は `.tas` か `.solution.json`。フォルダを渡すと、`.solution.json` は中の問題 id で、`.tas` は `<id の / を _ に>.tas` か `<問題ファイル名>.tas` で対応づけます。問題の目標の解(`target.witness`)も初期解に入ります。切り替えの 3 ティック規則だけを破る初期解(動画から復元した人間の入力など)は、読むときにキーの押し離しや向きを少し変えて直します。
 - 解答ファイルの `result.search` は `engine` が `improve-lns`、`wallMillis` は改善器にかけた時間です(初期解を作った時間は入りません)。
 - 書き出す解はすべて `problem` モジュールの判定(`Evaluator`、`ToggleRule`)で確かめ直します。
 
@@ -23,6 +23,7 @@ problem/build/install/mctas-problem/bin/mctas-problem score PROBLEM_DIR out/
   - `Rebuild`(大近傍探索): ティック a から b の入力を捨て、WS8 の `SegmentSearch` で a の状態から作り直します。探索の手には、決まった手に加えて、その区間で元の解が使った入力(多い順に最大 24 種)を足します。スニークや歩きの区間も通れるようにするためです。探索の時間は、幅 × 手の数 × 区間の長さから見積もります。出口は b の状態を通る、進む向きに垂直な面で、b と同じ高さ(b が接地なら接地)、b からの横ずれが 0.1・0.3・1・制限なしのどれか以内、空中なら縦の速度が b と 0.1 以内です。横ずれの制限があるときは、進む向きの速さが b 以上であることも求めます。出口の状態が b に近い順に、元の入力の b から先とつないで判定します。つないだ解が後で切り替えの 3 ティック規則を破ったら、その近くのキーの押し離しや視点を少し変えて直します(`--no-toggle-fix` で切る)。後で落ちるかゴールに届かなかったら、元の解から 1 ブロック以上離れ始めた点(それより先に落ちたらその点)の少し手前から、元の解の先の状態までを作り直します(最大 4 回、`--no-drift` で落ちた点から)。ゴールまで 100 ティック以内なら、ゴールを出口にすることもあります。幅は 300〜8000、まれに(10%)幅 20000・全方向の深い作り直し。
   - `YawCma`: 区間(4〜63 ティック)の視点に、数個の制御点の折れ線のずれを足し、CMA-ES で順位を最小にします。キーはそのまま。
   - `Crossover`: 集団のほかの解と、状態がほぼ同じ(位置の差 + 速度の差 × 5 < 0.25、接地・スプリントが同じ)ティックでつなぎかえます。
+- **試したが既定では使わない手**(F-610): `--focus p` は作り直しの割合 p を、地上で跳ばずに走る所と空中で壁に当たる所から始める。`--rejump p` は小さな変更の割合 p を、着地した tick に跳び直す変更にする。
 - **受け入れ**: スレッドは遅れ受け入れ(late acceptance、200 歩前の自分より悪くなければ受け入れる)で、同じティック数の解の間を動けます。3000 歩よくならなければ、自分の系統の最良か集団の解からやり直します。
 - **島**: スレッドごとに初期解の 1 本を「系統」として持ち、劣る初期解もしばらく独立に磨きます。
 

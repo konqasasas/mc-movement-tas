@@ -95,6 +95,9 @@ public class ImproveTest {
         assertTrue(r.toString(), ToggleFix.clash(r) > 0);
         Run fixed = new ToggleFix().apply(c, r, new Random(1));
         assertTrue(r + " -> " + fixed, fixed.valid());
+        assertTrue(Improver.mend(c, r, 1).valid());
+        Run good = c.evaluate(witness(p, "08-two-jumps"));
+        assertTrue(Improver.mend(c, good, 1) == good);
     }
 
     @Test
