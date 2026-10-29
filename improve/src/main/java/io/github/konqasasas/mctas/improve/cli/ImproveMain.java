@@ -78,6 +78,7 @@ public final class ImproveMain {
                 case "--focus": o.focusChance = Double.parseDouble(args[++i]); break;
                 case "--rejump": o.rejumpChance = Double.parseDouble(args[++i]); break;
                 case "--land": o.landChance = Double.parseDouble(args[++i]); break;
+                case "--land-exit": o.landExitChance = Double.parseDouble(args[++i]); break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);
