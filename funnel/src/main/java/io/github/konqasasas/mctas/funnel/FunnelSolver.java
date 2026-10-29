@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -124,7 +125,7 @@ public final class FunnelSolver {
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         Assembled best = null;
         try {
-            int verified = 0, tried = 0, lastAssembly = -1;
+            int verified = 0, tried = 0, passed = 0, lastAssembly = -1;
             float nearest = Field.INF;
             // When the verified set last came nearer the start, and how long it may stand still.
             long progress = System.currentTimeMillis();
@@ -186,6 +187,13 @@ public final class FunnelSolver {
                         if (dx * dx + dy * dy + dz * dz <= RETRY_RADIUS * RETRY_RADIUS) b.retry = true;
                     }
                     nearest = Math.min(nearest, minFwd(a.cells));
+                    for (Anchors.Anchor b : alongTheWay(a, h)) {
+                        back.seed(b.cells, b.v);
+                        near.seed(b.cells, 0);
+                        verified++;
+                        passed++;
+                        nearest = Math.min(nearest, minFwd(b.cells));
+                    }
                 }
                 landing.refresh();
                 // Try the forward run once the verified set comes near the start, then as it grows.
@@ -211,7 +219,8 @@ public final class FunnelSolver {
                             : a.attempts == 0 ? "not tried" : "failed " + a.attempts));
                 }
             }
-            say(String.format("backward search: %d of %d tried verified, %d anchors (%d ms)", verified, tried, anchors.list.size(), System.currentTimeMillis() - t0));
+            say(String.format("backward search: %d of %d tried verified, %d more on the way, %d anchors (%d ms)", verified - passed, tried, passed, anchors.list.size(),
+                System.currentTimeMillis() - t0));
             if (best == null && verified > lastAssembly) {
                 Assembled a = assemble(Math.max(deadline, System.currentTimeMillis() + 5000));
                 if (a != null) best = a;
@@ -305,6 +314,40 @@ public final class FunnelSolver {
         return out;
     }
 
+    /**
+     * The anchors a verifying beam from rest lands or runs onto before its hit: each is verified at speed with
+     * the rest of the beam (the hit's value less the tick of the landing), as if a beam from it had
+     * found that run. One beam then verifies a whole stretch of a corridor.
+     */
+    private List<Anchors.Anchor> alongTheWay(Anchors.Anchor a, Beam.Hit h) {
+        List<Anchors.Anchor> out = new ArrayList<Anchors.Anchor>();
+        if (!ALONG || h.from == null) return out;
+        Beam beam = new Beam(grid, back, landing, anchors);
+        Beam.Node n = h.from;
+        Anchors.Anchor last = a;
+        for (int t = 0; t < h.inputs.size(); t++) {
+            Beam.Node m = beam.step(n, h.inputs.get(t), false);
+            if (m == null) break;
+            // Landings, and steps onto another block top while running.
+            Anchors.Anchor b = m.s.onGround ? anchors.under(m.s, false) : null;
+            if (b != null && b != last) {
+                last = b;
+                if (b != a && b != h.anchor && !b.verified()) {
+                    b.v = h.value - (t + 1);
+                    b.moving = true;
+                    b.witness = new ArrayList<PlayerInput>(h.inputs.subList(t + 1, h.inputs.size()));
+                    b.via = h.anchor == null ? -1 : h.anchor.id;
+                    out.add(b);
+                }
+            }
+            n = m;
+        }
+        return out;
+    }
+
+    static final float REACH = System.getenv("FUNNEL_REACH") != null ? Float.parseFloat(System.getenv("FUNNEL_REACH")) : 0.5F;
+    static final boolean ALONG = System.getenv("FUNNEL_NO_ALONG") == null;
+
     /** The unverified anchors most likely on a run from the start to the verified set. */
     private List<Anchors.Anchor> pick(int n, boolean stalled, float maxGap) {
         List<Anchors.Anchor> cands = new ArrayList<Anchors.Anchor>();
@@ -320,7 +363,8 @@ public final class FunnelSolver {
             for (int c : a.cells) gap = Math.min(gap, near.value(c));
             if (gap > maxGap) continue;
             cands.add(a);
-            prio.add(g[0] + g[1]);
+            // A little in favour of the anchors further out: their beams verify the ones they pass.
+            prio.add(g[0] + g[1] - REACH * gap);
         }
         List<Integer> idx = new ArrayList<Integer>();
         for (int i = 0; i < cands.size(); i++) idx.add(i);
@@ -356,7 +400,9 @@ public final class FunnelSolver {
             List<Beam.Hit> hits = beam.search(roots, o);
             if (!hits.isEmpty()) {
                 a.moving = run == 1;
-                return hits.get(0);
+                Beam.Hit h = hits.get(0);
+                if (run == 0) h.from = roots.get(0);
+                return h;
             }
         }
         return null;
@@ -421,6 +467,7 @@ public final class FunnelSolver {
         PriorityQueue<Chain> open = new PriorityQueue<Chain>((p, q) -> Float.compare(p.key(), q.key()));
         // Expansions per anchor: the first few landings on it (by the order above) stand for the rest.
         Map<Integer, Integer> closed = new HashMap<Integer, Integer>();
+        Set<Integer> stuck = new HashSet<Integer>();
         Field toStart = new Field(grid, false);
         toStart.seed(grid.cellsIn(problem.start), 0);
         float startValue = Field.INF;
@@ -466,6 +513,8 @@ public final class FunnelSolver {
             if (c.anchor != null) {
                 int n = closed.getOrDefault(c.anchor.id, 0);
                 if (n >= PER_ANCHOR) continue;
+                // A stretch the wide beam did not cross once is not tried again from the same guess.
+                if (c.anchor.provisional && stuck.contains(c.anchor.id)) continue;
                 closed.put(c.anchor.id, n + 1);
             }
             expansions++;
@@ -488,6 +537,7 @@ public final class FunnelSolver {
                 o.maxTicks = 240;
                 hits = beam.search(c.end, o);
             }
+            if (across && hits.isEmpty()) stuck.add(c.anchor.id);
             if (DEBUG) say(String.format("    expand %s @%d est %.1f: %d hits, %d steps (%d ms)", c.anchor, c.end.clock(), c.est, hits.size(), beam.expanded, System.currentTimeMillis() - t0));
             for (Beam.Hit h : hits) {
                 open.add(new Chain(c, h.inputs, h.end, h.anchor, h.value, h.goal()));

@@ -61,6 +61,8 @@ final class Beam {
         /** The anchor landed on, or null for the goal. */
         final Anchors.Anchor anchor;
         final float value;
+        /** The root it came from, when the caller needs it (the backward search's beam from rest). */
+        Node from;
 
         Hit(List<PlayerInput> inputs, Node end, Anchors.Anchor anchor, float value) {
             this.inputs = inputs;
