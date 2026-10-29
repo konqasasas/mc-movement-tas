@@ -625,6 +625,12 @@ public final class RecorderController {
             // otherwise be in its way.
             blocks.freeze();
         }
+        if (mode == Mode.FUZZ && "shulker".equals(fuzzCourse)) {
+            // The inputs hold still while the engine has a box's screen open, so make them from the start the
+            // player really settled at (pushed out of a pillar, with its own right-click delay), in the world
+            // as it is.
+            inputs = RandomScenario.inputsFrom(fuzzCourse, seed, fuzzTicks, new ClientWorldBlocks(mc.world), sim);
+        }
         runPressTicks.clear();
         runPressed.clear();
         tick = 0;
