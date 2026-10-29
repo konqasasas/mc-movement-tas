@@ -182,6 +182,12 @@ final class Tightener {
             out.add(s.withJump(j));
         }
         if (s.jumpAt != Step.NO_JUMP) out.add(s.withJump(Step.NO_JUMP));
+        // Jumping again right after landing (F-907): a long run on the ground first is often slower.
+        if (s.jumpAt != Step.NO_JUMP && s.jumpAt > 2) {
+            out.add(s.withJump(0));
+            out.add(s.withJump(1));
+            if (s.jumpAt > 5) out.add(s.withJump(s.jumpAt / 2));
+        }
         for (int st : StepManeuver.ALL_STRAFES) if (st != s.strafe) out.add(s.withStrafe(st));
         if (s.jumpAt != Step.NO_JUMP) for (float t : TURNS) out.add(s.withJumpTurn(s.jumpTurn + t));
         for (double d : NUDGES) {
