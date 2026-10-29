@@ -67,3 +67,45 @@ for i,x in enumerate([0,1,0]):
     z=7+3*i; f.append(F([x,64,z],[x,70,z],"stone")); f.append(F([x,71,z],[x,71,z],"spruce_fence"))
 f.append(F([-1,64,16],[1,72,19],"stone"))
 course("e07-slot-ladder-posts",f,G(-1,73,17,2,20))
+# e08: a planks block with two anvils on it: the only foothold is the planks' edge beside the anvils
+# (an anvil facing south is 0.75 wide in x), then up onto a block
+f=[F([0,65,3],[0,65,3],"planks"),F([0,66,3],[0,67,3],"anvil[facing=south]"),
+   F([-1,64,6],[1,66,9],"stone")]
+course("e08-anvil-edge",f,G(-1,67,7,2,10))
+# e09: floating water sources rising 1 up and 2 on in a one-wide lane between walls, a ladder up to
+# the first: swum up and out against the wall from one to the next
+f=[F([-1,65,1],[-1,72,10],"wool"),F([1,65,1],[1,72,10],"wool"),F([0,65,2],[0,67,2],"planks"),
+   F([0,65,1],[0,67,1],"ladder[facing=north]")]
+for i in range(4):
+    f.append(F([0,68+i,3+2*i],[0,68+i,3+2*i],"water[level=0]"))
+f.append(F([-1,64,11],[1,71,14],"stone"))
+course("e09-water-steps",f,G(-1,72,12,2,15))
+# e10: water at head height one block past the edge, then a step two on and one up, one on diagonally,
+# and out onto a floor level with the last water; structure voids keep the sources apart in game
+f=[F([-1,65,1],[-1,71,5],"wool"),F([1,65,1],[1,71,4],"wool"),F([2,65,5],[2,71,5],"wool"),
+   F([0,67,5],[0,68,5],"structure_void"),
+   F([0,66,2],[0,66,2],"water[level=0]"),F([0,66,3],[0,67,3],"structure_void"),
+   F([0,67,4],[0,67,4],"water[level=0]"),F([0,66,4],[0,66,4],"structure_void"),
+   F([1,68,5],[1,68,5],"water[level=0]"),F([1,67,5],[1,67,5],"structure_void"),
+   F([-1,64,6],[2,67,9],"stone")]
+course("e10-water-steps-out",f,G(-1,68,7,3,10))
+# e11: a one-wide lane of one-block pillars five apart with a ladder on the near face of each, and a
+# floating water source at head height between them under a row of fences; hopped pillar to pillar
+f=[F([-1,64,1],[-1,68,19],"wool"),F([1,64,1],[1,68,19],"wool"),F([0,69,1],[0,69,19],"fence")]
+for z in (5,10,15):
+    f+=[F([0,64,z],[0,64,z],"wool"),F([0,64,z-1],[0,64,z-1],"ladder[facing=north]")]
+for z in (2,7,12,17):
+    f+=[F([0,67,z],[0,67,z],"water[level=0]"),F([0,66,z],[0,66,z],"structure_void"),
+        F([0,67,z-1],[0,67,z-1],"structure_void"),F([0,67,z+1],[0,67,z+1],"structure_void")]
+f.append(F([-1,64,20],[1,64,23],"stone"))
+course("e11-water-hops",f,G(-1,65,21,2,24))
+# e12, e13: hard posts rows drawn by devgen (three posts modules each, seeds 512 and 513), not copied
+# from any report-only course
+sys.path.insert(0,"../../../tools/devgen")
+import devgen
+devgen.HARD=True
+for id,seed in (("e12-posts-gen",512),("e13-posts-gen",513)):
+    d,_,_=devgen.generate(seed,40,80,["posts"])
+    d={"format":d["format"],"version":d["version"],"id":"elem-dev/"+id,"title":d["title"],"mcVersion":d["mcVersion"],
+       "world":d["world"],"spawn":d["spawn"],"start":d["start"],"goal":d["goal"],"limits":d["limits"]}
+    open(id+".problem.json","w").write(json.dumps(d,indent=1)+"\n")

@@ -69,12 +69,22 @@ final class Planner {
     boolean through = true;
     /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
     java.util.Set<Integer> corridor;
+    /** When set, every expansion is recorded for the learned guide (WS13). */
+    GuideData.Recorder recorder;
+    /**
+     * The learned guide (WS13): when set, the priority uses its estimate instead of the bound. The
+     * bound still prunes and ranks the aims (reranking them pushed needed aims out, as in F-523).
+     */
+    GuideField field;
 
     private final Course course;
     private final List<Maneuver> maneuvers = new ArrayList<Maneuver>();
     /** Time spent in each maneuver (with {@link #DEBUG}). */
     final Map<String, Long> maneuverNanos = new java.util.TreeMap<String, Long>();
     int expanded, generated;
+    /** When the search found its first plan, and after how many expansions (0 before). */
+    long firstAt;
+    int firstExpanded;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
     /** Expansions without coming a tick nearer the goal before a search without a plan gives up as stalled (0: never). */
@@ -105,7 +115,7 @@ final class Planner {
         Map<Integer, Integer> bestOnSurface = new HashMap<Integer, Integer>();
         Map<Node, Runup.Root> rootOf = new HashMap<Node, Runup.Root>();
         for (Runup.Root r : roots) {
-            Node n = new Node(r.run, null, null, r.inputs, weight * h(r.run));
+            Node n = new Node(r.run, null, null, r.inputs, weight * guided(r.run, h(r.run)));
             if (admit(n, seen, bestOnSurface)) {
                 open.add(n);
                 rootOf.put(n, r);
@@ -120,8 +130,10 @@ final class Planner {
             Node n = open.poll();
             double hn = h(n.run);
             if (n.g + hn >= bestTime) continue;
-            if (hn < near - 1) {
-                near = hn;
+            // Progress by the estimate the search orders by: a guided search may go round where the bound does not fall.
+            double hp = field == null ? hn : field.toGo(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
+            if (hp < near - 1) {
+                near = hp;
                 nearAt = expanded;
             }
             if (stallAfter > 0 && n.run.s.onGround) {
@@ -151,6 +163,7 @@ final class Planner {
                 m.expand(n.run, aims, succ);
                 if (DEBUG) maneuverNanos.merge(m.getClass().getSimpleName(), System.nanoTime() - t0, Long::sum);
             }
+            if (recorder != null) recorder.expanded(course, n.run, aims, succ);
             int[] why = new int[4];
             for (Maneuver.Successor x : succ) {
                 generated++;
@@ -159,6 +172,8 @@ final class Planner {
                     if (t < bestTime) {
                         if (best == null) {
                             long now = System.currentTimeMillis();
+                            firstAt = now;
+                            firstExpanded = expanded;
                             deadline = Math.min(deadline, now + (long) ((deadline - now) * afterFirst));
                         }
                         bestTime = t;
@@ -178,7 +193,7 @@ final class Planner {
                     why[1]++;
                     continue;
                 }
-                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc);
+                c = new Node(x.run, n, x.move, x.inputs, c.g + weight * guided(x.run, hc));
                 if (admit(c, seen, bestOnSurface)) {
                     open.add(c);
                     why[3]++;
@@ -276,6 +291,11 @@ final class Planner {
 
     private double h(Run r) {
         return course.toGo(r.s.posX, r.s.posY, r.s.posZ);
+    }
+
+    /** The estimate the priority uses: the guide's when there is one, else the bound {@code h}. */
+    private double guided(Run r, double h) {
+        return field == null ? h : field.toGo(r.s.posX, r.s.posY, r.s.posZ);
     }
 
     private boolean admit(Node n, Map<Long, Integer> seen, Map<Integer, Integer> bestOnSurface) {

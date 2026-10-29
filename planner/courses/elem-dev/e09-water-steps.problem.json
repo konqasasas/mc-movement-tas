@@ -1,0 +1,11 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e09-water-steps", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [-1, 65, 1], "to": [-1, 72, 10], "block": "minecraft:wool"}, 
+    {"from": [1, 65, 1], "to": [1, 72, 10], "block": "minecraft:wool"}, 
+    {"from": [0, 65, 2], "to": [0, 67, 2], "block": "minecraft:planks"}, 
+    {"from": [0, 65, 1], "to": [0, 67, 1], "block": "minecraft:ladder[facing=north]"}, 
+    {"from": [0, 68, 3], "to": [0, 68, 3], "block": "minecraft:water[level=0]"}, 
+    {"from": [0, 69, 5], "to": [0, 69, 5], "block": "minecraft:water[level=0]"}, 
+    {"from": [0, 70, 7], "to": [0, 70, 7], "block": "minecraft:water[level=0]"}, 
+    {"from": [0, 71, 9], "to": [0, 71, 9], "block": "minecraft:water[level=0]"}, 
+    {"from": [-1, 64, 11], "to": [1, 71, 14], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 72, 12], "max": [2, 72, 15]}, "limits": {"maxTicks": 800, "voidY": 50.0}}
