@@ -69,8 +69,6 @@ public final class FunnelSolver {
     static final float GAP = 30;
     /** A verified anchor lets the failed anchors this close (blocks) try again. */
     static final double RETRY_RADIUS = 8;
-    /** A verified anchor covers the anchors on the same floor height this close (blocks; the 8 around it). */
-    static final double COVER = 1.5;
     static final boolean DEBUG = System.getenv("FUNNEL_DEBUG") != null;
 
     private final Problem problem;
@@ -184,7 +182,6 @@ public final class FunnelSolver {
                     for (Anchors.Anchor b : anchors.list) {
                         if (b.verified()) continue;
                         double dx = b.cx - a.cx, dy = b.top - a.top, dz = b.cz - a.cz;
-                        if (Math.abs(dy) < 1e-6 && dx * dx + dz * dz <= COVER * COVER) b.covered = true;
                         if (b.attempts == 0 || b.attempts >= MAX_ATTEMPTS) continue;
                         if (dx * dx + dy * dy + dz * dz <= RETRY_RADIUS * RETRY_RADIUS) b.retry = true;
                     }
@@ -316,7 +313,6 @@ public final class FunnelSolver {
             if (a.verified() || a.attempts >= MAX_ATTEMPTS) continue;
             // Retry only once an anchor near it has been verified.
             if (a.attempts > 0 && !a.retry && !stalled) continue;
-            if (a.covered && !stalled) continue;
             float[] g = guess(a);
             if (g[0] == Field.INF || g[1] == Field.INF) continue;
             // Only near the verified set: a beam has to get there.
