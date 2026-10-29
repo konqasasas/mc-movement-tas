@@ -15,16 +15,18 @@ public final class SparseBlockWorld implements BlockWorld {
     private final HashMap<Long, BlockType> blocks;
     private final Index index;
     private int liquids;
+    private int plates;
 
     public SparseBlockWorld() {
         this.blocks = new HashMap<Long, BlockType>();
         this.index = new Index();
     }
 
-    private SparseBlockWorld(HashMap<Long, BlockType> blocks, Index index, int liquids) {
+    private SparseBlockWorld(HashMap<Long, BlockType> blocks, Index index, int liquids, int plates) {
         this.blocks = blocks;
         this.index = index;
         this.liquids = liquids;
+        this.plates = plates;
     }
 
     static long key(int x, int y, int z) {
@@ -53,6 +55,12 @@ public final class SparseBlockWorld implements BlockWorld {
         if (type instanceof VanillaBlocks.Liquid) {
             liquids++;
         }
+        if (old != null && Mechanisms.isPlate(old)) {
+            plates--;
+        }
+        if (Mechanisms.isPlate(type)) {
+            plates++;
+        }
         if (type == BlockType.AIR) {
             blocks.remove(k);
             index.remove(x << 6 >> 6, y, z << 6 >> 6);
@@ -80,6 +88,11 @@ public final class SparseBlockWorld implements BlockWorld {
         return liquids > 0;
     }
 
+    @Override
+    public boolean mayContainPlates() {
+        return plates > 0;
+    }
+
     public int size() {
         return blocks.size();
     }
@@ -97,7 +110,7 @@ public final class SparseBlockWorld implements BlockWorld {
 
     @SuppressWarnings("unchecked")
     public SparseBlockWorld copy() {
-        return new SparseBlockWorld((HashMap<Long, BlockType>) blocks.clone(), index.copy(), liquids);
+        return new SparseBlockWorld((HashMap<Long, BlockType>) blocks.clone(), index.copy(), liquids, plates);
     }
 
     /**

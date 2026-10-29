@@ -58,6 +58,16 @@ public final class Physics {
             // No screen to close, or one about to open after the close.
             s.unsupportedAction = true;
         }
+        if (!s.mech.isNone()) {
+            // The blocks the server changed during the last tick.
+            if (s.mech.arrivalHits(s.mech.serverOver(base), s.box)) {
+                s.unsupportedAction = true;
+            }
+            s.mech = s.mech.arrive();
+        }
+        Aabb startBox = s.box;
+        boolean startOnGround = s.onGround;
+        double startReportedY = s.lastReportedPosY;
         boolean screen = false;
         if (!s.shulker.isNone()) {
             s.shulker = s.shulker.arrive();
@@ -211,6 +221,11 @@ public final class Physics {
         if (!s.shulker.isNone()) {
             updateShulker(base, s);
         }
+
+        // The server's tick before the next client tick. NetHandlerPlayServer.processPlayer jumps its player
+        // when the packet leaves the ground upwards.
+        boolean jumped = startOnGround && !s.onGround && s.positionUpdateTicks == 0 && s.lastReportedPosY > startReportedY;
+        Mechanisms.serverTick(base, s, startBox, input.has(PlayerInput.USE), jumped);
     }
 
     /** {@code TileEntityShulkerBox.update}: the lid moves and pushes the player out of its way. */

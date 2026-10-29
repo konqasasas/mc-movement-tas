@@ -92,12 +92,15 @@ public final class VanillaOracle {
     private boolean serverSneakState;
     private int sneakReportedTicks;
     private final OraclePlayer serverPlayer;
+    /** The server's copy of the world, for pressure plates and what they power. */
+    private final OracleServer server;
 
     public VanillaOracle(SparseBlockWorld blocks) {
         this.world = new OracleWorld(blocks);
         this.player = new OraclePlayer(world);
         this.serverPlayer = new OraclePlayer(world);
         this.world.player = player;
+        this.server = new OracleServer(blocks, world);
     }
 
     /** Puts the vanilla player into {@code s}. Status effects are not supported yet. */
@@ -177,6 +180,7 @@ public final class VanillaOracle {
         positionUpdateTicks = s.positionUpdateTicks;
         serverSneakState = s.serverSneakState;
         sneakReportedTicks = s.sneakReportedTicks;
+        server.load(s);
     }
 
     /** The vanilla player's current state. */
@@ -246,6 +250,8 @@ public final class VanillaOracle {
         s.positionUpdateTicks = positionUpdateTicks;
         s.serverSneakState = serverSneakState;
         s.sneakReportedTicks = sneakReportedTicks;
+        s.mech = server.snapshot();
+        s.serverDrift = server.drift;
         return s;
     }
 
@@ -605,6 +611,12 @@ public final class VanillaOracle {
     public PlayerState tick(PlayerInput input) {
         // EntityPlayerSP.closeScreen before the tick, then the server's events from the last tick at its
         // start; the close reaches the server and comes back a tick later.
+        if (server.arrive(player.getEntityBoundingBox())) {
+            unsupportedAction = true;
+        }
+        AxisAlignedBB startBox = player.getEntityBoundingBox();
+        boolean startOnGround = player.onGround;
+        double startReportedY = lastReportedPosY;
         boolean close = input.has(PlayerInput.CLOSE);
         boolean wasScreen = screen;
         if (close && !wasScreen) {
@@ -650,6 +662,11 @@ public final class VanillaOracle {
         agePressed();
         if (shulkerPos != null) {
             updateShulker();
+        }
+        boolean jumped = startOnGround && !player.onGround && positionUpdateTicks == 0 && lastReportedPosY > startReportedY;
+        if (server.tick(lastReportedPosX, lastReportedPosY, lastReportedPosZ, player.width, player.height, startBox,
+                player.getEntityBoundingBox(), input.has(PlayerInput.USE), jumped, player.isSprinting(), player.onGround, player.motionY)) {
+            unsupportedAction = true;
         }
         return snapshot();
     }
