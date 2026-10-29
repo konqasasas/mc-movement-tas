@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.approx;
 
 import io.github.konqasasas.mctas.physics.PlayerInput;
+import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.input.TickInput;
 
@@ -15,7 +16,7 @@ import java.util.Set;
  * best with {@link Refiner}, until the time budget runs out or a wider beam stops paying off.
  */
 public final class ApproxSolver {
-    public static final String ENGINE = "approx-beam-v6";
+    public static final String ENGINE = "approx-beam-v7";
     /** Reach to spare on route jumps, one route per value. */
     static final double[] SLACKS = {0, 0.5, 1.0};
 
@@ -127,14 +128,33 @@ public final class ApproxSolver {
         // posts, water) with the segment search, route by route, with up to half the budget.
         // The route graph with the gaps no plain jump crosses left to the search, for the explorer.
         Route open = best == null ? new Route(problem, 0, false, false, true) : null;
+        Object[] stuck = null;
+        double stuckCost = Double.POSITIVE_INFINITY;
         if (best == null && System.getenv("GUIDE_ONLY") == null) {
             long until = t0 + budgetMillis * 3 / 4;
+            // First with a stretch held to a third of the time, so one route stuck on a stretch
+            // another gets past does not use it all; then without.
+            long stall = (until - System.currentTimeMillis()) / 3;
+            for (int pass = 0; pass < 2 && best == null; pass++)
             for (int i = 0; i < routes.size() && best == null && System.currentTimeMillis() < until; i++) {
                 if (!routes.get(i).found()) continue;
                 // Routes share the time by need: one that gets through stops the loop.
-                List<PlayerInput> in = new Bridge(problem, routes.get(i)).explore(new Explore(problem, open).log(this::say)).log(this::say)
-                    .run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
-                if (in == null) continue;
+                Bridge bridge = new Bridge(problem, routes.get(i)).explore(new Explore(problem, open).log(this::say)).log(this::say)
+                    .stall(pass == 0 ? stall : 0);
+                List<PlayerInput> in = bridge.run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
+                if (in == null) {
+                    // The furthest a bridge got, by the explorer's graph, for the explorer to go on from.
+                    Object[] p = bridge.stuck;
+                    if (p != null) {
+                        PlayerState ps = (PlayerState) p[0];
+                        double c = open.costToGoalAt(ps.posX, ps.posY, ps.posZ, 1e-3);
+                        if (c < stuckCost) {
+                            stuck = p;
+                            stuckCost = c;
+                        }
+                    }
+                    continue;
+                }
                 int ticks = Rollout.ticks(problem, in, new int[1]);
                 if (ticks < 0) continue;
                 best = in;
@@ -156,10 +176,22 @@ public final class ApproxSolver {
         // gaps no plain jump crosses left to the search.
         if (best == null || System.getenv("GUIDE_ONLY") != null) {
             if (open == null) open = new Route(problem, 0, false, false, true);
-            List<PlayerInput> in = System.getenv("GUIDE") != null ? new Guide(problem, open).log(this::say)
+            long segmentMillis = Math.max(1000, Math.min(8_000, budgetMillis / 20));
+            List<PlayerInput> in = null;
+            if (stuck != null && System.getenv("GUIDE") == null) {
+                // On from where a bridge got furthest, the explorer has the rest of the course only;
+                // from the spawn after, if that runs out of places first.
+                PlayerState ps = (PlayerState) stuck[0];
+                say(String.format("explore: on from (%.2f, %.2f, %.2f), cost %.2f", ps.posX, ps.posY, ps.posZ, stuckCost));
+                @SuppressWarnings("unchecked")
+                List<PlayerInput> prefix = (List<PlayerInput>) stuck[1];
+                in = new Explore(problem, open).log(this::say).from(ps, prefix, (Integer) stuck[2],
+                    (Integer) stuck[3], null, t0 + budgetMillis * 9 / 10, segmentMillis);
+            }
+            if (in == null) in = System.getenv("GUIDE") != null ? new Guide(problem, open).log(this::say)
                 .run(t0 + budgetMillis * 9 / 10, Math.max(1000, Math.min(15_000, budgetMillis / 8)))
                 : new Explore(problem, open).log(this::say)
-                .run(t0 + budgetMillis * 9 / 10, Math.max(1000, Math.min(8_000, budgetMillis / 20)));
+                .run(t0 + budgetMillis * 9 / 10, segmentMillis);
             int ticks = in == null ? -1 : Rollout.ticks(problem, in, new int[1]);
             if (ticks >= 0) {
                 best = in;

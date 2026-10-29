@@ -215,15 +215,20 @@ final class Explore {
                         // but costs a run-up the ticks to let go of sneaking.
                         List<PlayerInput> hold = held(g, c);
                         m = advance(n, hold, c);
+                        if (System.getenv("EXPLORE_DEBUG") != null) say("explore:     onto " + c + " in " + g.inputs.size() + " held " + (hold != g.inputs) + " -> " + (m == null ? "toggle" : "(" + fmt(m.state.posX) + ", " + fmt(m.state.posY) + ", " + fmt(m.state.posZ) + ")"));
                         if (hold != g.inputs) {
                             Node plain = advance(n, g, c);
-                            if (plain != null) {
+                            // The hold breaks the toggle rule: the landing as it is.
+                            if (m == null) m = plain;
+                            else if (plain != null) {
                                 if (stop != null && stop.test(plain.state)) return plain;
                                 open.add(plain);
                             }
                         }
                     } else if (k < WIDE && n.on != null && !n.on.climb) {
-                        m = runUp(n, e, c, deadlineMillis, segmentMillis);
+                        m = runUp(n, e, c, deadlineMillis, segmentMillis, false);
+                        // Along a strip (an open trapdoor, a wall top) to its end nearest the landing.
+                        if (m == null && narrow(n.on)) m = runUp(n, e, c, deadlineMillis, segmentMillis, true);
                     } else {
                         continue;
                     }
@@ -315,16 +320,17 @@ final class Explore {
      * Back to the far side of the surface underfoot, standing nearly still, then the jump from there:
      * a landing short of a post or wall top often has too little room left for the run-up.
      */
-    private Node runUp(Node n, Exit exit, Route.Surface c, long deadlineMillis, long segmentMillis) {
+    private Node runUp(Node n, Exit exit, Route.Surface c, long deadlineMillis, long segmentMillis, boolean toward) {
         PlayerState s = n.state;
         Target on = target(n.on);
-        // A block back from the middle, away from the landing, as far as the surface reaches.
+        // A block back from the middle, away from the landing, as far as the surface reaches; or
+        // toward it, the nearest place (along a strip that leads round a corner to it).
         double dx = c.cx() - n.on.cx(), dz = c.cz() - n.on.cz(), d = Math.hypot(dx, dz);
         if (d < 1e-6) return null;
         // On a post, right to the edge: sneaking holds the player there, and every bit of run-up counts.
         double m = narrow(n.on) ? 0.01 : 0.15;
-        double bx = Math.max(on.minX + m, Math.min(on.maxX - m, n.on.cx() - dx / d));
-        double bz = Math.max(on.minZ + m, Math.min(on.maxZ - m, n.on.cz() - dz / d));
+        double bx = Math.max(on.minX + m, Math.min(on.maxX - m, toward ? c.cx() : n.on.cx() - dx / d));
+        double bz = Math.max(on.minZ + m, Math.min(on.maxZ - m, toward ? c.cz() : n.on.cz() - dz / d));
         if (Math.hypot(bx - s.posX, bz - s.posZ) < 0.15) return null;
         // Walk there and let friction stop the player, no sprinting.
         boolean narrow = narrow(n.on);
@@ -350,12 +356,12 @@ final class Explore {
         int since = Math.max(0, Math.min(1000, b.inputs.size() - b.lastToggle));
         if (!c.climb && narrow(c)) {
             List<PlayerInput> h = hop(b.state, since, c);
-            say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") hop to " + c + (h == null ? " failed" : " in " + h.size() + " ticks"));
+            say("explore:     " + (toward ? "step" : "run-up") + " from (" + fmt(bx) + ", " + fmt(bz) + ") hop to " + c + (h == null ? " failed" : " in " + h.size() + " ticks"));
             if (h != null) return advance(b, h, c);
         }
         Technique.Segment j = segment(b.state, since, exit, c.cx(), c.cz(), deadlineMillis, segmentMillis);
         if (j == null && !c.climb && narrow(c)) j = segment(b.state, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
-        say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") to " + c + (j == null ? " failed" : " in " + j.inputs.size() + " ticks"));
+        say("explore:     " + (toward ? "step" : "run-up") + " from (" + fmt(bx) + ", " + fmt(bz) + ") to " + c + (j == null ? " failed" : " in " + j.inputs.size() + " ticks"));
         return j == null ? null : advance(b, held(j, c), c);
     }
 
@@ -620,6 +626,7 @@ final class Explore {
                 if (!ToggleRule.allowed(lastToggle, tick)) return null;
                 lastToggle = tick;
             }
+            if (Hazard.hurts(problem.world, s, ns)) return null;
             s = ns;
             inputs.add(a);
             boolean in = problem.start.contains(s.posX, s.posY, s.posZ);
@@ -630,6 +637,21 @@ final class Explore {
         double hc = route.costToGoalAt(s.posX, s.posY, s.posZ, 1e-3);
         if (!(hc < Double.POSITIVE_INFINITY)) hc = 1e5;
         return new Node(s, inputs, lastToggle, entry, inputs.size() + hc, on);
+    }
+
+    /**
+     * Straight along the block grid, sprinting or sneaking, with and without a jump: a strip as
+     * narrow as an open trapdoor is walked along only at these yaws, which the actions round the
+     * heading need not include.
+     */
+    private static final List<PlayerInput> AXIS_ACTIONS = new ArrayList<PlayerInput>();
+    static {
+        for (float yaw : new float[] {0, 90, 180, -90}) {
+            for (int jump : new int[] {0, PlayerInput.JUMP}) {
+                AXIS_ACTIONS.add(PlayerInput.of(PlayerInput.W | PlayerInput.SPRINT | jump, yaw));
+                AXIS_ACTIONS.add(PlayerInput.of(PlayerInput.W | PlayerInput.SNEAK | jump, yaw));
+            }
+        }
     }
 
     private List<Technique.Segment> segments(PlayerState s, int since, Exit exit, double ax, double az, long deadlineMillis,
@@ -644,10 +666,19 @@ final class Explore {
             if (pass == 1) {
                 o.sneak = true;
                 o.width = 4000;
+                o.extraActions = AXIS_ACTIONS;
             }
             long t0 = System.currentTimeMillis();
+            // The wide pass a width at a time, stopping at the first that finds a way: a way found
+            // is what the explorer needs, the beams later make it fast.
+            int wide = o.width;
+            if (pass == 1) o.width = 500;
             List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, budget, o);
-            if (System.getenv("EXPLORE_TIME") != null) say("explore:     segment pass " + pass + " budget " + budget + " took " + (System.currentTimeMillis() - t0) + " found " + segs.size());
+            while (segs.isEmpty() && o.width < wide && System.currentTimeMillis() < t0 + budget) {
+                o.width *= 2;
+                segs = Technique.solve(problem.world, s, since, exit, heading, t0 + budget - System.currentTimeMillis(), o);
+            }
+            if (System.getenv("EXPLORE_TIME") != null) say("explore:     segment pass " + pass + " budget " + budget + " took " + (System.currentTimeMillis() - t0) + " found " + segs.size() + " from (" + fmt(s.posX) + ", " + fmt(s.posY) + ", " + fmt(s.posZ) + ") to (" + fmt(ax) + ", " + fmt(az) + ")");
             if (!segs.isEmpty()) return segs;
         }
         return java.util.Collections.emptyList();

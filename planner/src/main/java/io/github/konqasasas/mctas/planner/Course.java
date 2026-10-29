@@ -233,14 +233,27 @@ final class Course {
                 // Room on part of it only (a fence or a wall on the block, a low ceiling over one side):
                 // one foothold for each connected part of the feet area with room, so that the parts
                 // a wall separates are not one platform.
+                // With no room anywhere on the grid, look again on a finer one: the gap between a row of
+                // nether brick fences and a row of wooden ones, which do not join, is 0.15 wide (F-533).
                 int n = ROOM_GRID;
-                boolean[][] ok = new boolean[n][n];
-                double fx0 = minX - 0.3, fz0 = minZ - 0.3, fdx = (maxX - minX + 0.6) / (n - 1), fdz = (maxZ - minZ + 0.6) / (n - 1);
-                for (int i = 0; i < n; i++) {
-                    for (int k = 0; k < n; k++) {
-                        double px = fx0 + i * fdx, pz = fz0 + k * fdz;
-                        ok[i][k] = hasRoom(x, y, z, Math.max(minX - 0.29, Math.min(maxX + 0.29, px)), top, Math.max(minZ - 0.29, Math.min(maxZ + 0.29, pz)));
+                boolean[][] ok;
+                double fx0, fz0, fdx, fdz;
+                while (true) {
+                    ok = new boolean[n][n];
+                    fx0 = minX - 0.3;
+                    fz0 = minZ - 0.3;
+                    fdx = (maxX - minX + 0.6) / (n - 1);
+                    fdz = (maxZ - minZ + 0.6) / (n - 1);
+                    boolean any = false;
+                    for (int i = 0; i < n; i++) {
+                        for (int k = 0; k < n; k++) {
+                            double px = fx0 + i * fdx, pz = fz0 + k * fdz;
+                            ok[i][k] = hasRoom(x, y, z, Math.max(minX - 0.29, Math.min(maxX + 0.29, px)), top, Math.max(minZ - 0.29, Math.min(maxZ + 0.29, pz)));
+                            any |= ok[i][k];
+                        }
                     }
+                    if (any || n >= FINE_GRID) break;
+                    n = FINE_GRID;
                 }
                 boolean[][] seen = new boolean[n][n];
                 for (int i = 0; i < n; i++) {
@@ -266,8 +279,10 @@ final class Course {
                             }
                         }
                         // Beside a block standing on a wide top, a part over a neighbour as high is already that one's.
-                        // A ring all round a small block (a skull) would be one foothold over the block it rings: left out.
-                        if (beside && (level(x, y, z, top, fx0 + (i0 + i1) * fdx / 2, fz0 + (k0 + k1) * fdz / 2) || i0 == 0 && k0 == 0 && i1 == n - 1 && k1 == n - 1)) continue;
+                        // A ring all round a small block (a skull) on a wide top would be one foothold over the block it
+                        // rings: left out. On a post (a fence on a wall) the ring is the rim to stand on (F-531).
+                        boolean ring = i0 == 0 && k0 == 0 && i1 == n - 1 && k1 == n - 1 && Math.min(maxX - minX, maxZ - minZ) > 0.9;
+                        if (beside && (level(x, y, z, top, fx0 + (i0 + i1) * fdx / 2, fz0 + (k0 + k1) * fdz / 2) || ring)) continue;
                         // Feet rectangle of the part, given to the constructor as a footprint (it grows it by the half width).
                         out.add(new Surface(out.size(), x, y, z, top, fx0 + i0 * fdx + 0.3, fz0 + k0 * fdz + 0.3, fx0 + i1 * fdx - 0.3, fz0 + k1 * fdz - 0.3));
                     }
@@ -279,6 +294,8 @@ final class Course {
 
     /** Feet points per side tested on a foothold with room on part of it only. */
     static final int ROOM_GRID = 9;
+    /** The finer grid looked at when the first finds no room at all. */
+    static final int FINE_GRID = Integer.getInteger("planner.fineGrid", 17);
 
     /** No collision box in a standing (1.8) player box standing at (px, top, pz). */
     private boolean hasRoom(int x, int y, int z, double px, double top, double pz) {
