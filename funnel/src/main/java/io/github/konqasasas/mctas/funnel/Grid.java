@@ -164,12 +164,14 @@ final class Grid {
         return n.startsWith(id) && (n.length() == id.length() || n.charAt(id.length()) == '[');
     }
 
+    /** Blocks that hurt while the box overlaps them, as the judge has them (D-005). */
     static boolean hazard(BlockType t) {
-        return is(t, "minecraft:cactus") || is(t, "minecraft:fire") || is(t, "minecraft:lava") || is(t, "minecraft:flowing_lava");
+        return Hazards.hurtsInside(t);
     }
 
+    /** Blocks that hurt while standing on them without sneaking (D-005). */
     static boolean magma(BlockType t) {
-        return is(t, "minecraft:magma");
+        return Hazards.hurtsUnderfoot(t);
     }
 
     static boolean slime(BlockType t) {
