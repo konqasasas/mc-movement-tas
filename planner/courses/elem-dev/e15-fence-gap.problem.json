@@ -1,0 +1,7 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e15-fence-gap", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [-1, 65, -3], "to": [-1, 67, 10], "block": "minecraft:wool"}, 
+    {"from": [2, 65, -3], "to": [2, 67, 10], "block": "minecraft:wool"}, 
+    {"from": [0, 64, 1], "to": [1, 64, 10], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 2], "to": [0, 65, 6], "block": "minecraft:nether_brick_fence"}, 
+    {"from": [1, 65, 2], "to": [1, 65, 6], "block": "minecraft:fence"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [0, 65, 8], "max": [2, 65, 10]}, "limits": {"maxTicks": 800, "voidY": 50.0}}
