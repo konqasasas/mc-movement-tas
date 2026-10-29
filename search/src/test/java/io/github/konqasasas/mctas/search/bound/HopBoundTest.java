@@ -213,6 +213,35 @@ public class HopBoundTest {
         assertTrue(checked > 100 && onLadder > 500);
     }
 
+    /**
+     * A run on elem-dev/e03-skulls that ends a falling tick on the ground where it started, 0.297
+     * over the floor next to a skull: the move down stops on the floor, the move along hits the
+     * skull's side, and the step-up try goes further and comes down clear of it (a hover landing).
+     * The bound from each of its ticks on the ground is never above what it took from there.
+     */
+    @Test
+    public void neverAboveARunWithAHoverLanding() throws IOException {
+        Problem p = ProblemIO.read(Paths.get("..", "planner", "courses", "elem-dev", "e03-skulls.problem.json"));
+        String text = new String(Files.readAllBytes(Paths.get("src", "test", "resources", "hop", "e03-skulls.tas")), StandardCharsets.UTF_8);
+        List<TickInput> in = InputText.parse(text, p.spawn);
+        RunResult res = Evaluator.run(p, in);
+        HopBound hb = new HopBound(p);
+        assertTrue(hb.ticks() + " > " + res.goalTick, hb.ticks() <= res.goalTick);
+        ExactModel model = new ExactModel(p);
+        PlayerState s = model.spawn(p);
+        boolean hovered = false;
+        for (int t = 0; t < res.goalTick; t++) {
+            if (s.onGround) {
+                double over = s.box.minY * 2 - Math.floor(s.box.minY * 2);
+                if (over > 1e-6 && over < 1 - 1e-6) hovered = true;
+                int lb = hb.ticksFromGround(s.posX, s.box.minY, s.posZ);
+                assertTrue("tick " + t + ": " + lb + " > " + (res.goalTick - t), lb <= res.goalTick - t);
+            }
+            s = model.tick(s, in.get(t));
+        }
+        assertTrue("the run has a hover landing", hovered);
+    }
+
     /** A floor, a stone wall {@code h} high along z = 10 and three ladders up it (x = -1..1). */
     private static SparseBlockWorld ladderWall(int h) {
         SparseBlockWorld world = new SparseBlockWorld();
