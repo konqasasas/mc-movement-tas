@@ -18,6 +18,7 @@ final class ClimbManeuver implements Maneuver {
     /** (Foothold, body) pairs looked at per node at most. */
     static final int ATTEMPTS = 12;
     static final boolean TRACE = System.getenv("PLANNER_TRACE") != null;
+    static final boolean climbRank = !Boolean.getBoolean("planner.noClimbRank");
     static final int[] JUMPS = {0, 1, 3, 6, 10, 15, ClimbStep.EDGE};
     /** Landings on a block of a platform that the climbs are tried from, per search. */
     static final int PER_PLATFORM = 2;
@@ -58,24 +59,37 @@ final class ClimbManeuver implements Maneuver {
         // foothold near the player but reached from the far end of the body (back over the top of a
         // passage's wall from the top of a ladder, say) comes after the one right at that end.
         final double[] score = new double[cand.size()];
+        // The same with the climb up a ladder or vine to that cell counted too: its best foothold above
+        // a jump's reach is tried as well, past the targets (the top of this ladder, before the
+        // footholds past the top of the next ladder of the same body, F-530).
+        int climbBest = -1;
+        double climbScore = Double.POSITIVE_INFINITY;
         for (int i = 0; i < score.length; i++) {
             Course.Surface h = cand.get(i);
-            double best = Double.POSITIVE_INFINITY;
+            double best = Double.POSITIVE_INFINITY, bestClimb = Double.POSITIVE_INFINITY;
             for (int[] cell : c.bodies.get(body.get(i))) {
                 if (!c.canLeave(cell, h)) continue;
-                best = Math.min(best, Math.hypot(cell[0] + 0.5 - x, cell[2] + 0.5 - z) + h.dist(cell[0] + 0.5, cell[2] + 0.5));
+                double flat = (Math.hypot(cell[0] + 0.5 - x, cell[2] + 0.5 - z) + h.dist(cell[0] + 0.5, cell[2] + 0.5)) / v;
+                best = Math.min(best, flat);
+                bestClimb = Math.min(bestClimb, flat + (c.climbable(cell[0], cell[1], cell[2]) ? Math.max(0, cell[1] - a.top) / Course.CLIMB_SPEED : 0));
             }
-            score[i] = (best == Double.POSITIVE_INFINITY ? h.dist(x, z) : best) / v + h.toGo;
+            score[i] = (best == Double.POSITIVE_INFINITY ? h.dist(x, z) / v : best) + h.toGo;
+            if (h.top > a.top + c.reach.maxRise() && bestClimb + h.toGo < climbScore) {
+                climbScore = bestClimb + h.toGo;
+                climbBest = i;
+            }
         }
+        final int extra = climbRank && climbBest >= 0 ? cand.get(climbBest).platform : Integer.MIN_VALUE;
         java.util.Arrays.sort(order, (p, q) -> Double.compare(score[p], score[q]));
         java.util.Map<Integer, Integer> platforms = new java.util.HashMap<Integer, Integer>();
         java.util.Set<Long> pairs = new java.util.HashSet<Long>();
         int tried = 0;
         Course.Surface missed = null;
+        int normal = 0;
         for (int i : order) {
             Course.Surface h = cand.get(i);
             Integer ways = platforms.get(h.platform);
-            if (ways == null && platforms.size() >= TARGETS) continue;
+            if (ways == null && normal >= TARGETS && h.platform != extra) continue;
             if (ways != null && ways >= BODIES) continue;
             if (!pairs.add(((long) h.platform << 32) | body.get(i))) continue;
             List<int[]> cells = c.bodies.get(body.get(i));
@@ -118,7 +132,7 @@ final class ClimbManeuver implements Maneuver {
             if (TRACE) System.err.println("climb target " + h + " top " + h.top + " body " + body.get(i) + " exit " + java.util.Arrays.toString(exit) + " entries " + entries.size()
                 + (entries.isEmpty() ? "" : " first " + java.util.Arrays.toString(entries.get(0))));
             if (entries.isEmpty()) continue;
-            platforms.merge(h.platform, 1, Integer::sum);
+            if (platforms.merge(h.platform, 1, Integer::sum) == 1 && (h.platform != extra || normal < TARGETS)) normal++;
             List<int[]> exits = new ArrayList<int[]>();
             exits.add(exit);
             if (high != exit && high[1] > exit[1]) exits.add(high);

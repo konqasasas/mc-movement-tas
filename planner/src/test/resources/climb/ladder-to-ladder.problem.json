@@ -1,0 +1,18 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "climb/ladder-to-ladder", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [-1, 64, -3], "to": [1, 64, 2], "block": "minecraft:stone"},
+    {"from": [0, 65, 3], "to": [0, 68, 3], "block": "minecraft:stone"},
+    {"from": [0, 65, 2], "to": [0, 68, 2], "block": "minecraft:ladder[facing=north]"},
+    {"from": [1, 68, 3], "to": [1, 68, 3], "block": "minecraft:stone"},
+    {"from": [2, 69, 3], "to": [2, 71, 3], "block": "minecraft:stone"},
+    {"from": [1, 69, 3], "to": [1, 70, 3], "block": "minecraft:ladder[facing=west]"},
+    {"from": [2, 71, 4], "to": [4, 71, 6], "block": "minecraft:stone"},
+    {"from": [2, 71, 1], "to": [2, 71, 1], "block": "minecraft:stone"},
+    {"from": [4, 71, 2], "to": [4, 71, 2], "block": "minecraft:stone"}
+  ]},
+  "spawn": {"pos": [0.5, 65.0, -1.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [-1.0, 65.0, -3.0], "max": [2.0, 66.0, -1.0]},
+  "goal": {"min": [3.0, 72.0, 5.0], "max": [5.0, 72.0, 7.0]},
+  "limits": {"maxTicks": 600, "voidY": 50.0}
+}
