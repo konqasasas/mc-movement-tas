@@ -8,8 +8,8 @@ funnel/build/install/mctas-funnel/bin/mctas-funnel solve problems/v1-dev out/ --
 problem/build/install/mctas-problem/bin/mctas-problem time <問題> out/<id>.tas --strict
 ```
 
-- `solve <問題|フォルダ> <出力フォルダ> [--budget 秒] [--threads N] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)まで探し、`<id の / を _ に>.solution.json` と `.tas` を書きます。`result.search.engine` は `funnel-v2`。
-- 環境変数 `FUNNEL_DEBUG=1` で、確かめた足場ごとの結果と、前向きのつなぎの展開を標準出力に出します。前向きに解が見つからなかったときは、一番ゴールに近づいた足場の列と、そこからのビームを出します。`FUNNEL_TRACE=x,y,z` でその足場を確かめるビームの各ティックを、`FUNNEL_TRACE_FWD=N` で前向きの最初の N 回の展開のビームを出します。`FUNNEL_PROBE=x,z0,z1` は、x の列の z0〜z1 のセルの種類と見積もりを高さごとに出します(`FUNNEL_PROBE_FWD=1` で前向きの見積もり)。`FUNNEL_FREE=x0,x1,z0,z1,y` は、足の高さ y で体の箱が入る場所を 1/32 ブロックごとに出します(細い隙間を調べるとき)。
+- `solve <問題|フォルダ> <出力フォルダ> [--budget 秒] [--threads N] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)まで探し、`<id の / を _ に>.solution.json` と `.tas` を書きます。`result.search.engine` は `funnel-v4`。
+- 環境変数 `FUNNEL_DEBUG=1` で、確かめた足場ごとの結果と、前向きのつなぎの展開を標準出力に出します。前向きに解が見つからなかったときは、一番ゴールに近づいた足場の列と、そこからのビームを出します。`FUNNEL_TRACE=x,y,z` でその足場を確かめるビームの各ティックを、`FUNNEL_TRACE_FWD=N` で前向きの最初の N 回の展開のビームを出します。`FUNNEL_PROBE=x,z0,z1` は、x の列の z0〜z1 のセルの種類と見積もりを高さごとに出します(`FUNNEL_PROBE_FWD=1` で前向きの見積もり)。`FUNNEL_FREE=x0,x1,z0,z1,y` は、足の高さ y で体の箱が入る場所を 1/32 ブロックごとに出します(細い隙間を調べるとき)。`FUNNEL_PATH=x,y,z` は、その点から見積もりの道をセルごとにたどって出します。前向きのつなぎで未確認の足場に見積もりの値で着地する重みは `FUNNEL_GUESS`(既定 1.5、0 で切る)です。
 
 ## しくみ
 
@@ -26,4 +26,6 @@ problem/build/install/mctas-problem/bin/mctas-problem time <問題> out/<id>.tas
 | 版 | コミット | 中身 |
 | --- | --- | --- |
 | v1 | #75 | 格子と見積もり、着地の見積もり、足場の確認(止まって・速さを持って)、前向きのつなぎ、助走、細い戸口を通る手、スライム。waza1 h1 412・h3 367(180 秒)、v0 10/10、v1-dev 6/8、realdev 1/9、gen-dev 0/15(F-801) |
-| v2 | (この PR) | 止まった区間の先へ仮の値で進む、助走だけのビームでスタートに入る状態を根にする、細い隙間のセル、手を減らして約 2 倍速く。v0 10/10、realdev 3/9(F-805〜F-808) |
+| v2 | #100 | 止まった区間の先へ仮の値で進む、助走だけのビームでスタートに入る状態を根にする、細い隙間のセル、手を減らして約 2 倍速く。v0 10/10、realdev 3/9(F-805〜F-808) |
+| v3 | #103 | 確認のビームが通った足場にも値を付ける、少し遠くの足場から試す、越えられなかった仮の足場から出さない(F-811) |
+| v4 | (この PR) | スライムは落ちてきた高さまで跳ね返る見積もり(立った所からはふつうのジャンプだけ)、足の真ん中の下がスライムの着地は足場の値にしない、前向きのつなぎが未確認の足場にも見積もりの値で着地する。v0 10/10、v1-dev 7/8、waza1 h1 448・h3 369(F-814、F-815) |

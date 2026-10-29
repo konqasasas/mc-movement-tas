@@ -1,13 +1,12 @@
 package io.github.konqasasas.mctas.improve;
 
-import io.github.konqasasas.mctas.physics.Aabb;
-import io.github.konqasasas.mctas.physics.BlockType;
 import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
+import io.github.konqasasas.mctas.problem.judge.Hazards;
 import io.github.konqasasas.mctas.problem.judge.PhysicsModel;
 import io.github.konqasasas.mctas.problem.judge.ToggleRule;
 
@@ -17,8 +16,8 @@ import java.util.Arrays;
  * One problem and the exact judge of a whole run, as {@code mctas-problem time --strict} judges it:
  * the time is the goal tick minus the last start entry, sprint and sneak changes keep the 3-tick gap
  * (D-004), and states with {@code unsupportedAction} (D-010, D-011) make the run invalid. On top of
- * the judge, runs that touch blocks that deal damage or get trampled are invalid (D-005): fire and
- * lava inside the box, cactus next to it, magma or farmland underfoot.
+ * the judge, runs that take damage or trample farmland are invalid (D-005, {@link Hazards}, which the
+ * judge checks too).
  *
  * <p>Thread-safe: {@link Physics#tick} does not change the world.
  */
@@ -37,11 +36,7 @@ public final class Course {
         this.problem = problem;
         this.world = problem.world;
         this.spawn = new PhysicsModel(problem).spawn(problem);
-        boolean[] any = {false};
-        problem.world.forEach((x, y, z, b) -> {
-            if (hazard(b) != 0) any[0] = true;
-        });
-        this.hazards = any[0];
+        this.hazards = Hazards.present(problem.world);
     }
 
     public PlayerState spawn() {
@@ -97,7 +92,7 @@ public final class Course {
                 failure = "unsupported action at tick " + t;
                 break;
             }
-            if (hazards && touchesHazard(s)) {
+            if (hazards && Hazards.check(world, p, s) != null) {
                 failure = "damage or trampling at tick " + t;
                 break;
             }
@@ -142,42 +137,5 @@ public final class Course {
     static double depth(Region r, double x, double y, double z) {
         double d = Math.min(Math.min(x - r.minX, r.maxX - x), Math.min(z - r.minZ, r.maxZ - z));
         return Math.max(0, Math.min(d, Math.min(y - r.minY, r.maxY - y)));
-    }
-
-    /** 1 for blocks that hurt inside the box (fire, lava), 2 for cactus (also inside the box), 4 underfoot (magma, farmland). */
-    static int hazard(BlockType b) {
-        String n = b.name();
-        if (n.startsWith("minecraft:fire") || n.startsWith("minecraft:lava") || n.startsWith("minecraft:flowing_lava")) return 1;
-        if (n.startsWith("minecraft:cactus")) return 2;
-        if (n.startsWith("minecraft:magma") || n.startsWith("minecraft:farmland")) return 4;
-        return 0;
-    }
-
-    private boolean touchesHazard(PlayerState s) {
-        Aabb b = s.box;
-        // Fire, lava and cactus act on the blocks the box (shrunk by 0.001) overlaps, as
-        // Entity.doBlockCollisions and isFlammableWithin look at them.
-        int x0 = floor(b.minX + 0.001), x1 = floor(b.maxX - 0.001);
-        int y0 = floor(b.minY + 0.001), y1 = floor(b.maxY - 0.001);
-        int z0 = floor(b.minZ + 0.001), z1 = floor(b.maxZ - 0.001);
-        for (int x = x0; x <= x1; x++) {
-            for (int y = y0; y <= y1; y++) {
-                for (int z = z0; z <= z1; z++) {
-                    int h = hazard(world.getBlock(x, y, z));
-                    if (h == 1 || h == 2) return true;
-                }
-            }
-        }
-        // Magma (onEntityWalk) and farmland (onFallenUpon) act on the block under the feet point.
-        if (s.onGround) {
-            int x = floor(s.posX), z = floor(s.posZ);
-            if (hazard(world.getBlock(x, floor(s.posY - 0.2), z)) == 4) return true;
-            if (hazard(world.getBlock(x, floor(s.posY), z)) == 4) return true;
-        }
-        return false;
-    }
-
-    private static int floor(double v) {
-        return (int) Math.floor(v);
     }
 }

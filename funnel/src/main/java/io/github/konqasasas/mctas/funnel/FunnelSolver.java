@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
  * clock plus the anchor's time. It runs whenever the verified set has grown near the start.
  */
 public final class FunnelSolver {
-    public static final String ENGINE = "funnel-v2";
+    public static final String ENGINE = "funnel-v4";
 
     public static final class Solution {
         public final List<TickInput> inputs;
@@ -122,6 +122,15 @@ public final class FunnelSolver {
             anchors.list.size(), back.at(spawn.s.posX, spawn.s.posY, spawn.s.posZ), minFwd(grid.cellsIn(problem.goal)),
             System.currentTimeMillis() - t0));
         if (System.getenv("FUNNEL_PROBE") != null) probe(System.getenv("FUNNEL_PROBE"));
+        if (System.getenv("FUNNEL_PATH") != null) {
+            String[] q = System.getenv("FUNNEL_PATH").split(",");
+            int id = grid.cellOf(Double.parseDouble(q[0]), Double.parseDouble(q[1]), Double.parseDouble(q[2]));
+            for (int k = 0; id >= 0 && k < 200; k++, id = back.next[id]) {
+                byte f = grid.flags[id];
+                say(String.format("  path (%.2f, %d, %.2f) %s%s%s %.1f", grid.x0 + (grid.ix(id) + 0.5) * Grid.RES, grid.y0 + grid.level(id),
+                    grid.z0 + (grid.iz(id) + 0.5) * Grid.RES, (f & Grid.STAND) != 0 ? "s" : "", (f & Grid.AIR) != 0 ? "a" : "", (f & Grid.SLIME) != 0 ? "S" : "", back.value(id)));
+            }
+        }
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         Assembled best = null;
         try {
@@ -337,6 +346,7 @@ public final class FunnelSolver {
                     b.moving = true;
                     b.witness = new ArrayList<PlayerInput>(h.inputs.subList(t + 1, h.inputs.size()));
                     b.via = h.anchor == null ? -1 : h.anchor.id;
+                    if (DEBUG) say(String.format("    along %s from %s at tick %d (%.2f, %.2f, %.2f): %.1f", b, a, t + 1, m.s.posX, m.s.posY, m.s.posZ, b.v));
                     out.add(b);
                 }
             }
@@ -345,6 +355,9 @@ public final class FunnelSolver {
         return out;
     }
 
+    /** Guessed landings in the forward run ({@link Beam.Options#guess}; 0 turns them off), and how much nearer by the field. */
+    static final float GUESS = System.getenv("FUNNEL_GUESS") != null ? Float.parseFloat(System.getenv("FUNNEL_GUESS")) : 1.5F;
+    static final float GUESS_PROGRESS = 6;
     static final float REACH = System.getenv("FUNNEL_REACH") != null ? Float.parseFloat(System.getenv("FUNNEL_REACH")) : 0.5F;
     static final boolean ALONG = System.getenv("FUNNEL_NO_ALONG") == null;
 
@@ -425,18 +438,27 @@ public final class FunnelSolver {
         final Anchors.Anchor anchor;
         final float est;
         final boolean goal;
+        /** The time left from the anchor: verified, or guessed ({@link Beam.Hit#guessed}). */
+        final float rest;
+        final boolean guessed;
 
         Chain(Chain parent, List<PlayerInput> seg, Beam.Node end, Anchors.Anchor anchor, float est, boolean goal) {
+            this(parent, seg, end, anchor, est, goal, anchor == null ? 0 : anchor.v, false);
+        }
+
+        Chain(Chain parent, List<PlayerInput> seg, Beam.Node end, Anchors.Anchor anchor, float est, boolean goal, float rest, boolean guessed) {
             this.parent = parent;
             this.seg = seg;
             this.end = end;
             this.anchor = anchor;
             this.est = est;
             this.goal = goal;
+            this.rest = rest;
+            this.guessed = guessed;
         }
 
         float key() {
-            return est + (anchor == null ? 0 : DEPTH * anchor.v);
+            return est + DEPTH * rest;
         }
 
         List<PlayerInput> inputs() {
@@ -499,7 +521,7 @@ public final class FunnelSolver {
         if (open.isEmpty()) open.add(root);
         while (!open.isEmpty() && System.currentTimeMillis() < deadline && expansions < 2000) {
             Chain c = open.poll();
-            if (c.anchor != null && (deepest == null || c.anchor.v < deepest.anchor.v)) deepest = c;
+            if (c.anchor != null && (deepest == null || c.rest < deepest.rest)) deepest = c;
             if (c.goal) {
                 List<PlayerInput> in = c.inputs();
                 List<TickInput> ticks = toTicks(in);
@@ -528,11 +550,17 @@ public final class FunnelSolver {
             o.self = c.anchor;
             o.judgeStart = true;
             o.deadlineNanos = System.nanoTime() + Math.max(0, deadline - System.currentTimeMillis()) * 1_000_000L;
+            // Landings on anchors not verified yet, at a guess, where they come nearer the goal by the
+            // field: the forward run goes on past the verified set's edge and meets it partway.
+            if (GUESS > 0) {
+                o.guess = GUESS;
+                o.guessBelow = back.at(c.end.s.posX, c.end.s.posY, c.end.s.posZ) - GUESS_PROGRESS;
+            }
             beam.trace = DEBUG && System.getenv("FUNNEL_TRACE_FWD") != null && expansions <= Integer.parseInt(System.getenv("FUNNEL_TRACE_FWD"));
             List<Beam.Hit> hits = beam.search(c.end, o);
             beam.trace = false;
-            if (hits.isEmpty() && !across) {
-                // A slow section (a ladder, a slot): once more, wider and longer.
+            if (hits.isEmpty() && !across && !c.guessed) {
+                // A slow section (a ladder, a slot): once more, wider and longer (not off a guess, which may be a dead end).
                 o.width = 500;
                 o.maxTicks = 240;
                 hits = beam.search(c.end, o);
@@ -540,7 +568,8 @@ public final class FunnelSolver {
             if (across && hits.isEmpty()) stuck.add(c.anchor.id);
             if (DEBUG) say(String.format("    expand %s @%d est %.1f: %d hits, %d steps (%d ms)", c.anchor, c.end.clock(), c.est, hits.size(), beam.expanded, System.currentTimeMillis() - t0));
             for (Beam.Hit h : hits) {
-                open.add(new Chain(c, h.inputs, h.end, h.anchor, h.value, h.goal()));
+                if (h.guessed) open.add(new Chain(c, h.inputs, h.end, h.anchor, h.value, false, h.value - h.end.clock(), true));
+                else open.add(new Chain(c, h.inputs, h.end, h.anchor, h.value, h.goal()));
             }
         }
         say("forward run found no way (" + expansions + " expansions)");
@@ -549,7 +578,7 @@ public final class FunnelSolver {
             List<Chain> cs = new ArrayList<Chain>();
             for (Chain c = deepest; c != null; c = c.parent) cs.add(0, c);
             for (Chain c : cs) {
-                if (c.anchor != null) sb.append(String.format(" %s(%.0f @%d v%.2f)", c.anchor, c.anchor.v, c.end.clock(), Beam.speed(c.end.s)));
+                if (c.anchor != null) sb.append(String.format(" %s(%.0f%s @%d v%.2f)", c.anchor, c.rest, c.guessed ? "?" : "", c.end.clock(), Beam.speed(c.end.s)));
             }
             say(sb.toString());
             Anchors.Anchor a = deepest.anchor;

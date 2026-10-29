@@ -2,6 +2,7 @@ package io.github.konqasasas.mctas.funnel;
 
 import io.github.konqasasas.mctas.physics.Aabb;
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
@@ -124,7 +125,10 @@ final class Anchors {
     final List<Anchor> list = new ArrayList<Anchor>();
     private final Map<Long, Anchor> byBlock = new HashMap<Long, Anchor>();
 
+    private final BlockWorld world;
+
     Anchors(final Grid g) {
+        world = g.world;
         final Aabb all = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
         final List<Aabb> boxes = new ArrayList<Aabb>();
         final List<int[]> blocks = new ArrayList<int[]>();
@@ -214,6 +218,9 @@ final class Anchors {
      */
     Anchor under(PlayerState s, boolean restOnly) {
         if (!s.onGround) return null;
+        // The game lands the player on the block under the middle of the feet: on slime, the player
+        // bounces even with the feet on the block beside it.
+        if (Grid.slime(world.getBlock((int) Math.floor(s.posX), (int) Math.floor(s.posY - 0.2), (int) Math.floor(s.posZ)))) return null;
         Anchor best = null;
         int x0 = (int) Math.floor(s.posX - 0.3), x1 = (int) Math.floor(s.posX + 0.3);
         int z0 = (int) Math.floor(s.posZ - 0.3), z1 = (int) Math.floor(s.posZ + 0.3);

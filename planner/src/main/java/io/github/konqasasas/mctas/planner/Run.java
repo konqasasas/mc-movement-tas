@@ -90,13 +90,14 @@ final class Run {
     /** Plays one tick of {@code a} (made {@link #legal} by the caller) and updates the judge's view. */
     void step(PlayerInput a) {
         boolean sprint = s.sprinting, sneak = s.prevSneak;
+        float fell = s.fallDistance;
         Physics.step(course.world, s, a);
         tick++;
         if (s.sprinting != sprint || s.prevSneak != sneak) {
             if (!ToggleRule.allowed(lastToggle, tick)) dead = true;
             lastToggle = tick;
         }
-        if (s.unsupportedAction || s.posY < course.problem.voidY || course.hurts(s)) {
+        if (s.unsupportedAction || s.posY < course.problem.voidY || course.hurts(fell, s)) {
             dead = true;
             return;
         }

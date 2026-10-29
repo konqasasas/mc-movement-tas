@@ -12,6 +12,8 @@ public final class Judge {
     private int lastStartEntry = -1;
     private int goalTick = -1;
     private RunResult.Status terminal;
+    private String violation;
+    private int violationTick = -1;
 
     public Judge(Problem problem) {
         this.problem = problem;
@@ -44,6 +46,14 @@ public final class Judge {
         return false;
     }
 
+    /** Ends the run as invalid (D-005) on the tick just observed, even if it reached the goal there. */
+    public void reject(String why) {
+        violation = why;
+        violationTick = positions.size() - 1;
+        goalTick = -1;
+        terminal = RunResult.Status.HURT;
+    }
+
     public boolean done() {
         return terminal != null;
     }
@@ -55,6 +65,6 @@ public final class Judge {
     public RunResult result() {
         RunResult.Status st = terminal == null ? RunResult.Status.NOT_FINISHED : terminal;
         int start = st == RunResult.Status.FINISHED ? lastStartEntry : -1;
-        return new RunResult(st, start, goalTick, new ArrayList<Vec3>(positions));
+        return new RunResult(st, start, goalTick, new ArrayList<Vec3>(positions), violation, violationTick);
     }
 }
