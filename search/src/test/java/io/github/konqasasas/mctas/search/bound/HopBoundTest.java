@@ -151,7 +151,7 @@ public class HopBoundTest {
 
     /**
      * A ladder climbs 0.1176 a tick: walking into one and up a wall 6 high takes 69 ticks from
-     * standing, and the bound knows it takes most of that (it used to be 7).
+     * standing, and the bound knows it takes more than half of that (it used to be 7).
      */
     @Test
     public void climbingALadderTakesAboutAsLongAsTheBound() {
@@ -169,7 +169,7 @@ public class HopBoundTest {
         Problem p = new Problem("ladder", "", world, new Spawn(new Vec3(a.posX, a.posY, a.posZ), 0, 0),
             box(a.posX, a.posY, a.posZ), box(s.posX, s.box.minY, s.posZ), 400, -64, null);
         int bound = new HopBound(p, p.start, p.goal, 0).ticks();
-        assertTrue("bound " + bound + " against " + took, bound <= took && bound * 10 >= took * 6);
+        assertTrue("bound " + bound + " against " + took, bound <= took && bound * 2 > took);
     }
 
     /** On walls with ladders, the bound between two states of a random run is never above what the run took. */

@@ -89,9 +89,8 @@ public final class HopBound {
         double[] climb;
         /**
          * How far below its feet range a flight can come down and still end in it by stepping up onto
-         * a top: for a top or the goal the depth of the lowest top up to 0.6 under it (see
-         * {@link #stepFrom}), nothing for a ladder (a tick that steps up ends on the ground), 0.6 for
-         * the rest.
+         * a top: for a top the depth of the lowest top up to 0.6 under it (see {@link #stepFrom}),
+         * nothing for a ladder (a tick that steps up ends on the ground), 0.6 for the rest.
          */
         double drop = STEP;
 
@@ -281,17 +280,6 @@ public final class HopBound {
         start = new Node(START, from.minX, from.maxX, from.minZ, from.maxZ, from.minY, from.maxY,
             startUp, groundSpeed >= 0 ? -0.0784D : -TERMINAL);
         goal = new Node(GOAL, to.minX, to.maxX, to.minZ, to.maxZ, to.minY, to.maxY, 0, 0);
-        double deepest = 0;
-        for (int x = (int) Math.floor(to.minX) - 2; x <= (int) Math.floor(to.maxX) + 2; x++) {
-            for (int z = (int) Math.floor(to.minZ) - 2; z <= (int) Math.floor(to.maxZ) + 2; z++) {
-                List<double[]> col = byColumn.get(key(x, z));
-                if (col == null) continue;
-                for (double[] b : col) {
-                    if (b[4] >= to.minY - STEP - EPS && b[4] <= to.minY + EPS) deepest = Math.max(deepest, to.minY - b[4]);
-                }
-            }
-        }
-        goal.drop = deepest;
         for (Node n : new Node[] {start, goal}) {
             int id = nodes.size();
             nodes.add(n);
