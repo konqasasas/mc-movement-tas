@@ -622,7 +622,7 @@ public final class RecorderController {
     }
 
     /**
-     * A plate or trapdoor of the course that the client shows changed though the engine did not change it,
+     * A plate, trapdoor or door of the course that the client shows changed though the engine did not change it,
      * as "x y z: built -> now", or null.
      */
     private String missedMechanism() {
@@ -636,7 +636,9 @@ public final class RecorderController {
                     return;
                 }
                 BlockType now = live.getBlock(x + originX, y, z + originZ);
-                if (!now.name().equals(type.name()) && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
+                // A door's upper half shows the lower half's open, which the engine keeps on the lower half.
+                if (!VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))
+                        && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
                     first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                 }
             }
@@ -1027,6 +1029,20 @@ public final class RecorderController {
                 ws.setBlockState(new BlockPos(x + ox, y, z + oz), vanilla(type), 2);
             }
         });
+        // The catalog does not name a door's POWERED, so the upper halves come in unpowered: give them the power
+        // they have, as in a world built in the game (the engine takes POWERED as the door's power).
+        world.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                BlockPos pos = new BlockPos(x + ox, y, z + oz);
+                IBlockState st = ws.getBlockState(pos);
+                if (st.getBlock() instanceof net.minecraft.block.BlockDoor
+                        && st.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER) {
+                    boolean powered = ws.isBlockPowered(pos) || ws.isBlockPowered(pos.down());
+                    ws.setBlockState(pos, st.withProperty(net.minecraft.block.BlockDoor.POWERED, powered), 2);
+                }
+            }
+        });
         // A shulker box drops itself when the old course is cleared, and the player would pick it up and
         // hold it (F-709).
         for (net.minecraft.entity.item.EntityItem item : ws.getEntitiesWithinAABB(net.minecraft.entity.item.EntityItem.class,
@@ -1139,7 +1155,7 @@ public final class RecorderController {
                         return;
                     }
                     if (phase == Phase.RUN && io.github.konqasasas.mctas.physics.Mechanisms.isModelled(type)) {
-                        // Plates and trapdoors move during a run; missedMechanism and readMechanisms follow them.
+                        // Plates, trapdoors and doors move during a run; missedMechanism and readMechanisms follow them.
                         return;
                     }
                     BlockType now = check.getBlock(x + originX, y, z + originZ);

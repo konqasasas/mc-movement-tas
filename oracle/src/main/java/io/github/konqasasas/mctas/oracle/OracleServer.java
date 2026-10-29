@@ -46,6 +46,7 @@ final class OracleServer {
         this.world.server = true;
         this.entity = new OraclePlayer(world);
         this.world.player = entity;
+        this.world.settleDoors();
     }
 
     void load(PlayerState s) {
@@ -67,6 +68,7 @@ final class OracleServer {
             maybe.add(new BlockPos(mb[i], mb[i + 1], mb[i + 2]));
         }
         drift = s.serverDrift;
+        world.settleDoors();
     }
 
     /**
@@ -74,15 +76,29 @@ final class OracleServer {
      * has a collision box that overlaps the player's (the engine's rule).
      */
     boolean arrive(AxisAlignedBB playerBox) {
-        boolean hit = false;
+        // Every block first, then the boxes: a door's upper half takes its shape from the lower half.
+        List<BlockPos> arrived = new ArrayList<BlockPos>();
         for (BlockPos p : touched) {
             IBlockState sv = world.getBlockState(p);
-            if (sv != client.getBlockState(p)) {
-                List<AxisAlignedBB> out = new ArrayList<AxisAlignedBB>();
-                sv.addCollisionBoxToList(client, p, playerBox, out, null, false);
-                hit |= !out.isEmpty();
+            IBlockState cl = client.getBlockState(p);
+            if (sv != cl) {
+                if (!VanillaOracle.catalogName(sv).equals(VanillaOracle.catalogName(cl))) {
+                    // Not a door's upper half that only took POWERED, which the engine does not name.
+                    arrived.add(p);
+                }
                 client.set(p, sv);
             }
+        }
+        boolean hit = false;
+        List<AxisAlignedBB> out = new ArrayList<AxisAlignedBB>();
+        for (BlockPos p : arrived) {
+            IBlockState sv = client.getBlockState(p);
+            sv.addCollisionBoxToList(client, p, playerBox, out, null, false);
+            if (sv.getBlock() instanceof net.minecraft.block.BlockDoor
+                    && sv.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.LOWER) {
+                client.getBlockState(p.up()).addCollisionBoxToList(client, p.up(), playerBox, out, null, false);
+            }
+            hit |= !out.isEmpty();
         }
         return hit;
     }
@@ -136,6 +152,16 @@ final class OracleServer {
                 unsupported = true;
             }
             for (BlockPos c : changed) {
+                IBlockState cs = world.getBlockState(c);
+                if (cs.getBlock() instanceof net.minecraft.block.BlockDoor) {
+                    // A door counts as both halves when it opens or shuts; the upper half's POWERED alone is nothing.
+                    if (cs.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER) {
+                        continue;
+                    }
+                    if (swept.intersects(new AxisAlignedBB(c.up()))) {
+                        unsupported = true;
+                    }
+                }
                 if (!c.equals(m) && swept.intersects(new AxisAlignedBB(c))) {
                     unsupported = true;
                 }

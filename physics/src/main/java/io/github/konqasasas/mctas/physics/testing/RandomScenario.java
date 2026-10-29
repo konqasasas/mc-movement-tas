@@ -47,7 +47,7 @@ public final class RandomScenario {
             "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
 
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker", "plate"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker", "plate", "door"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -68,7 +68,7 @@ public final class RandomScenario {
         int i = java.util.Arrays.asList(COURSES).indexOf(course);
         if (i < 0) {
             throw new IllegalArgumentException("unknown course kind " + course
-                    + ", expected full, shapes, fluids, place, press, shulker or plate");
+                    + ", expected full, shapes, fluids, place, press, shulker, plate or door");
         }
         return i;
     }
@@ -123,11 +123,20 @@ public final class RandomScenario {
         return generate(seed, ticks, 6, null, null);
     }
 
+    /**
+     * {@link #generate} courses with pressure plates around the start and doors of every kind that they power:
+     * beside them, beside the block under them (sunk into the floor), and a block away; some open, now and then
+     * a redstone block powering one, a door that would break, or another power source.
+     */
+    public static RandomScenario generateDoors(long seed, int ticks) {
+        return generate(seed, ticks, 7, null, null);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind, BlockWorld simWorld, PlayerState simStart) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
-        boolean shapes = kind != 0 && kind != 6;
+        boolean shapes = kind != 0 && kind != 6 && kind != 7;
         boolean pressing = kind == 4;
         boolean shulkers = kind == 5;
         boolean placing = kind == 3 || pressing || shulkers;
@@ -140,6 +149,9 @@ public final class RandomScenario {
         }
         if (kind == 6) {
             addPlates(r, w, base);
+        }
+        if (kind == 7) {
+            addDoors(r, w, base);
         }
         double sx = 0.3 + r.nextDouble() * 1.4 - 0.5;
         double sz = 0.3 + r.nextDouble() * 1.4 - 0.5;
@@ -381,6 +393,72 @@ public final class RandomScenario {
                 }
             }
         }
+    }
+
+    /** Pressure plates on stone, with doors around them; see {@link #generateDoors}. */
+    private static void addDoors(Random r, SparseBlockWorld w, int base) {
+        String[] plates = {"minecraft:wooden_pressure_plate[powered=false]", "minecraft:stone_pressure_plate[powered=false]",
+                "minecraft:light_weighted_pressure_plate[power=0]", "minecraft:heavy_weighted_pressure_plate[power=0]"};
+        String[] doors = {"minecraft:wooden_door", "minecraft:spruce_door", "minecraft:birch_door", "minecraft:jungle_door",
+                "minecraft:acacia_door", "minecraft:dark_oak_door", "minecraft:iron_door"};
+        String[] facings = {"north", "south", "west", "east"};
+        for (int n = 3 + r.nextInt(8); n > 0; n--) {
+            int x = r.nextInt(9) - 4;
+            int z = r.nextInt(9) - 4;
+            if (Math.abs(x) <= 1 && Math.abs(z) <= 1) {
+                // Not under the start: the real player stands there before the run begins.
+                continue;
+            }
+            w.setBlock(x, base - 1, z, BlockType.STONE);
+            w.setBlock(x, base, z, VanillaBlocks.require(plates[r.nextInt(plates.length)]));
+            w.setBlock(x, base + 1, z, BlockType.AIR);
+            for (int t = 1 + r.nextInt(2); t > 0; t--) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                int roll = r.nextInt(3);
+                // Beside the plate, sunk beside the block under it, or a block away.
+                int dx = roll == 2 ? 2 * f.dx : f.dx;
+                int dz = roll == 2 ? 2 * f.dz : f.dz;
+                int ly = roll == 1 ? base - 1 : base;
+                int tx = x + dx;
+                int tz = z + dz;
+                if (Math.abs(tx) <= 1 && Math.abs(tz) <= 1 || Mechanisms.isPlate(w.getBlock(tx, ly + 1, tz))
+                        || Mechanisms.isPlate(w.getBlock(tx, ly + 2, tz)) || Mechanisms.isPlate(w.getBlock(tx, ly, tz))) {
+                    // Not in the start, and every plate stays on stone.
+                    continue;
+                }
+                String id = doors[r.nextInt(doors.length)];
+                String rest = ",facing=" + facings[r.nextInt(4)] + ",hinge=" + (r.nextBoolean() ? "right" : "left") + ",open="
+                        + (r.nextDouble() < 0.25) + "]";
+                w.setBlock(tx, ly - 1, tz, r.nextDouble() < 0.04 ? VanillaBlocks.require("minecraft:glass") : BlockType.STONE);
+                w.setBlock(tx, ly, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=lower" + rest))));
+                w.setBlock(tx, ly + 1, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=upper" + rest))));
+            }
+            double odd = r.nextDouble();
+            if (odd < 0.05) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + f.dx, base, z + f.dz, VanillaBlocks.require("minecraft:redstone_lamp"));
+            } else if (odd < 0.1) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + 2 * f.dx, base - 1, z + 2 * f.dz, BlockType.STONE);
+                w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x]"));
+            } else if (odd < 0.18) {
+                // A redstone block in the floor next to the plate's stone, powering what stands beside it.
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                if (!Mechanisms.isPlate(w.getBlock(x + f.dx, base, z + f.dz))) {
+                    w.setBlock(x + f.dx, base - 1, z + f.dz, VanillaBlocks.require("minecraft:redstone_block"));
+                }
+            }
+        }
+    }
+
+    private static java.util.Map<String, String> props(String list) {
+        java.util.Map<String, String> m = new java.util.TreeMap<String, String>();
+        for (String kv : list.replace("]", "").split(",")) {
+            if (!kv.isEmpty()) {
+                m.put(kv.substring(0, kv.indexOf('=')), kv.substring(kv.indexOf('=') + 1));
+            }
+        }
+        return m;
     }
 
     private static final String[] COLOURS = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",

@@ -88,6 +88,22 @@ final class OracleWorld extends World {
         }
     }
 
+    /**
+     * Gives every door's upper half the {@code POWERED} its power calls for, as a world built in the game has
+     * it; the catalog does not name it, so the blocks come in unpowered.
+     */
+    void settleDoors() {
+        for (Map.Entry<BlockPos, IBlockState> e : new java.util.ArrayList<Map.Entry<BlockPos, IBlockState>>(blocks.entrySet())) {
+            IBlockState st = e.getValue();
+            if (st.getBlock() instanceof net.minecraft.block.BlockDoor
+                    && st.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER) {
+                BlockPos p = e.getKey();
+                boolean powered = isBlockPowered(p) || isBlockPowered(p.down());
+                blocks.put(p, st.withProperty(net.minecraft.block.BlockDoor.POWERED, powered));
+            }
+        }
+    }
+
     void clear() {
         blocks.clear();
         shulkers.clear();
@@ -191,6 +207,20 @@ final class OracleWorld extends World {
                 String.valueOf(net.minecraft.block.Block.REGISTRY.getNameForObject(getBlockState(p).getBlock())));
     }
 
+    /** Sets {@link #reachedUnmodelled} if a power source the engine does not model can power {@code pos}. */
+    private void scanOtherSources(BlockPos pos) {
+        for (net.minecraft.util.EnumFacing f : net.minecraft.util.EnumFacing.values()) {
+            BlockPos n = pos.offset(f);
+            if (getBlockState(n).isNormalCube()) {
+                for (net.minecraft.util.EnumFacing g : net.minecraft.util.EnumFacing.values()) {
+                    reachedUnmodelled |= givesPower(n.offset(g));
+                }
+            } else {
+                reachedUnmodelled |= givesPower(n);
+            }
+        }
+    }
+
     @Override
     public void neighborChanged(BlockPos pos, net.minecraft.block.Block blockIn, BlockPos fromPos) {
         if (server) {
@@ -204,16 +234,23 @@ final class OracleWorld extends World {
                 }
             } else if (st.getBlock() instanceof net.minecraft.block.BlockTrapDoor) {
                 // The engine's rule: any other power source the trapdoor's power depends on is unsupported.
-                for (net.minecraft.util.EnumFacing f : net.minecraft.util.EnumFacing.values()) {
-                    BlockPos n = pos.offset(f);
-                    if (getBlockState(n).isNormalCube()) {
-                        for (net.minecraft.util.EnumFacing g : net.minecraft.util.EnumFacing.values()) {
-                            reachedUnmodelled |= givesPower(n.offset(g));
-                        }
-                    } else {
-                        reachedUnmodelled |= givesPower(n);
-                    }
+                scanOtherSources(pos);
+            } else if (st.getBlock() instanceof net.minecraft.block.BlockDoor) {
+                // The engine's rules: a door that would break is unsupported, and so is any other power source
+                // either half's power depends on. The upper half passes the notification to the lower one.
+                BlockPos lower = st.getValue(net.minecraft.block.BlockDoor.HALF)
+                        == net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER ? pos.down() : pos;
+                IBlockState l = getBlockState(lower);
+                IBlockState u = getBlockState(lower.up());
+                if (l.getBlock() != st.getBlock() || u.getBlock() != st.getBlock()
+                        || l.getValue(net.minecraft.block.BlockDoor.HALF) != net.minecraft.block.BlockDoor.EnumDoorHalf.LOWER
+                        || u.getValue(net.minecraft.block.BlockDoor.HALF) != net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER
+                        || !getBlockState(lower.down()).isNormalCube()) {
+                    reachedUnmodelled = true;
+                    return;
                 }
+                scanOtherSources(lower);
+                scanOtherSources(lower.up());
             } else if (!(st.getBlock() instanceof net.minecraft.block.BlockBasePressurePlate)) {
                 BlockType t = VanillaBlocks.require(VanillaOracle.catalogName(st));
                 if (t.reactsToPower() || t.isExcept(BlockType.UNSTABLE)) {

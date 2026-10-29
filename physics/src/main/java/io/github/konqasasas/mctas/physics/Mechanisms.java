@@ -32,7 +32,12 @@ import java.util.Map;
  * and the state is unsupported.</li>
  * </ol>
  *
- * <p>A redstone block gives a trapdoor beside it weak power 15 and does nothing when notified. Any other
+ * <p>A door follows the power of both its halves ({@code BlockDoor.neighborChanged} on the lower half, which
+ * the upper half passes its notifications to): when the power changes from what the upper half's {@code POWERED}
+ * holds, the door opens or shuts to match. The engine does not name {@code POWERED}; it is the power before
+ * the change, since every change of power notifies the door (a world built consistently).
+ *
+ * <p>A redstone block gives a trapdoor or a door beside it weak power 15 and does nothing when notified. Any other
  * block that reacts to power (D-702) next to a plate that changes, any other power source the trapdoor's
  * power depends on, and a box within {@link #EDGE} of a plate's edge are unsupported.
  */
@@ -52,6 +57,8 @@ public final class Mechanisms {
      * and never a normal cube, so the engine models it.
      */
     static final int REDSTONE_BLOCK = 7;
+    /** {@code BlockDoor}, either half. */
+    static final int DOOR = 8;
 
     /** How close to a plate's edge a box is taken as on the edge: the server's box can differ in the last bits. */
     static final double EDGE = 1.0E-6D;
@@ -140,6 +147,14 @@ public final class Mechanisms {
                 return TRAPDOOR;
             case "minecraft:redstone_block":
                 return REDSTONE_BLOCK;
+            case "minecraft:wooden_door":
+            case "minecraft:spruce_door":
+            case "minecraft:birch_door":
+            case "minecraft:jungle_door":
+            case "minecraft:acacia_door":
+            case "minecraft:dark_oak_door":
+            case "minecraft:iron_door":
+                return DOOR;
             case "minecraft:redstone_wire":
             case "minecraft:redstone_torch":
             case "minecraft:unlit_redstone_torch":
@@ -182,10 +197,10 @@ public final class Mechanisms {
         }
     }
 
-    /** True for the blocks this class moves: pressure plates and trapdoors. */
+    /** True for the blocks this class moves: pressure plates, trapdoors and doors. */
     public static boolean isModelled(BlockType t) {
         int k = t.mechanism();
-        return k >= WOODEN_PLATE && k <= TRAPDOOR;
+        return k >= WOODEN_PLATE && k <= TRAPDOOR || k == DOOR;
     }
 
     /**
@@ -321,6 +336,11 @@ public final class Mechanisms {
         for (int i = 0; i < server.length; i++) {
             if (server[i] != client[i]) {
                 server[i].addCollisionBoxes(world, xyz[3 * i], xyz[3 * i + 1], xyz[3 * i + 2], box, out);
+                if (server[i].mechanism() == DOOR) {
+                    // The upper half takes open from the lower half.
+                    world.getBlock(xyz[3 * i], xyz[3 * i + 1] + 1, xyz[3 * i + 2])
+                            .addCollisionBoxes(world, xyz[3 * i], xyz[3 * i + 1] + 1, xyz[3 * i + 2], box, out);
+                }
                 if (!out.isEmpty()) {
                     return true;
                 }
@@ -538,6 +558,9 @@ public final class Mechanisms {
         final List<Integer> due = new ArrayList<Integer>();
         final BlockWorld base;
         boolean unsupported;
+        /** The plate whose change is being passed on, and its state before it. */
+        int[] changing;
+        BlockType changingWas;
 
         Work(Mechanisms m, BlockWorld base) {
             this.base = base;
@@ -608,6 +631,8 @@ public final class Mechanisms {
 
         /** {@code updateState}'s change: the plate's new power, then {@code updateNeighbors}. */
         void setPower(int x, int y, int z, BlockType plate, int power, List<int[]> changed) {
+            changing = new int[] {x, y, z};
+            changingWas = get(x, y, z);
             set(x, y, z, withPower(plate, power));
             changed.add(new int[] {x, y, z});
             notifyAround(x, y, z, changed);
@@ -642,11 +667,47 @@ public final class Mechanisms {
                     set(x, y, z, VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(b.name()), p)));
                     changed.add(new int[] {x, y, z});
                 }
+            } else if (k == DOOR) {
+                doorChanged(x, y, z, b, changed);
             } else if (k == OTHER_SOURCE && !notifyInert(b)
                     || k != OTHER_SOURCE && !isPlate(b) && (b.reactsToPower() || b.isExcept(BlockType.UNSTABLE))) {
                 // A plate only checks the block under it, which stays.
                 unsupported = true;
             }
+        }
+
+        /** {@code BlockDoor.neighborChanged} on the lower half; the upper half passes the notification down. */
+        void doorChanged(int x, int y, int z, BlockType b, List<int[]> changed) {
+            String id = VanillaBlocks.blockId(b.name());
+            int ly = "upper".equals(VanillaBlocks.parseProperties(b.name()).get("half")) ? y - 1 : y;
+            BlockType lower = get(x, ly, z);
+            BlockType upper = get(x, ly + 1, z);
+            Map<String, String> lp = VanillaBlocks.parseProperties(lower.name());
+            if (!VanillaBlocks.blockId(lower.name()).equals(id) || !"lower".equals(lp.get("half")) || lp.get("open") == null
+                    || !VanillaBlocks.blockId(upper.name()).equals(id)
+                    || !"upper".equals(VanillaBlocks.parseProperties(upper.name()).get("half"))
+                    || !get(x, ly - 1, z).isNormalCube()) {
+                // A door that breaks (a half missing, nothing solid under it) or is named without its state.
+                unsupported = true;
+                return;
+            }
+            boolean powered = isBlockPowered(x, ly, z) | isBlockPowered(x, ly + 1, z);
+            if (powered != poweredBefore(x, ly, z) && Boolean.parseBoolean(lp.get("open")) != powered) {
+                lp.put("open", Boolean.toString(powered));
+                set(x, ly, z, VanillaBlocks.require(VanillaBlocks.name(id, lp)));
+                // Both halves change shape.
+                changed.add(new int[] {x, ly, z});
+                changed.add(new int[] {x, ly + 1, z});
+            }
+        }
+
+        /** The upper half's {@code POWERED}: the door's power with the changing plate as it was. */
+        private boolean poweredBefore(int x, int ly, int z) {
+            BlockType now = get(changing[0], changing[1], changing[2]);
+            set(changing[0], changing[1], changing[2], changingWas);
+            boolean was = isBlockPowered(x, ly, z) | isBlockPowered(x, ly + 1, z);
+            set(changing[0], changing[1], changing[2], now);
+            return was;
         }
 
         /**

@@ -54,4 +54,18 @@ public class MechanismsTest {
         }
         assertTrue(t.unsupportedAction);
     }
+
+    @Test
+    public void plateOpensTheDoorBesideIt() {
+        SparseBlockWorld w = new SparseBlockWorld().fill(-5, 63, -5, 5, 63, 5, BlockType.STONE);
+        w.setBlock(0, 64, 0, VanillaBlocks.require("minecraft:stone_pressure_plate[powered=false]"));
+        w.setBlock(1, 64, 0, VanillaBlocks.require("minecraft:iron_door[facing=east,half=lower,hinge=left,open=false]"));
+        w.setBlock(1, 65, 0, VanillaBlocks.require("minecraft:iron_door[facing=east,half=upper,hinge=left,open=false]"));
+        PlayerState s = PlayerState.standing(0.5, 64, 0.5, 0.0F);
+        for (int i = 0; i < 3; i++) {
+            Physics.step(w, s, PlayerInput.of(0, 0.0F));
+        }
+        assertFalse(s.unsupportedAction);
+        assertTrue(s.mech.toString().contains("1,64,0 minecraft:iron_door[facing=east,half=lower,hinge=left,open=true]"));
+    }
 }
