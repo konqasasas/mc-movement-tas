@@ -196,9 +196,9 @@ final class Explore {
                         g = segment(s, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
                     }
                     if (g != null) {
-                        m = advance(n, g, c);
+                        m = advance(n, held(g, c), c);
                     } else if (k < WIDE && n.on != null && !n.on.climb) {
-                        m = runUp(n, e, c, deadlineMillis);
+                        m = runUp(n, e, c, deadlineMillis, segmentMillis);
                     } else {
                         continue;
                     }
@@ -280,7 +280,7 @@ final class Explore {
      * Back to the far side of the surface underfoot, standing nearly still, then the jump from there:
      * a landing short of a post or wall top often has too little room left for the run-up.
      */
-    private Node runUp(Node n, Exit exit, Route.Surface c, long deadlineMillis) {
+    private Node runUp(Node n, Exit exit, Route.Surface c, long deadlineMillis, long segmentMillis) {
         PlayerState s = n.state;
         Target on = target(n.on);
         // A block back from the middle, away from the landing, as far as the surface reaches.
@@ -310,9 +310,10 @@ final class Explore {
         Node b = advance(n, walk, n.on);
         if (b == null) return null;
         int since = Math.max(0, Math.min(1000, b.inputs.size() - b.lastToggle));
-        Technique.Segment j = segment(b.state, since, exit, c.cx(), c.cz(), deadlineMillis, 0);
+        Technique.Segment j = segment(b.state, since, exit, c.cx(), c.cz(), deadlineMillis, segmentMillis);
+        if (j == null && !c.climb && narrow(c)) j = segment(b.state, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
         say("explore:     run-up from (" + fmt(bx) + ", " + fmt(bz) + ") to " + c + (j == null ? " failed" : " in " + j.inputs.size() + " ticks"));
-        return j == null ? null : advance(b, j, c);
+        return j == null ? null : advance(b, held(j, c), c);
     }
 
     /**
@@ -327,13 +328,18 @@ final class Explore {
      * Landing on {@code c}. On a post or wall top, also slow enough to stay on it: a landing at the far
      * edge at full speed leaves no tick to jump on from that a search finds.
      */
-    static Exit landing(Route.Surface c) {
+    Exit landing(Route.Surface c) {
         Target t = target(c);
         Exit e = Exit.landing(t);
         if (!narrow(c)) return e;
         return new Exit() {
             @Override
             public boolean reached(PlayerState before, PlayerState after) {
+                // Sneaking holds the player on at the very edge.
+                if (after.isSneaking() && after.onGround && Math.abs(after.posY - c.top) < 1e-6 && after.posX >= c.minX
+                        && after.posX <= c.maxX && after.posZ >= c.minZ && after.posZ <= c.maxZ) return true;
+                if (after.onGround && Math.abs(after.posY - c.top) < 1e-6 && after.posX >= c.minX && after.posX <= c.maxX
+                        && after.posZ >= c.minZ && after.posZ <= c.maxZ && holds(after, c)) return true;
                 if (!e.reached(before, after)) return false;
                 // Where friction stops the player with no input: about 1.2 ticks of the speed further.
                 double x = after.posX + 1.2 * after.motionX, z = after.posZ + 1.2 * after.motionZ;
@@ -346,6 +352,39 @@ final class Explore {
             }
         };
     }
+
+    /**
+     * The segment's inputs, and on a post or wall top landed on too fast to stay, a few ticks of
+     * sneaking that hold the player at the edge (when they do).
+     */
+    private List<PlayerInput> held(Technique.Segment g, Route.Surface c) {
+        if (c == null || c.climb || !narrow(c) || g.inputs.isEmpty()) return g.inputs;
+        PlayerState s = g.exit;
+        Target t = target(c);
+        double x = s.posX + 1.2 * s.motionX, z = s.posZ + 1.2 * s.motionZ;
+        if (x >= t.minX && x <= t.maxX && z >= t.minZ && z <= t.maxZ) return g.inputs;
+        List<PlayerInput> out = new ArrayList<PlayerInput>(g.inputs);
+        float yaw = g.inputs.get(g.inputs.size() - 1).yaw;
+        for (int i = 0; i < HOLD; i++) {
+            PlayerInput a = PlayerInput.of(PlayerInput.SNEAK, yaw);
+            s = Physics.tick(problem.world, s, a);
+            if (!s.onGround || Math.abs(s.posY - c.top) > 1e-6) return g.inputs;
+            out.add(a);
+        }
+        return out;
+    }
+
+    /** True when sneaking from {@code s} keeps the player standing on {@code c}. */
+    private boolean holds(PlayerState s, Route.Surface c) {
+        for (int i = 0; i < HOLD; i++) {
+            s = Physics.tick(problem.world, s, PlayerInput.of(PlayerInput.SNEAK, 0F));
+            if (!s.onGround || Math.abs(s.posY - c.top) > 1e-6) return false;
+        }
+        return true;
+    }
+
+    /** Ticks of sneaking that stop the player at the edge of a post. */
+    static final int HOLD = 3;
 
     /** A post or wall top: narrower than a block either way (footprints are grown by the half width). */
     static boolean narrow(Route.Surface c) {
