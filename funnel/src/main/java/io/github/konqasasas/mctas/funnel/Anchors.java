@@ -43,6 +43,11 @@ final class Anchors {
         boolean provisional;
         /** An anchor near it was verified since its last attempt. */
         boolean retry;
+        /**
+         * A verified anchor on the same floor is next to it ({@link FunnelSolver#COVER}): tried only
+         * when the search stalls, since beams through it land on that one.
+         */
+        boolean covered;
 
         Anchor(int id, int bx, int by, int bz, double top, double cx, double cz, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
