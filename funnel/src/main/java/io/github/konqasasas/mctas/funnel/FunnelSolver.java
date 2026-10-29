@@ -39,7 +39,7 @@ import java.util.concurrent.Future;
  * clock plus the anchor's time. It runs whenever the verified set has grown near the start.
  */
 public final class FunnelSolver {
-    public static final String ENGINE = "funnel-v1";
+    public static final String ENGINE = "funnel-v2";
 
     public static final class Solution {
         public final List<TickInput> inputs;
