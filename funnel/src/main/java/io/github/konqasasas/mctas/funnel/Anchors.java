@@ -39,6 +39,8 @@ final class Anchors {
         boolean moving;
         /** Real landings on it at speed, from other anchors' beams: roots for its beam at speed. */
         final List<Beam.Node> arrivals = new ArrayList<Beam.Node>();
+        /** Its time is a guess past a stretch no beam got across ({@link FunnelSolver}'s bridge), not a beam's. */
+        boolean provisional;
         /** An anchor near it was verified since its last attempt. */
         boolean retry;
 
