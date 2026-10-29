@@ -63,6 +63,12 @@ final class Course {
         /** Moves in {@link #next} that only another maneuver makes (through a body, down a hole), not a step. */
         final Set<Surface> notByStep = new HashSet<Surface>();
 
+        /** The id, so that sets of surfaces go round in the same order on every run and every build (E-528). */
+        @Override
+        public int hashCode() {
+            return id;
+        }
+
         Surface(int id, int x, int y, int z, double top, double minX, double minZ, double maxX, double maxZ) {
             this.id = id;
             this.x = x;
