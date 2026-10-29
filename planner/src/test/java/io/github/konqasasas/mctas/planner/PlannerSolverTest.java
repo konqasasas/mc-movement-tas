@@ -98,6 +98,16 @@ public class PlannerSolverTest {
     }
 
     @Test
+    public void aimsAtTheFarEdgeOfAPostToKeepTheSpeed() throws Exception {
+        // F-529: iron bars three on, then a fence four on. Besides the middle of the bars, one aim lands at
+        // their far edge on the way to the fence, so that the hop off them can start at full speed.
+        Course c = new Course(ProblemIO.read(Paths.get("src/test/resources/course/post-carry.problem.json")));
+        boolean far = false;
+        for (double[] a : new Planner(c).aims(Run.spawn(c))) far |= a[2] == 66.0 && a[1] > 3.65;
+        assertTrue(far);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));

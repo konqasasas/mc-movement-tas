@@ -139,6 +139,50 @@ public final class GuideData {
         return out;
     }
 
+    /**
+     * For each landing of a solution that stays on the ground two ticks or more before its next jump to
+     * another platform: whether jumping at once (after 0 or 1 ground ticks, with the planner's step
+     * controller aimed at where the solution landed next) also lands on that platform, and how many
+     * ticks earlier. Each row: {ground ticks, ticks to the next landing, best ticks with a quick jump or -1}.
+     */
+    static List<int[]> quickJumps(Problem problem, List<TickInput> inputs) {
+        Course c = new Course(problem);
+        Run r = Run.spawn(c);
+        List<Run> lands = new ArrayList<Run>();
+        List<Integer> takeoff = new ArrayList<Integer>();
+        boolean was = r.s.onGround;
+        for (TickInput t : inputs) {
+            Run before = r.copy();
+            r.step(PhysicsModel.toPhysics(t));
+            if (r.dead) return null;
+            if (r.done()) break;
+            if (r.s.onGround && !was && r.entry >= 0) lands.add(r.copy());
+            if (!r.s.onGround && was && !lands.isEmpty() && takeoff.size() < lands.size()) takeoff.add(before.tick);
+            was = r.s.onGround;
+        }
+        List<int[]> out = new ArrayList<int[]>();
+        for (int i = 0; i + 1 < lands.size() && i < takeoff.size(); i++) {
+            Run l = lands.get(i), n = lands.get(i + 1);
+            int ground = takeoff.get(i) - l.tick + 1;
+            int p0 = c.platformAt(l.s), p1 = c.platformAt(n.s);
+            if (ground < 2 || p1 < 0 || p1 == p0) continue;
+            Course.Surface s = c.support(n.s.posX, n.s.posY, n.s.posZ);
+            int best = -1;
+            for (int jumpAt = 0; jumpAt <= 1; jumpAt++) {
+                for (int strafe : StepManeuver.ALL_STRAFES) {
+                    Step st = new Step(n.s.posX, s.top, n.s.posZ, new double[] {s.minX, s.maxX, s.minZ, s.maxZ}, strafe, jumpAt);
+                    Run x = l.copy();
+                    st.play(x, new ArrayList<io.github.konqasasas.mctas.physics.PlayerInput>());
+                    if (x.dead || !x.s.onGround || c.platformAt(x.s) != p1) continue;
+                    int dt = x.tick - l.tick;
+                    if (best < 0 || dt < best) best = dt;
+                }
+            }
+            out.add(new int[] {ground, n.tick - l.tick, best});
+        }
+        return out;
+    }
+
     /** The surface of {@code last}'s platform the move to {@code b} is best taken from: on the optimistic graph if it has the move. */
     private static Course.Surface from(Course c, Course.Surface last, Course.Surface b) {
         if (last.next.contains(b)) return last;
