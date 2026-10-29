@@ -62,6 +62,14 @@ public final class PlayerState implements Cloneable {
     public Pressed pressed = Pressed.NONE;
     /** The shulker box the player opened, until it is shut again. Immutable and shared between copies. */
     public Shulker shulker = Shulker.NONE;
+    /** Pressure plates the player pressed and what they moved. Immutable and shared between copies. */
+    public Mechanisms mech = Mechanisms.NONE;
+    /**
+     * A bound on how far across the server's own move of its player may take it from the position last sent:
+     * the sprint boost of the jumps the server saw, less friction ({@link Mechanisms}). Derived from the other
+     * fields' history, so it is left out of {@link #equals}.
+     */
+    public double serverDrift;
     /** The hotbar. Immutable and shared between copies. */
     public Hotbar hotbar = Hotbar.EMPTY;
     /** {@code InventoryPlayer.currentItem}. */
@@ -140,9 +148,12 @@ public final class PlayerState implements Cloneable {
         return prevSneak;
     }
 
-    /** The world as this player sees it: {@code base} with {@link #placed}, {@link #pressed} and {@link #shulker} on top. */
+    /**
+     * The world as this player sees it: {@code base} with {@link #mech}, {@link #shulker}, {@link #pressed} and
+     * {@link #placed} on top.
+     */
     public BlockWorld world(BlockWorld base) {
-        return placed.over(pressed.over(shulker.over(base)));
+        return placed.over(pressed.over(shulker.over(mech.over(base))));
     }
 
     public PlayerState copy() {
@@ -190,6 +201,7 @@ public final class PlayerState implements Cloneable {
         if (jumpBoostAmplifier != o.jumpBoostAmplifier) return "jumpBoostAmplifier";
         if (!pressed.equals(o.pressed)) return "pressed";
         if (!shulker.equals(o.shulker)) return "shulker";
+        if (!mech.equals(o.mech)) return "mech";
         if (!hotbar.equals(o.hotbar)) return "hotbar";
         if (selectedSlot != o.selectedSlot) return "selectedSlot";
         if (rightClickDelay != o.rightClickDelay) return "rightClickDelay";
@@ -263,6 +275,7 @@ public final class PlayerState implements Cloneable {
         h = mix(h, jumpBoostAmplifier);
         h = mix(h, pressed.hashCode());
         h = mix(h, shulker.hashCode());
+        h = mix(h, mech.hashCode());
         h = mix(h, hotbar.hashCode());
         h = mix(h, selectedSlot);
         h = mix(h, rightClickDelay);
@@ -299,6 +312,7 @@ public final class PlayerState implements Cloneable {
                 + (placed.isEmpty() ? "" : " placed=" + placed.size())
                 + (pressed.isEmpty() ? "" : " pressed=" + pressed)
                 + (shulker.isNone() ? "" : " shulker=" + shulker)
+                + (mech.isNone() ? "" : " mech=[" + mech + "]")
                 + (rightClickDelay == 0 ? "" : " useDelay=" + rightClickDelay)
                 + (unsupportedAction ? " UNSUPPORTED" : "");
     }
