@@ -37,7 +37,7 @@ public final class ImproveMain {
     private static final String USAGE = String.join("\n",
             "usage:",
             "  mctas-improve run <problem.json|problem-dir> --seeds <file|dir>[,...] --out <dir> [--budget seconds]",
-            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--quiet]",
+            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--quiet]",
             "    Improves the seed runs of each problem for --budget seconds (default 60) and writes",
             "    <id with / as _>.solution.json and .tas to --out. Seeds are .tas or .solution.json files; in a",
             "    directory, a .solution.json is matched by the problem id inside, a .tas by its file name",
@@ -75,6 +75,8 @@ public final class ImproveMain {
                 case "--fixed-shares": o.adaptive = false; break;
                 case "--no-toggle-fix": o.fixToggles = false; break;
                 case "--no-drift": o.useDrift = false; break;
+                case "--focus": o.focusChance = Double.parseDouble(args[++i]); break;
+                case "--rejump": o.rejumpChance = Double.parseDouble(args[++i]); break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);
@@ -107,6 +109,9 @@ public final class ImproveMain {
             PlayerInput[] arr = new PlayerInput[in.size()];
             for (int i = 0; i < arr.length; i++) arr[i] = PhysicsModel.toPhysics(in.get(i));
             Run r = course.evaluate(arr);
+            Run m = Improver.mend(course, r, o.seed);
+            if (m != r) System.out.println(p.id + ": seed " + s + ": " + r + "; mended: " + m);
+            r = m;
             judged.add(r);
             System.out.println(p.id + ": seed " + s + ": " + r);
             if (r.valid() && r.betterThan(first)) first = r;

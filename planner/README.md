@@ -33,6 +33,16 @@ problem/build/install/mctas-problem/bin/mctas-problem score problems/v1-dev out/
 
 スプリントとスニークの切り替えは 3 ティック以上空けます(D-004、`Run.legal`)。スニークは、つたやはしごで落下を止めるときだけ使います。どの解答も最後に判定(`Evaluator`)と `ToggleRule` で確かめます。
 
+## 学習した案内(WS13)
+
+`solve --guide planner/guide/guide-v1.txt [--guide-penalty 10]` で、A* の並べる順に学習した見積もりを使います(既定はオフ)。足場グラフの台どうしの跳び(全力のジャンプ + 余裕 0.8)を A* が実際に作れる確率を、跳びの特徴(隙間、高さ、余裕、助走の長さ、着地側の奥行きと幅、天井。`GuideFeatures`)からロジスティック回帰で出し(`GuideModel`)、各跳びに −log(確率) × 罰 tick を足したダイクストラで見積もりを作ります(`GuideField`)。刈り込みと狙いの選び方は下界(`Course.toGo`)のままです。案内ありの探索が止まったら、案内なしで続けます。
+
+- `guide-data <problems-root> <out.csv> <解|フォルダ>...`: 解を再生して、台どうしの移動とその特徴を書きます
+- `guide-record <問題|フォルダ> <out.csv> [--budget 秒]`: planner を走らせ、A* が狙った台の組と届いたかを書きます
+- `guide-train <モデル> <record.csv>... [--holdout 接頭辞] [--drop 接頭辞]`: 学習してモデルを書きます
+
+報告専用の問題(human5、waza3、gen-holdout、gen-dev2-holdout、v1-holdout)はどのコマンドも拒否します。`guide-v1` は開発用 61 問の記録から、waza を除いて学んだものです。成績は research/findings/ws13.md。
+
 ## WS8 との取り決め
 
 区間遷移は `Technique.solve(world, entry, ticksSinceLastToggle, Target/Exit, ...)` で受け取り、(ティック数, 出口の速さ)のパレート集合として返してもらいます。入力列は `FixedMove` として計画に入り、再生時に判定の規則で確かめ直します。

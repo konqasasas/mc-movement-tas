@@ -17,7 +17,14 @@ final class Micro {
     private Micro() {
     }
 
+    /** Chance that a call jumps again on a landing instead of making random edits ({@link #rejump}). */
+    static double rejumpChance = 0;
+
     static Run mutate(Course c, Run cur, Random rnd) {
+        if (rnd.nextDouble() < rejumpChance) {
+            Run r = rejump(c, cur, rnd);
+            if (r != null) return r;
+        }
         List<PlayerInput> in = new ArrayList<PlayerInput>(Arrays.asList(cur.inputs).subList(0, cur.goalTick));
         int n = in.size();
         int center = rnd.nextInt(n);
@@ -94,5 +101,43 @@ final class Micro {
                 return Math.min(j, k);
             }
         }
+    }
+
+    /**
+     * Jumps again on the tick the run lands, where it stays on the ground for a tick or more first:
+     * the key technique of time attacks (the user, 2026-10-29). The next jump press within a few
+     * ticks is released (half the time the view turns to its direction in the air first: the runs
+     * often turn on the ground for 2 to 12 ticks), and half the time one to three ticks are dropped.
+     */
+    static Run rejump(Course c, Run cur, Random rnd) {
+        int[] land = new int[cur.goalTick];
+        int n = 0;
+        for (int t = Math.max(1, cur.startTick - 12); t < cur.goalTick - 1; t++) {
+            if (cur.states[t].onGround && !cur.states[t - 1].onGround && !cur.inputs[t].has(PlayerInput.JUMP)) land[n++] = t;
+        }
+        if (n == 0) return null;
+        int t = land[rnd.nextInt(n)];
+        List<PlayerInput> in = new ArrayList<PlayerInput>(Arrays.asList(cur.inputs).subList(0, cur.goalTick));
+        PlayerInput x = in.get(t);
+        in.set(t, Edits.withKeys(x, x.keys | PlayerInput.JUMP));
+        int from = t;
+        for (int k = t + 1; k < Math.min(in.size(), t + 14); k++) {
+            PlayerInput y = in.get(k);
+            if (y.has(PlayerInput.JUMP)) {
+                in.set(k, Edits.withKeys(y, y.keys & ~PlayerInput.JUMP));
+                // Half the time, face the old take-off direction already in the air before landing,
+                // so the turn the run made on the ground is done before the new jump.
+                if (rnd.nextBoolean()) {
+                    from = Math.max(0, t - rnd.nextInt(7));
+                    for (int j = from; j <= t; j++) in.set(j, Edits.withYaw(in.get(j), y.yaw));
+                }
+                break;
+            }
+        }
+        if (rnd.nextBoolean()) {
+            int drop = 1 + rnd.nextInt(3);
+            for (int k = 0; k < drop && t + 1 < in.size() - 1; k++) in.remove(t + 1);
+        }
+        return c.evaluate(cur, from, Edits.pad(in));
     }
 }
