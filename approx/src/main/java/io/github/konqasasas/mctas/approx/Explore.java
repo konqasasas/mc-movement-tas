@@ -401,7 +401,7 @@ final class Explore {
      * sneaking that hold the player at the edge (when they do).
      */
     private List<PlayerInput> held(Technique.Segment g, Route.Surface c) {
-        if (c == null || c.climb || !narrow(c) || g.inputs.isEmpty() || System.getenv("NO_HOLD") != null) return g.inputs;
+        if (c == null || c.climb || !narrow(c) || g.inputs.isEmpty()) return g.inputs;
         PlayerState s = g.exit;
         Target t = target(c);
         double x = s.posX + 1.2 * s.motionX, z = s.posZ + 1.2 * s.motionZ;
