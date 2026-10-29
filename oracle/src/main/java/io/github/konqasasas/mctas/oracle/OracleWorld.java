@@ -196,10 +196,13 @@ final class OracleWorld extends World {
         if (server) {
             IBlockState st = getBlockState(pos);
             if (givesPower(pos)) {
-                reachedUnmodelled = true;
-                return;
-            }
-            if (st.getBlock() instanceof net.minecraft.block.BlockTrapDoor) {
+                // A daylight detector has no neighborChanged; the engine lets it be.
+                if (!io.github.konqasasas.mctas.physics.Mechanisms.notifyInert(
+                        VanillaBlocks.require(VanillaOracle.catalogName(st)))) {
+                    reachedUnmodelled = true;
+                    return;
+                }
+            } else if (st.getBlock() instanceof net.minecraft.block.BlockTrapDoor) {
                 // The engine's rule: any other power source the trapdoor's power depends on is unsupported.
                 for (net.minecraft.util.EnumFacing f : net.minecraft.util.EnumFacing.values()) {
                     BlockPos n = pos.offset(f);
