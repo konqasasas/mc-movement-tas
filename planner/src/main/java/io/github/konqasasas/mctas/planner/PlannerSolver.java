@@ -34,6 +34,12 @@ public final class PlannerSolver {
     static final double FAR = Double.parseDouble(System.getProperty("planner.far", "1.5"));
     static final double FAR_STEP = Double.parseDouble(System.getProperty("planner.farStep", "0.5"));
     static final int TARGETS_STEP = Integer.getInteger("planner.targetsStep", 1);
+    /** The share of the time left that the weight-3 round takes after the greedy round's plan. */
+    static final double LEVEL1_SHARE = Double.parseDouble(System.getProperty("planner.level1Share", "0.667"));
+    /** How much finer the state cells get each round: none, the coarse cells search faster (E-524). */
+    static final double CELL_STEP = Double.parseDouble(System.getProperty("planner.cellStep", "0"));
+    /** Expansions without progress before a search with no plan yet counts as stalled (F-525; 0: never). */
+    static final int STALL = Integer.getInteger("planner.stall", 3000);
     /** From this round on, aim only for the platforms of the plans found so far. */
     static final int CORRIDOR_FROM = Integer.getInteger("planner.corridorFrom", Integer.MAX_VALUE);
 
@@ -98,31 +104,52 @@ public final class PlannerSolver {
         Planner.Plan best = null;
         long foundAt = -1;
         boolean segmentsDone = false;
+        int repairs = 0;
         java.util.Set<Integer> corridor = new java.util.HashSet<Integer>();
         // Rounds of growing breadth: a greedy first round for a plan soon, then each round bounded by
-        // the best time with a lower weight, more footholds to aim for, finer speed states and wider
+        // the best time with a lower weight, more footholds to aim for and wider
         // jump branching, until the budget runs out. Each new plan is tightened.
         for (int level = 0; System.currentTimeMillis() < deadline; level++) {
             Planner planner = new Planner(course);
             planner.weight = level == 0 ? FIRST_WEIGHT : WEIGHTS[Math.min(level, WEIGHTS.length) - 1];
             planner.targets = Math.min(4 + TARGETS_STEP * level, 10);
             planner.window = 4 + 2 * level;
-            planner.posCell = 0.2 / (1 + 0.5 * level);
-            planner.velCell = 0.04 / (1 + 0.5 * level);
+            planner.posCell = 0.2 / (1 + CELL_STEP * level);
+            planner.velCell = 0.04 / (1 + CELL_STEP * level);
             planner.far = FAR + FAR_STEP * level;
             // The greedy first round hands most of the time on once it has a plan.
             if (level == 0) planner.afterFirst = 0.2;
             if (level >= CORRIDOR_FROM && !corridor.isEmpty()) planner.corridor = corridor;
+            if (best == null && repairs < 50) planner.stallAfter = STALL;
             // Until there is a plan, a round keeps the whole budget: restarting a long course from
             // scratch with a stricter search only throws the frontier away. After the greedy round's
             // plan, the next round (weight 3) takes most of what is left: it is the one that finds the
             // good plans on the short courses (F-518).
             long left = deadline - System.currentTimeMillis();
-            long until = best == null ? deadline : System.currentTimeMillis() + (level == 1 ? left * 2 / 3 : left / 2);
+            long until = best == null ? deadline : System.currentTimeMillis() + (level == 1 ? (long) (left * LEVEL1_SHARE) : left / 2);
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
+            if (p == null && planner.stalled) {
+                // Stalled with no plan: the bound promised moves that no move makes. Off the platform the
+                // search came nearest the goal on that still has such moves, they are dropped.
+                List<Integer> order = new ArrayList<Integer>(planner.nearest.keySet());
+                order.sort((a, b) -> Double.compare(planner.nearest.get(a), planner.nearest.get(b)));
+                int dropped = 0, on = -1;
+                for (int pl : order) {
+                    dropped = course.dropUnmade(pl, planner.landed, problem.spawn.pos.x, problem.spawn.pos.y, problem.spawn.pos.z);
+                    if (dropped > 0) {
+                        on = pl;
+                        break;
+                    }
+                }
+                repairs++;
+                say("stalled: dropped " + dropped + " unmade moves off platform " + on + ", bound from spawn now " + String.format("%.1f", course.toGo(problem.spawn.pos.x, problem.spawn.pos.y, problem.spawn.pos.z)));
+                if (dropped > 0) level--;
+                else repairs = Integer.MAX_VALUE;
+                continue;
+            }
             if (p != null) {
                 corridor.addAll(p.platforms);
                 best = p;
