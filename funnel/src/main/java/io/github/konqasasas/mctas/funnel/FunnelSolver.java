@@ -167,7 +167,10 @@ public final class FunnelSolver {
                     fs.add(pool.submit(new Callable<Beam.Hit>() {
                         @Override
                         public Beam.Hit call() {
-                            return verify(a, deadline);
+                            long v0 = System.nanoTime();
+                            Beam.Hit h = verify(a, deadline);
+                            a.lastMillis = (System.nanoTime() - v0) / 1_000_000;
+                            return h;
                         }
                     }));
                 }
@@ -180,7 +183,7 @@ public final class FunnelSolver {
                     }
                     tried++;
                     Anchors.Anchor a = batch.get(i);
-                    if (DEBUG) say(String.format("  anchor %s top %.2f try %d guess %.1f + %.1f: %s", a, a.top, a.attempts, guess(a)[0], minFwd(a.cells),
+                    if (DEBUG) say(String.format("  anchor %s top %.2f try %d guess %.1f + %.1f (%d ms run %d): %s", a, a.top, a.attempts, guess(a)[0], minFwd(a.cells), a.lastMillis, a.lastRun,
                         h == null ? "no hit" : String.format("%.1f via %s in %d ticks%s", h.value, h.anchor == null ? "goal" : h.anchor.toString(), h.inputs.size(), a.moving ? " at speed" : "")));
                     if (h == null) continue;
                     a.v = h.value;
@@ -358,6 +361,8 @@ public final class FunnelSolver {
     /** Guessed landings in the forward run ({@link Beam.Options#guess}; 0 turns them off), and how much nearer by the field. */
     static final float GUESS = System.getenv("FUNNEL_GUESS") != null ? Float.parseFloat(System.getenv("FUNNEL_GUESS")) : 1.5F;
     static final float GUESS_PROGRESS = 6;
+    /** A checking beam with no hit gives up after this many ticks of no headway ({@link Beam.Options#stall}; 0 never). */
+    static final int STALL = System.getenv("FUNNEL_STALL") != null ? Integer.parseInt(System.getenv("FUNNEL_STALL")) : 25;
     static final float REACH = System.getenv("FUNNEL_REACH") != null ? Float.parseFloat(System.getenv("FUNNEL_REACH")) : 0.5F;
     static final boolean ALONG = System.getenv("FUNNEL_NO_ALONG") == null;
 
@@ -408,9 +413,11 @@ public final class FunnelSolver {
             // The beam has to cover the moves to the verified set, which the field underrates.
             o.maxTicks = (int) Math.max(a.attempts <= 1 ? 60 : 120, Math.min(400, 2 * gap + 20));
             o.collect = true;
+            o.stall = STALL;
             o.self = a;
             o.deadlineNanos = System.nanoTime() + Math.min(20_000L, Math.max(0, deadline - System.currentTimeMillis())) * 1_000_000L;
             List<Beam.Hit> hits = beam.search(roots, o);
+            a.lastRun = run;
             if (!hits.isEmpty()) {
                 a.moving = run == 1;
                 Beam.Hit h = hits.get(0);
