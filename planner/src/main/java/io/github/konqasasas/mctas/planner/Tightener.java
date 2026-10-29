@@ -115,6 +115,9 @@ final class Tightener {
                         moves = new ArrayList<Move>(trial.subList(0, cur.before.size()));
                         best = t;
                         kept++;
+                        // The other segments were found for the moves as they were: the plan has changed
+                        // (and may be shorter, so i + span can be past its end).
+                        break;
                     }
                 }
             }
