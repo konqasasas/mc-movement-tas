@@ -38,6 +38,29 @@ final class OracleServer {
     private final Set<BlockPos> touched = new LinkedHashSet<BlockPos>();
     private List<BlockPos> maybe = new ArrayList<BlockPos>();
     double drift;
+    /** The button or lever the client right-clicked this tick, and where on it; null for none. */
+    private BlockPos activatePos;
+    private EnumFacingHit activateHit;
+
+    private static final class EnumFacingHit {
+        final net.minecraft.util.EnumFacing side;
+        final float x;
+        final float y;
+        final float z;
+
+        EnumFacingHit(net.minecraft.util.EnumFacing side, float x, float y, float z) {
+            this.side = side;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    /** The client sent a right-click on a button or lever; the server takes it in its next packets. */
+    void activate(BlockPos pos, net.minecraft.util.EnumFacing side, float x, float y, float z) {
+        activatePos = pos.toImmutable();
+        activateHit = new EnumFacingHit(side, x, y, z);
+    }
 
     OracleServer(SparseBlockWorld blocks, OracleWorld client) {
         this.base = blocks;
@@ -46,6 +69,7 @@ final class OracleServer {
         this.world.server = true;
         this.entity = new OraclePlayer(world);
         this.world.player = entity;
+        this.world.settleDoors();
     }
 
     void load(PlayerState s) {
@@ -67,6 +91,7 @@ final class OracleServer {
             maybe.add(new BlockPos(mb[i], mb[i + 1], mb[i + 2]));
         }
         drift = s.serverDrift;
+        world.settleDoors();
     }
 
     /**
@@ -74,15 +99,29 @@ final class OracleServer {
      * has a collision box that overlaps the player's (the engine's rule).
      */
     boolean arrive(AxisAlignedBB playerBox) {
-        boolean hit = false;
+        // Every block first, then the boxes: a door's upper half takes its shape from the lower half.
+        List<BlockPos> arrived = new ArrayList<BlockPos>();
         for (BlockPos p : touched) {
             IBlockState sv = world.getBlockState(p);
-            if (sv != client.getBlockState(p)) {
-                List<AxisAlignedBB> out = new ArrayList<AxisAlignedBB>();
-                sv.addCollisionBoxToList(client, p, playerBox, out, null, false);
-                hit |= !out.isEmpty();
+            IBlockState cl = client.getBlockState(p);
+            if (sv != cl) {
+                if (!VanillaOracle.catalogName(sv).equals(VanillaOracle.catalogName(cl))) {
+                    // Not a door's upper half that only took POWERED, which the engine does not name.
+                    arrived.add(p);
+                }
                 client.set(p, sv);
             }
+        }
+        boolean hit = false;
+        List<AxisAlignedBB> out = new ArrayList<AxisAlignedBB>();
+        for (BlockPos p : arrived) {
+            IBlockState sv = client.getBlockState(p);
+            sv.addCollisionBoxToList(client, p, playerBox, out, null, false);
+            if (sv.getBlock() instanceof net.minecraft.block.BlockDoor
+                    && sv.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.LOWER) {
+                client.getBlockState(p.up()).addCollisionBoxToList(client, p.up(), playerBox, out, null, false);
+            }
+            hit |= !out.isEmpty();
         }
         return hit;
     }
@@ -114,6 +153,15 @@ final class OracleServer {
         }
         world.changes.clear();
         world.reachedUnmodelled = false;
+        if (activatePos != null) {
+            // processTryUseItemOnBlock comes before processPlayer: the game's own onBlockActivated on the server.
+            IBlockState st = world.getBlockState(activatePos);
+            st.getBlock().onBlockActivated(world, activatePos, st, entity, net.minecraft.util.EnumHand.MAIN_HAND,
+                    activateHit.side, activateHit.x, activateHit.y, activateHit.z);
+            touched.addAll(world.changes);
+            world.changes.clear();
+            activatePos = null;
+        }
         entity.collideWithBlocks();
         Map<BlockPos, List<BlockPos>> pressedNow = new LinkedHashMap<BlockPos, List<BlockPos>>();
         List<BlockPos> current = null;
@@ -136,6 +184,16 @@ final class OracleServer {
                 unsupported = true;
             }
             for (BlockPos c : changed) {
+                IBlockState cs = world.getBlockState(c);
+                if (cs.getBlock() instanceof net.minecraft.block.BlockDoor) {
+                    // A door counts as both halves when it opens or shuts; the upper half's POWERED alone is nothing.
+                    if (cs.getValue(net.minecraft.block.BlockDoor.HALF) == net.minecraft.block.BlockDoor.EnumDoorHalf.UPPER) {
+                        continue;
+                    }
+                    if (swept.intersects(new AxisAlignedBB(c.up()))) {
+                        unsupported = true;
+                    }
+                }
                 if (!c.equals(m) && swept.intersects(new AxisAlignedBB(c))) {
                     unsupported = true;
                 }

@@ -220,6 +220,10 @@ public final class BlockTableWriter {
         if (s.getBlock() instanceof BlockShulkerBox) {
             sel += "\tlid " + s.getValue(BlockShulkerBox.FACING);
         }
+        if (s.getBlock() instanceof net.minecraft.block.BlockLever) {
+            // The power it gives a trapdoor or a door (Mechanisms).
+            sel += "\tpowered " + s.getValue(net.minecraft.block.BlockLever.POWERED);
+        }
         return sel;
     }
 

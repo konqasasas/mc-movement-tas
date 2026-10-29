@@ -234,15 +234,23 @@ props	minecraft:leaves
 minecraft:leaves	3f19999a	0	0	1	23	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
 props	minecraft:leaves2	
 minecraft:leaves2	3f19999a	0	0	1	23	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
-props	minecraft:lever	facing
-minecraft:lever[facing=down_x]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=down_z]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=east]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=north]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=south]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=up_x]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=up_z]	3f19999a	0	0	0	0	888888	
-minecraft:lever[facing=west]	3f19999a	0	0	0	0	888888	
+props	minecraft:lever	facing,powered
+minecraft:lever[facing=down_x,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=down_x,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=down_z,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=down_z,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=east,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=east,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=north,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=north,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=south,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=south,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=up_x,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=up_x,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=up_z,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=up_z,powered=true]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=west,powered=false]	3f19999a	0	0	0	0	888888	
+minecraft:lever[facing=west,powered=true]	3f19999a	0	0	0	0	888888	
 props	minecraft:light_blue_glazed_terracotta	
 minecraft:light_blue_glazed_terracotta	3f19999a	1	0	1	0	000000	0x0.0p0,0x0.0p0,0x0.0p0,0x1.0p0,0x1.0p0,0x1.0p0
 props	minecraft:light_blue_shulker_box	facing

@@ -47,7 +47,7 @@ public final class RandomScenario {
             "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
 
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker", "plate"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker", "plate", "door", "switch"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -68,7 +68,7 @@ public final class RandomScenario {
         int i = java.util.Arrays.asList(COURSES).indexOf(course);
         if (i < 0) {
             throw new IllegalArgumentException("unknown course kind " + course
-                    + ", expected full, shapes, fluids, place, press, shulker or plate");
+                    + ", expected full, shapes, fluids, place, press, shulker, plate, door or switch");
         }
         return i;
     }
@@ -123,23 +123,46 @@ public final class RandomScenario {
         return generate(seed, ticks, 6, null, null);
     }
 
+    /**
+     * {@link #generate} courses with pressure plates around the start and doors of every kind that they power:
+     * beside them, beside the block under them (sunk into the floor), and a block away; some open, now and then
+     * a redstone block powering one, a door that would break, or another power source.
+     */
+    public static RandomScenario generateDoors(long seed, int ticks) {
+        return generate(seed, ticks, 7, null, null);
+    }
+
+    /**
+     * {@link #generatePressing} courses whose posts have trapdoors and doors around them that the buttons and
+     * levers power: beside the post, beside a button, under a button on top; some levers start on.
+     */
+    public static RandomScenario generateSwitches(long seed, int ticks) {
+        return generate(seed, ticks, 8, null, null);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind, BlockWorld simWorld, PlayerState simStart) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
-        boolean shapes = kind != 0 && kind != 6;
-        boolean pressing = kind == 4;
+        boolean shapes = kind != 0 && kind != 6 && kind != 7;
+        boolean pressing = kind == 4 || kind == 8;
         boolean shulkers = kind == 5;
         boolean placing = kind == 3 || pressing || shulkers;
         BlockType[] palette = shapes ? shapeCourse(r, w, base, placing) : fullBlockCourse(r, w, base);
-        if (pressing) {
+        if (kind == 4) {
             addPosts(r, w, base);
+        }
+        if (kind == 8) {
+            addSwitches(r, w, base);
         }
         if (kind == 2) {
             addFluids(r, w, base, palette);
         }
         if (kind == 6) {
             addPlates(r, w, base);
+        }
+        if (kind == 7) {
+            addDoors(r, w, base);
         }
         double sx = 0.3 + r.nextDouble() * 1.4 - 0.5;
         double sz = 0.3 + r.nextDouble() * 1.4 - 0.5;
@@ -331,6 +354,70 @@ public final class RandomScenario {
         }
     }
 
+    /** Stone posts with buttons and levers, and trapdoors and doors they power; see {@link #generateSwitches}. */
+    private static void addSwitches(Random r, SparseBlockWorld w, int base) {
+        String[] doors = {"minecraft:wooden_door", "minecraft:spruce_door", "minecraft:iron_door"};
+        String[] facings = {"north", "south", "west", "east"};
+        for (int posts = 2 + r.nextInt(4); posts > 0; posts--) {
+            int px = r.nextInt(9) - 4;
+            int pz = r.nextInt(9) - 4;
+            if (Math.abs(px) <= 2 && Math.abs(pz) <= 2 || !clear(w, px, base, pz)) {
+                continue;
+            }
+            for (int x = px - 2; x <= px + 2; x++) {
+                for (int z = pz - 2; z <= pz + 2; z++) {
+                    w.fill(x, base, z, x, base + 3, z, BlockType.AIR);
+                    // A floor that holds a door.
+                    w.setBlock(x, base - 1, z, BlockType.STONE);
+                }
+            }
+            int h = 1 + r.nextInt(2);
+            w.fill(px, base, pz, px, base + h - 1, pz, BlockType.STONE);
+            for (int y = base; y < base + h; y++) {
+                for (Facing f : Facing.HORIZONTALS) {
+                    int bx = px + f.dx;
+                    int bz = pz + f.dz;
+                    if (Math.abs(bx) <= 1 && Math.abs(bz) <= 1 || !w.getBlock(bx, y, bz).isAir() || r.nextDouble() < 0.5) {
+                        continue;
+                    }
+                    BlockType sw = attached(r, f.name().toLowerCase(java.util.Locale.ROOT), false);
+                    if (VanillaBlocks.blockId(sw.name()).equals("minecraft:lever") && r.nextDouble() < 0.3) {
+                        sw = VanillaBlocks.require(sw.name().replace("powered=false", "powered=true"));
+                    }
+                    w.setBlock(bx, y, bz, sw);
+                }
+            }
+            if (r.nextBoolean()) {
+                w.setBlock(px, base + h, pz, attached(r, "up", true));
+            }
+            // Trapdoors and doors around: beside the post, or beside a button or lever.
+            for (int n = 1 + r.nextInt(3); n > 0; n--) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                Facing g = Facing.HORIZONTALS[r.nextInt(4)];
+                boolean far = r.nextBoolean();
+                int tx = px + f.dx + (far ? g.dx : 0);
+                int tz = pz + f.dz + (far ? g.dz : 0);
+                if (Math.abs(tx) <= 1 && Math.abs(tz) <= 1 || !w.getBlock(tx, base, tz).isAir()) {
+                    continue;
+                }
+                if (r.nextBoolean()) {
+                    String id = r.nextBoolean() ? "minecraft:trapdoor" : "minecraft:iron_trapdoor";
+                    int ty = base + r.nextInt(h + 1);
+                    if (w.getBlock(tx, ty, tz).isAir()) {
+                        w.setBlock(tx, ty, tz, VanillaBlocks.require(id + "[facing=" + facings[r.nextInt(4)] + ",half="
+                                + (r.nextBoolean() ? "top" : "bottom") + ",open=" + (r.nextDouble() < 0.3) + "]"));
+                    }
+                } else if (w.getBlock(tx, base + 1, tz).isAir()) {
+                    String id = doors[r.nextInt(doors.length)];
+                    String rest = ",facing=" + facings[r.nextInt(4)] + ",hinge=" + (r.nextBoolean() ? "right" : "left")
+                            + ",open=" + (r.nextDouble() < 0.25) + "]";
+                    w.setBlock(tx, base, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=lower" + rest))));
+                    w.setBlock(tx, base + 1, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=upper" + rest))));
+                }
+            }
+        }
+    }
+
     /** Pressure plates on stone, with trapdoors around them; see {@link #generatePlates}. */
     private static void addPlates(Random r, SparseBlockWorld w, int base) {
         String[] plates = {"minecraft:wooden_pressure_plate[powered=false]", "minecraft:stone_pressure_plate[powered=false]",
@@ -368,7 +455,7 @@ public final class RandomScenario {
             } else if (odd < 0.12) {
                 Facing f = Facing.HORIZONTALS[r.nextInt(4)];
                 w.setBlock(x + 2 * f.dx, base - 1, z + 2 * f.dz, BlockType.STONE);
-                w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x]"));
+                w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x,powered=true]"));
             } else if (odd < 0.2) {
                 // A plate on a redstone block: notifying it does nothing, but a trapdoor beside it is powered.
                 w.setBlock(x, base - 1, z, VanillaBlocks.require("minecraft:redstone_block"));
@@ -381,6 +468,72 @@ public final class RandomScenario {
                 }
             }
         }
+    }
+
+    /** Pressure plates on stone, with doors around them; see {@link #generateDoors}. */
+    private static void addDoors(Random r, SparseBlockWorld w, int base) {
+        String[] plates = {"minecraft:wooden_pressure_plate[powered=false]", "minecraft:stone_pressure_plate[powered=false]",
+                "minecraft:light_weighted_pressure_plate[power=0]", "minecraft:heavy_weighted_pressure_plate[power=0]"};
+        String[] doors = {"minecraft:wooden_door", "minecraft:spruce_door", "minecraft:birch_door", "minecraft:jungle_door",
+                "minecraft:acacia_door", "minecraft:dark_oak_door", "minecraft:iron_door"};
+        String[] facings = {"north", "south", "west", "east"};
+        for (int n = 3 + r.nextInt(8); n > 0; n--) {
+            int x = r.nextInt(9) - 4;
+            int z = r.nextInt(9) - 4;
+            if (Math.abs(x) <= 1 && Math.abs(z) <= 1) {
+                // Not under the start: the real player stands there before the run begins.
+                continue;
+            }
+            w.setBlock(x, base - 1, z, BlockType.STONE);
+            w.setBlock(x, base, z, VanillaBlocks.require(plates[r.nextInt(plates.length)]));
+            w.setBlock(x, base + 1, z, BlockType.AIR);
+            for (int t = 1 + r.nextInt(2); t > 0; t--) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                int roll = r.nextInt(3);
+                // Beside the plate, sunk beside the block under it, or a block away.
+                int dx = roll == 2 ? 2 * f.dx : f.dx;
+                int dz = roll == 2 ? 2 * f.dz : f.dz;
+                int ly = roll == 1 ? base - 1 : base;
+                int tx = x + dx;
+                int tz = z + dz;
+                if (Math.abs(tx) <= 1 && Math.abs(tz) <= 1 || Mechanisms.isPlate(w.getBlock(tx, ly + 1, tz))
+                        || Mechanisms.isPlate(w.getBlock(tx, ly + 2, tz)) || Mechanisms.isPlate(w.getBlock(tx, ly, tz))) {
+                    // Not in the start, and every plate stays on stone.
+                    continue;
+                }
+                String id = doors[r.nextInt(doors.length)];
+                String rest = ",facing=" + facings[r.nextInt(4)] + ",hinge=" + (r.nextBoolean() ? "right" : "left") + ",open="
+                        + (r.nextDouble() < 0.25) + "]";
+                w.setBlock(tx, ly - 1, tz, r.nextDouble() < 0.04 ? VanillaBlocks.require("minecraft:glass") : BlockType.STONE);
+                w.setBlock(tx, ly, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=lower" + rest))));
+                w.setBlock(tx, ly + 1, tz, VanillaBlocks.require(VanillaBlocks.name(id, props("half=upper" + rest))));
+            }
+            double odd = r.nextDouble();
+            if (odd < 0.05) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + f.dx, base, z + f.dz, VanillaBlocks.require("minecraft:redstone_lamp"));
+            } else if (odd < 0.1) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                w.setBlock(x + 2 * f.dx, base - 1, z + 2 * f.dz, BlockType.STONE);
+                w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x,powered=true]"));
+            } else if (odd < 0.18) {
+                // A redstone block in the floor next to the plate's stone, powering what stands beside it.
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                if (!Mechanisms.isPlate(w.getBlock(x + f.dx, base, z + f.dz))) {
+                    w.setBlock(x + f.dx, base - 1, z + f.dz, VanillaBlocks.require("minecraft:redstone_block"));
+                }
+            }
+        }
+    }
+
+    private static java.util.Map<String, String> props(String list) {
+        java.util.Map<String, String> m = new java.util.TreeMap<String, String>();
+        for (String kv : list.replace("]", "").split(",")) {
+            if (!kv.isEmpty()) {
+                m.put(kv.substring(0, kv.indexOf('=')), kv.substring(kv.indexOf('=') + 1));
+            }
+        }
+        return m;
     }
 
     private static final String[] COLOURS = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
@@ -437,7 +590,7 @@ public final class RandomScenario {
         double roll = r.nextDouble();
         if (roll < 0.25) {
             String f = top ? (r.nextBoolean() ? "up_x" : "up_z") : facing;
-            return VanillaBlocks.require("minecraft:lever[facing=" + f + "]");
+            return VanillaBlocks.require("minecraft:lever[facing=" + f + ",powered=false]");
         }
         String id = roll < 0.6 ? "minecraft:stone_button" : "minecraft:wooden_button";
         return VanillaBlocks.require(id + "[facing=" + facing + ",powered=" + (r.nextDouble() < 0.1) + "]");

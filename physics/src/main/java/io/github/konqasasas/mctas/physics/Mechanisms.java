@@ -32,7 +32,12 @@ import java.util.Map;
  * and the state is unsupported.</li>
  * </ol>
  *
- * <p>A redstone block gives a trapdoor beside it weak power 15 and does nothing when notified. Any other
+ * <p>A door follows the power of both its halves ({@code BlockDoor.neighborChanged} on the lower half, which
+ * the upper half passes its notifications to): when the power changes from what the upper half's {@code POWERED}
+ * holds, the door opens or shuts to match. The engine does not name {@code POWERED}; it is the power before
+ * the change, since every change of power notifies the door (a world built consistently).
+ *
+ * <p>A redstone block gives a trapdoor or a door beside it weak power 15 and does nothing when notified. Any other
  * block that reacts to power (D-702) next to a plate that changes, any other power source the trapdoor's
  * power depends on, and a box within {@link #EDGE} of a plate's edge are unsupported.
  */
@@ -52,6 +57,12 @@ public final class Mechanisms {
      * and never a normal cube, so the engine models it.
      */
     static final int REDSTONE_BLOCK = 7;
+    /** {@code BlockDoor}, either half. */
+    static final int DOOR = 8;
+    /** {@code BlockButton}: weak power 15 while on, strong power to the block it hangs on. */
+    static final int BUTTON = 9;
+    /** {@code BlockLever}, the same power as a button. */
+    static final int LEVER = 10;
 
     /** How close to a plate's edge a box is taken as on the edge: the server's box can differ in the last bits. */
     static final double EDGE = 1.0E-6D;
@@ -140,12 +151,22 @@ public final class Mechanisms {
                 return TRAPDOOR;
             case "minecraft:redstone_block":
                 return REDSTONE_BLOCK;
+            case "minecraft:wooden_door":
+            case "minecraft:spruce_door":
+            case "minecraft:birch_door":
+            case "minecraft:jungle_door":
+            case "minecraft:acacia_door":
+            case "minecraft:dark_oak_door":
+            case "minecraft:iron_door":
+                return DOOR;
+            case "minecraft:stone_button":
+            case "minecraft:wooden_button":
+                return BUTTON;
+            case "minecraft:lever":
+                return LEVER;
             case "minecraft:redstone_wire":
             case "minecraft:redstone_torch":
             case "minecraft:unlit_redstone_torch":
-            case "minecraft:lever":
-            case "minecraft:stone_button":
-            case "minecraft:wooden_button":
             case "minecraft:tripwire_hook":
             case "minecraft:detector_rail":
             case "minecraft:daylight_detector":
@@ -182,15 +203,57 @@ public final class Mechanisms {
         }
     }
 
-    /** True for the blocks this class moves: pressure plates and trapdoors. */
+    /**
+     * True for the blocks this class moves and the client sees only from the server: pressure plates,
+     * trapdoors, doors and levers. A button turns on in the client's own click ({@link Pressed}).
+     */
     public static boolean isModelled(BlockType t) {
         int k = t.mechanism();
-        return k >= WOODEN_PLATE && k <= TRAPDOOR;
+        return k >= WOODEN_PLATE && k <= TRAPDOOR || k == DOOR || k == LEVER;
+    }
+
+    /** True for a trapdoor or a door: it follows the power around it when notified. */
+    public static boolean followsPower(BlockType t) {
+        int k = t.mechanism();
+        return k == TRAPDOOR || k == DOOR;
+    }
+
+    /** The side a button or lever faces, away from the block it hangs on; null if named without it. */
+    static Facing facingOf(BlockType t) {
+        String f = VanillaBlocks.parseProperties(t.name()).get("facing");
+        if (f == null) {
+            return null;
+        }
+        switch (f) {
+            case "down":
+            case "down_x":
+            case "down_z":
+                return Facing.DOWN;
+            case "up":
+            case "up_x":
+            case "up_z":
+                return Facing.UP;
+            default:
+                return Facing.valueOf(f.toUpperCase(java.util.Locale.ROOT));
+        }
+    }
+
+    /** True if the button or lever is on; a button named without it counts as unknown and is refused earlier. */
+    static boolean isOn(BlockType t) {
+        return "true".equals(VanillaBlocks.parseProperties(t.name()).get("powered"));
+    }
+
+    /** The button or lever turned on or off. */
+    static BlockType withOn(BlockType t, boolean on) {
+        Map<String, String> p = VanillaBlocks.parseProperties(t.name());
+        p.put("powered", Boolean.toString(on));
+        return VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(t.name()), p));
     }
 
     /**
-     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A plate
-     * the world shows with the power this one has keeps its name here (it may be named without its power).
+     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A block
+     * the world shows as this one has it keeps its name here (it may be named without some properties, as a
+     * plate without its power or a lever without whether it is on, which the world then has as built).
      */
     public Mechanisms withClient(BlockType[] shown) {
         if (shown.length != client.length) {
@@ -198,11 +261,21 @@ public final class Mechanisms {
         }
         BlockType[] c = shown.clone();
         for (int i = 0; i < c.length; i++) {
-            if (samePlate(client[i], c[i])) {
+            if (samePlate(client[i], c[i]) || agrees(client[i], c[i])) {
                 c[i] = client[i];
             }
         }
         return new Mechanisms(xyz, server, c, due, maybe);
+    }
+
+    /**
+     * True if {@code shown} is the block {@code named} with every property {@code named} gives; not for a plate,
+     * whose bare name means unpressed ({@link #samePlate}).
+     */
+    private static boolean agrees(BlockType named, BlockType shown) {
+        return !isPlate(named) && VanillaBlocks.blockId(named.name()).equals(VanillaBlocks.blockId(shown.name()))
+                && VanillaBlocks.parseProperties(shown.name()).entrySet()
+                        .containsAll(VanillaBlocks.parseProperties(named.name()).entrySet());
     }
 
     public static boolean isPlate(BlockType t) {
@@ -321,6 +394,11 @@ public final class Mechanisms {
         for (int i = 0; i < server.length; i++) {
             if (server[i] != client[i]) {
                 server[i].addCollisionBoxes(world, xyz[3 * i], xyz[3 * i + 1], xyz[3 * i + 2], box, out);
+                if (server[i].mechanism() == DOOR) {
+                    // The upper half takes open from the lower half.
+                    world.getBlock(xyz[3 * i], xyz[3 * i + 1] + 1, xyz[3 * i + 2])
+                            .addCollisionBoxes(world, xyz[3 * i], xyz[3 * i + 1] + 1, xyz[3 * i + 2], box, out);
+                }
                 if (!out.isEmpty()) {
                     return true;
                 }
@@ -365,7 +443,9 @@ public final class Mechanisms {
                 McMath.floor(s.lastReportedPosZ)).slipperiness() * 0.91F : 0.91F;
         double fall = Math.max(0.0D, -s.motionY);
         Aabb reach = new Aabb(box.minX - drift, box.minY - fall, box.minZ - drift, box.maxX + drift, box.maxY, box.maxZ + drift);
-        if (s.mech.isNone() && !((base.mayContainPlates() || !s.placed.isEmpty()) && anyPlate(view, reach))) {
+        int[] activate = s.serverActivate;
+        s.serverActivate = null;
+        if (activate == null && s.mech.isNone() && !((base.mayContainPlates() || !s.placed.isEmpty()) && anyPlate(view, reach))) {
             // Nothing pressed and no plate within reach: the server changes nothing.
             drift *= (double) friction;
             s.serverDrift = drift < 0.003D ? 0.0D : drift;
@@ -373,7 +453,10 @@ public final class Mechanisms {
         }
         Work w = new Work(s.mech, view);
 
-        // Packets.
+        // Packets: the right-click (processTryUseItemOnBlock) comes before the move (processPlayer).
+        if (activate != null) {
+            w.activate(activate[0], activate[1], activate[2]);
+        }
         int[] wasMaybe = s.mech.maybe;
         List<int[]> pressedNow = new ArrayList<int[]>();
         List<List<int[]>> changedBy = new ArrayList<List<int[]>>();
@@ -427,6 +510,11 @@ public final class Mechanisms {
         w.age();
         for (int[] p : w.dueNow()) {
             BlockType b = w.get(p[0], p[1], p[2]);
+            if (b.mechanism() == BUTTON) {
+                // BlockButton.updateTick: no arrow is in a wooden one, so it turns off.
+                w.setOn(p[0], p[1], p[2], b, false);
+                continue;
+            }
             int now = power(b);
             int t = touches(box, p[0], p[1], p[2]);
             if (t == EDGE_TOUCH) {
@@ -538,6 +626,9 @@ public final class Mechanisms {
         final List<Integer> due = new ArrayList<Integer>();
         final BlockWorld base;
         boolean unsupported;
+        /** The plate whose change is being passed on, and its state before it. */
+        int[] changing;
+        BlockType changingWas;
 
         Work(Mechanisms m, BlockWorld base) {
             this.base = base;
@@ -581,6 +672,55 @@ public final class Mechanisms {
             }
         }
 
+        /** The client's copy of the block, which its own click changed. */
+        void setClient(int x, int y, int z, BlockType b) {
+            if (find(x, y, z) < 0) {
+                set(x, y, z, get(x, y, z));
+            }
+            client.set(find(x, y, z), b);
+        }
+
+        BlockType getClient(int x, int y, int z) {
+            int i = find(x, y, z);
+            return i >= 0 ? client.get(i) : base.getBlock(x, y, z);
+        }
+
+        /**
+         * {@code onBlockActivated} on the server: a button that is off turns on (the client turned its own copy
+         * on in the click) and turns off {@code tickRate} later; a lever toggles.
+         */
+        void activate(int x, int y, int z) {
+            BlockType b = get(x, y, z);
+            if (b.mechanism() == BUTTON) {
+                BlockType c = getClient(x, y, z);
+                if (c.mechanism() == BUTTON && !isOn(c)) {
+                    setClient(x, y, z, withOn(c, true));
+                }
+                if (isOn(b)) {
+                    return;
+                }
+                setOn(x, y, z, b, true);
+                schedule(x, y, z, Pressed.tickRate(b));
+            } else if (b.mechanism() == LEVER && VanillaBlocks.parseProperties(b.name()).containsKey("powered")) {
+                setOn(x, y, z, b, !isOn(b));
+            } else {
+                // Not the block the client clicked: the two worlds differ.
+                unsupported = true;
+            }
+        }
+
+        /** A button or lever turns on or off: {@code setBlockState} with flag 3, then {@code notifyNeighbors}. */
+        void setOn(int x, int y, int z, BlockType b, boolean on) {
+            Facing f = facingOf(b);
+            changing = new int[] {x, y, z};
+            changingWas = b;
+            set(x, y, z, withOn(b, on));
+            List<int[]> changed = new ArrayList<int[]>();
+            notifyAround(x, y, z, changed);
+            notifyAround(x, y, z, changed);
+            notifyAround(x - f.dx, y - f.dy, z - f.dz, changed);
+        }
+
         void schedule(int x, int y, int z, int ticks) {
             int i = find(x, y, z);
             due.set(i, ticks);
@@ -599,7 +739,8 @@ public final class Mechanisms {
         List<int[]> dueNow() {
             List<int[]> out = new ArrayList<int[]>();
             for (int i = 0; i < due.size(); i++) {
-                if (due.get(i) == 0 && isPlate(server.get(i)) && power(server.get(i)) > 0) {
+                BlockType b = server.get(i);
+                if (due.get(i) == 0 && (isPlate(b) && power(b) > 0 || b.mechanism() == BUTTON && isOn(b))) {
                     out.add(pos.get(i));
                 }
             }
@@ -608,6 +749,8 @@ public final class Mechanisms {
 
         /** {@code updateState}'s change: the plate's new power, then {@code updateNeighbors}. */
         void setPower(int x, int y, int z, BlockType plate, int power, List<int[]> changed) {
+            changing = new int[] {x, y, z};
+            changingWas = get(x, y, z);
             set(x, y, z, withPower(plate, power));
             changed.add(new int[] {x, y, z});
             notifyAround(x, y, z, changed);
@@ -642,11 +785,54 @@ public final class Mechanisms {
                     set(x, y, z, VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(b.name()), p)));
                     changed.add(new int[] {x, y, z});
                 }
+            } else if (k == DOOR) {
+                doorChanged(x, y, z, b, changed);
+            } else if (k == BUTTON || k == LEVER) {
+                // BlockButton.neighborChanged and BlockLever's: it stays on a normal cube and drops otherwise,
+                // which the engine does not model.
+                Facing f = facingOf(b);
+                if (f == null || !get(x - f.dx, y - f.dy, z - f.dz).isNormalCube()) {
+                    unsupported = true;
+                }
             } else if (k == OTHER_SOURCE && !notifyInert(b)
                     || k != OTHER_SOURCE && !isPlate(b) && (b.reactsToPower() || b.isExcept(BlockType.UNSTABLE))) {
                 // A plate only checks the block under it, which stays.
                 unsupported = true;
             }
+        }
+
+        /** {@code BlockDoor.neighborChanged} on the lower half; the upper half passes the notification down. */
+        void doorChanged(int x, int y, int z, BlockType b, List<int[]> changed) {
+            String id = VanillaBlocks.blockId(b.name());
+            int ly = "upper".equals(VanillaBlocks.parseProperties(b.name()).get("half")) ? y - 1 : y;
+            BlockType lower = get(x, ly, z);
+            BlockType upper = get(x, ly + 1, z);
+            Map<String, String> lp = VanillaBlocks.parseProperties(lower.name());
+            if (!VanillaBlocks.blockId(lower.name()).equals(id) || !"lower".equals(lp.get("half")) || lp.get("open") == null
+                    || !VanillaBlocks.blockId(upper.name()).equals(id)
+                    || !"upper".equals(VanillaBlocks.parseProperties(upper.name()).get("half"))
+                    || !get(x, ly - 1, z).isNormalCube()) {
+                // A door that breaks (a half missing, nothing solid under it) or is named without its state.
+                unsupported = true;
+                return;
+            }
+            boolean powered = isBlockPowered(x, ly, z) | isBlockPowered(x, ly + 1, z);
+            if (powered != poweredBefore(x, ly, z) && Boolean.parseBoolean(lp.get("open")) != powered) {
+                lp.put("open", Boolean.toString(powered));
+                set(x, ly, z, VanillaBlocks.require(VanillaBlocks.name(id, lp)));
+                // Both halves change shape.
+                changed.add(new int[] {x, ly, z});
+                changed.add(new int[] {x, ly + 1, z});
+            }
+        }
+
+        /** The upper half's {@code POWERED}: the door's power with the changing plate as it was. */
+        private boolean poweredBefore(int x, int ly, int z) {
+            BlockType now = get(changing[0], changing[1], changing[2]);
+            set(changing[0], changing[1], changing[2], changingWas);
+            boolean was = isBlockPowered(x, ly, z) | isBlockPowered(x, ly + 1, z);
+            set(changing[0], changing[1], changing[2], now);
+            return was;
         }
 
         /**
@@ -684,6 +870,9 @@ public final class Mechanisms {
                 unsupported = true;
                 return 0;
             }
+            if (b.mechanism() == BUTTON || b.mechanism() == LEVER) {
+                return isOn(b) && facingOf(b) == side ? 15 : 0;
+            }
             return isPlate(b) && side == Facing.UP ? power(b) : 0;
         }
 
@@ -694,6 +883,9 @@ public final class Mechanisms {
             }
             if (b.mechanism() == REDSTONE_BLOCK) {
                 return 15;
+            }
+            if (b.mechanism() == BUTTON || b.mechanism() == LEVER) {
+                return isOn(b) ? 15 : 0;
             }
             return isPlate(b) ? power(b) : 0;
         }

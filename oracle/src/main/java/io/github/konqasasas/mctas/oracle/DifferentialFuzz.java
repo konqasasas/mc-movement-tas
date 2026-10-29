@@ -26,6 +26,7 @@ public final class DifferentialFuzz {
     /** Runs in which the server changed a block (a plate pressed), and in which a trapdoor moved. */
     static int plateRuns;
     static int trapdoorRuns;
+    static int doorRuns;
 
     /** Null when all ticks match, otherwise a description of the first mismatch. */
     public static String check(RandomScenario sc) {
@@ -35,11 +36,13 @@ public final class DifferentialFuzz {
         boolean opened = false;
         boolean plate = false;
         boolean trapdoor = false;
+        boolean door = false;
         for (int t = 0; t < expected.size(); t++) {
             PlayerState e = expected.get(t);
             for (int i = 0; i < e.mech.size(); i++) {
                 plate = true;
                 trapdoor |= e.mech.server(i).name().contains("trapdoor");
+                door |= e.mech.server(i).name().contains("_door[");
             }
             pressed |= !e.pressed.isEmpty();
             opened |= !e.shulker.isNone() && e.shulker.status != io.github.konqasasas.mctas.physics.Shulker.Status.CLOSED;
@@ -52,6 +55,9 @@ public final class DifferentialFuzz {
         }
         if (trapdoor) {
             trapdoorRuns++;
+        }
+        if (door) {
+            doorRuns++;
         }
         if (pressed) {
             pressedRuns++;
@@ -97,8 +103,8 @@ public final class DifferentialFuzz {
         double secs = (System.nanoTime() - t0) / 1e9;
         System.out.printf("%d runs x %d ticks: %d mismatching runs (%.1f s, %d ticks compared; %d pressed a button,"
                 + " %d opened a shulker box, %d ticks pushed by a lid, %d pressed a plate, %d moved a trapdoor,"
-                + " %d ended unsupported)%n", runs, ticks, failures, secs, totalTicks,
-                pressedRuns, shulkerRuns, VanillaOracle.lidPushes, plateRuns, trapdoorRuns, unsupportedRuns);
+                + " %d moved a door, %d ended unsupported)%n", runs, ticks, failures, secs, totalTicks,
+                pressedRuns, shulkerRuns, VanillaOracle.lidPushes, plateRuns, trapdoorRuns, doorRuns, unsupportedRuns);
         if (failures > 0) {
             System.exit(1);
         }

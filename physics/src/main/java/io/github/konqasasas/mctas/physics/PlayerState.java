@@ -65,6 +65,11 @@ public final class PlayerState implements Cloneable {
     /** Pressure plates the player pressed and what they moved. Immutable and shared between copies. */
     public Mechanisms mech = Mechanisms.NONE;
     /**
+     * The button or lever the server activates in this tick's packets, as x, y, z, or null: set by the
+     * right-click and taken by {@link Mechanisms}' server tick within the same step.
+     */
+    public int[] serverActivate;
+    /**
      * A bound on how far across the server's own move of its player may take it from the position last sent:
      * the sprint boost of the jumps the server saw, less friction ({@link Mechanisms}). Derived from the other
      * fields' history, so it is left out of {@link #equals}.
