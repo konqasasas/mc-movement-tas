@@ -572,7 +572,7 @@ final class Course {
      * feels water (feet + 0.4 to feet + 1.4, 0.6 wide) spans a block of air between two cells above
      * each other, and straddles the corner between diagonal ones (a staircase of single water blocks).
      */
-    private static final int[][] WATER_NEIGHBOURS;
+    static final int[][] WATER_NEIGHBOURS;
     /**
      * Ladder and vine cells the player climbs on from one to the other: any of the 26 around. The
      * player climbs while the cell at the feet is climbable, and the box (0.6 wide) straddles the line
@@ -586,8 +586,9 @@ final class Course {
         CLIMB_NEIGHBOURS = m.toArray(new int[0][]);
         List<int[]> l = new ArrayList<int[]>();
         for (int dx = -1; dx <= 1; dx++) for (int dy = -2; dy <= 2; dy++) for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) l.add(new int[] {dx, dy, dz});
-        // A water step two on and up to one up: swum out of against a wall and into the next (F-526).
-        for (int dy = 0; dy <= 1; dy++) for (int[] d : new int[][] {{2, 0}, {-2, 0}, {0, 2}, {0, -2}}) l.add(new int[] {d[0], dy, d[1]});
+        // A water step two on and up to one up (or down, the same step seen from the upper one): swum
+        // out of against a wall and into the next (F-526).
+        for (int dy = -1; dy <= 1; dy++) for (int[] d : new int[][] {{2, 0}, {-2, 0}, {0, 2}, {0, -2}}) l.add(new int[] {d[0], dy, d[1]});
         WATER_NEIGHBOURS = l.toArray(new int[0][]);
     }
 
@@ -631,10 +632,11 @@ final class Course {
      */
     private boolean near(int[] c, int[] d) {
         if (Math.abs(d[0]) < 2 && Math.abs(d[2]) < 2) return true;
-        int mx = c[0] + d[0] / 2, mz = c[2] + d[2] / 2;
-        for (int dy = 0; dy <= 1; dy++) if (water(mx, c[1] + dy, mz) || solid(mx, c[1] + dy, mz)) return false;
+        // Both ways round, so that a body is the same whichever of its cells it is grown from.
+        int mx = c[0] + d[0] / 2, mz = c[2] + d[2] / 2, lo = c[1] + Math.min(0, d[1]);
+        for (int dy = 0; dy <= 1; dy++) if (water(mx, lo + dy, mz) || solid(mx, lo + dy, mz)) return false;
         int sx = d[2] / 2, sz = d[0] / 2;
-        return solid(c[0] + sx, c[1], c[2] + sz) || solid(c[0] - sx, c[1], c[2] - sz);
+        return solid(c[0] + sx, lo, c[2] + sz) || solid(c[0] - sx, lo, c[2] - sz);
     }
 
     private boolean solid(int x, int y, int z) {
