@@ -20,8 +20,11 @@ final class Field {
     static final double SPEED = 0.33;
     static final float RISE = 3.0F, DROP = 1.5F, LADDER = 8.5F, SWIM = 6.0F;
     static final float INF = Float.POSITIVE_INFINITY;
-    /** Levels a rise from a stand may cover (a bounce off slime: {@link Grid#SLIME_RISE}). */
-    private static final int SLIME_LEVELS = (int) Math.ceil(Grid.SLIME_RISE) + 1;
+    /**
+     * Levels a rise from a stand may cover: a jump. Slime sends a fall back up as high as it came
+     * from, which the cells do not know: the flight's bounce is {@link Landing}'s.
+     */
+    private static final int RISE_LEVELS = (int) Math.ceil(Grid.JUMP_RISE) + 1;
     private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
     private static final int[] DZ = {0, 0, 1, -1, 1, -1, 1, -1};
     private static final float STRAIGHT = (float) (Grid.RES / SPEED), DIAGONAL = (float) (Grid.RES * Math.sqrt(2) / SPEED);
@@ -134,11 +137,11 @@ final class Field {
             int u = g.id(l + 1, ix, iz);
             if (movable(u)) offer(u, dv + DROP, v);
         }
-        // A jump (or a bounce off slime) from a stand below, a climb or a swim up.
-        for (int k = 1; k <= SLIME_LEVELS && l - k >= 0; k++) {
+        // A jump from a stand below, a climb or a swim up.
+        for (int k = 1; k <= RISE_LEVELS && l - k >= 0; k++) {
             int u = g.id(l - k, ix, iz);
             if ((f[u] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + g.rise(u) + 1e-6) offer(u, dv + RISE * k, v);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(u, dv + RISE * k, v);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(u, dv + LADDER, v);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(u, dv + SWIM, v);
         }
@@ -171,10 +174,10 @@ final class Field {
                 if (movable(v)) offer(v, du + DROP, u);
             }
         }
-        for (int k = 1; k <= SLIME_LEVELS && l + k < g.ny; k++) {
+        for (int k = 1; k <= RISE_LEVELS && l + k < g.ny; k++) {
             int v = g.id(l + k, ix, iz);
             if ((f[v] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + g.rise(u) + 1e-6) offer(v, du + RISE * k, u);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(v, du + RISE * k, u);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(v, du + LADDER, u);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(v, du + SWIM, u);
         }

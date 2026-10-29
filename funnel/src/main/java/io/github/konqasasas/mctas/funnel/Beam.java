@@ -63,6 +63,8 @@ final class Beam {
         final float value;
         /** The root it came from, when the caller needs it (the backward search's beam from rest). */
         Node from;
+        /** On an unverified anchor ({@link Options#guess}): the value is a guess. */
+        boolean guessed;
 
         Hit(List<PlayerInput> inputs, Node end, Anchors.Anchor anchor, float value) {
             this.inputs = inputs;
@@ -105,7 +107,17 @@ final class Beam {
         boolean entries;
         /** States whose clock plus this share of the field's value is past the best hit are dropped. */
         double prune = 0.6;
+        /**
+         * Above 0, landings on unverified anchors are hits too, at the clock plus this many times the
+         * field's value there plus {@link #GUESS_ADD} ({@link Hit#guessed}): only where the field is
+         * below {@link #guessBelow}, the best {@link #GUESSES} of them, and they do not end the beam.
+         */
+        float guess;
+        float guessBelow = Field.INF;
     }
+
+    static final float GUESS_ADD = 10;
+    static final int GUESSES = 4;
 
     private final Problem problem;
     private final Grid grid;
@@ -277,7 +289,9 @@ final class Beam {
         PlayerState s = n.s;
         int id = grid.cellOf(s.posX, s.posY, s.posZ);
         boolean held = id >= 0 && (grid.flags[id] & (Grid.CLIMB | Grid.WATER)) != 0;
-        if (s.onGround || held) {
+        // Sent back up by slime: the flight's.
+        boolean bouncing = s.onGround && s.motionY > 0.1 && id >= 0 && (grid.flags[id] & Grid.SLIME) != 0;
+        if ((s.onGround || held) && !bouncing) {
             float h = field.at(s.posX + LOOK * s.motionX, s.posY, s.posZ + LOOK * s.motionZ);
             if (h == Field.INF) h = field.at(s.posX, s.posY, s.posZ) + 2;
             return h;
@@ -306,6 +320,7 @@ final class Beam {
         Map<Integer, Hit> fast = new HashMap<Integer, Hit>();
         float bestValue = Field.INF;
         Map<Long, Hit> entered = new HashMap<Long, Hit>();
+        Map<Integer, Hit> guessed = new HashMap<Integer, Hit>();
         int firstEntry = -1, firstHit = -1;
         float lastHeading = field.heading(root.s.posX, root.s.posY, root.s.posZ);
         if (Float.isNaN(lastHeading)) lastHeading = root.s.rotationYaw;
@@ -364,6 +379,21 @@ final class Beam {
                         Anchors.Anchor to = anchors.under(m.s, false);
                         if (to != null && to != o.self && !to.verified()) to.offer(new Node(m.s, 0, 0, false, m.lastToggle - m.tick));
                     }
+                    if (o.guess > 0 && m.s.onGround && !n.s.onGround && !before(m, o)) {
+                        Anchors.Anchor to = anchors.under(m.s, false);
+                        if (to != null && to != o.self && !to.verified()) {
+                            float fv = field.at(m.s.posX, m.s.posY, m.s.posZ);
+                            if (fv < o.guessBelow) {
+                                float v = m.clock() + o.guess * fv + GUESS_ADD;
+                                Hit old = guessed.get(to.id);
+                                if (old == null || v < old.value) {
+                                    Hit g = new Hit(path(layers, t - 1, i, a), m, to, v);
+                                    g.guessed = true;
+                                    guessed.put(to.id, g);
+                                }
+                            }
+                        }
+                    }
                     if (m.s.onGround && !before(m, o)) {
                         Anchors.Anchor an = anchors.under(m.s, o.restOnly);
                         if (an != null && an.v < o.maxV && an != o.self) {
@@ -420,7 +450,11 @@ final class Beam {
         List<Hit> out = new ArrayList<Hit>(best.values());
         for (Hit h : fast.values()) if (!out.contains(h)) out.add(h);
         Collections.sort(out, (p, q) -> Float.compare(p.value, q.value));
-        return out.size() > o.hits ? new ArrayList<Hit>(out.subList(0, o.hits)) : out;
+        if (out.size() > o.hits) out = new ArrayList<Hit>(out.subList(0, o.hits));
+        List<Hit> gs = new ArrayList<Hit>(guessed.values());
+        Collections.sort(gs, (p, q) -> Float.compare(p.value, q.value));
+        for (int i = 0; i < Math.min(GUESSES, gs.size()); i++) out.add(gs.get(i));
+        return out;
     }
 
     /** The block of position (and on the ground or not) that caps how many states the beam keeps there. */
