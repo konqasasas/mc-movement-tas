@@ -77,6 +77,14 @@ final class Planner {
     int expanded, generated;
     static final boolean DEBUG = System.getenv("PLANNER_DEBUG") != null;
     private double closest = Double.POSITIVE_INFINITY;
+    /** Expansions without coming a tick nearer the goal before a search without a plan gives up as stalled (0: never). */
+    int stallAfter = 0;
+    /** Set when the search gave up stalled. */
+    boolean stalled;
+    /** The platforms the search landed on, with the nearest it came to the goal on each (with {@link #stallAfter}). */
+    final Map<Integer, Double> nearest = new HashMap<Integer, Double>();
+    /** The platforms the search landed on. */
+    final java.util.Set<Integer> landed = new java.util.HashSet<Integer>();
 
     Planner(Course course) {
         this.course = course;
@@ -106,10 +114,24 @@ final class Planner {
         Node best = null;
         int bestTime = bound;
         List<Maneuver.Successor> succ = new ArrayList<Maneuver.Successor>();
+        double near = Double.POSITIVE_INFINITY;
+        int nearAt = 0;
         while (!open.isEmpty() && System.currentTimeMillis() < deadline) {
             Node n = open.poll();
             double hn = h(n.run);
             if (n.g + hn >= bestTime) continue;
+            if (hn < near - 1) {
+                near = hn;
+                nearAt = expanded;
+            }
+            if (stallAfter > 0 && n.run.s.onGround) {
+                Course.Surface on = course.support(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
+                if (on != null) nearest.merge(on.platform, hn, Math::min);
+            }
+            if (best == null && stallAfter > 0 && expanded - nearAt > stallAfter && !nearest.isEmpty()) {
+                stalled = true;
+                return null;
+            }
             boolean trace = false;
             if (DEBUG && hn < closest) {
                 closest = hn;
@@ -263,6 +285,7 @@ final class Planner {
         if (n.run.s.onGround) {
             Course.Surface c = course.support(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
             if (c != null) {
+                landed.add(c.platform);
                 Integer b = bestOnSurface.get(c.id);
                 if (b != null && n.g > b + window) return false;
                 if (b == null || n.g < b) bestOnSurface.put(c.id, n.g);
