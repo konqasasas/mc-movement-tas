@@ -190,6 +190,17 @@ final class Explore {
                     Route.Surface t = c.climb && !Route.isWater(problem.world.getBlock(c.x, c.y, c.z)) ? route.climbTop(c) : c;
                     Technique.Segment g = null;
                     if (t != c && !closed.contains(t)) {
+                        List<PlayerInput> z = climb(s, t);
+                        if (z != null) {
+                            say("explore:     climbed to " + t + " in " + z.size() + " ticks");
+                            m = advance(n, z, t);
+                            if (m != null) {
+                                if (stop != null && stop.test(m.state)) return m;
+                                open.add(m);
+                                landed++;
+                                continue;
+                            }
+                        }
                         g = segment(s, since, Exit.box(t.x, t.y, t.z, t.x + 1, t.y + 1 - 1e-9, t.z + 1), t.cx(), t.cz(),
                                 deadlineMillis, k < WIDE ? segmentMillis : 0);
                         if (g != null) c = t;
@@ -276,6 +287,16 @@ final class Explore {
                     for (double[] k : keys) if ((int) k[1] == i) k[0] = key;
                 }
             }
+        }
+        // On a ladder, the next block of it first: higher landings rank ahead by cost but are reached by
+        // climbing on (to the top of the ladder in one go, see search).
+        // Off the top of one, the block or ladder beside it.
+        boolean onLadder = climbable((int) Math.floor(s.posX), (int) Math.floor(s.posY), (int) Math.floor(s.posZ));
+        for (double[] k : keys) {
+            Route.Surface c = out.get((int) k[1]);
+            if (c.climb && c.y >= Math.floor(s.posY) && c.y <= s.posY + 1.5 && c.dist(s.posX, s.posZ) < 1.0) k[0] -= 1e6;
+            else if (onLadder && (c.climb ? c.y : c.top) >= s.posY - 0.5 && (c.climb ? c.y : c.top) <= s.posY + 1.5
+                    && c.dist(s.posX, s.posZ) < 1.5) k[0] -= 1e6;
         }
         keys.sort(Comparator.comparingDouble(k -> k[0]));
         // Spread over heights: a row of blocks out of reach must not crowd out the floor ahead
@@ -443,6 +464,63 @@ final class Explore {
             }
         }
         return best;
+    }
+
+    /**
+     * Up a ladder or vine to the block {@code top} by a fixed rule, for ladders that zigzag between
+     * neighbouring columns: push into the wall, wait at the side of the column next to where the
+     * ladder goes on, and step across once high enough in the block that the climb carries on into
+     * the next one. Tries the four wall headings and a few heights and margins; the fastest that
+     * gets there, or null.
+     */
+    private List<PlayerInput> climb(PlayerState s0, Route.Surface top) {
+        List<PlayerInput> best = null;
+        for (int yaw = 0; yaw < 360; yaw += 90) {
+            double r = Math.toRadians(yaw), lx = Math.cos(r), lz = Math.sin(r);
+            for (double th : new double[] {0.1, 0.25, 0.4, 0.55}) {
+                for (double edge : new double[] {0.2, 0.3}) {
+                    List<PlayerInput> in = new ArrayList<PlayerInput>();
+                    PlayerState s = s0;
+                    for (int t = 0; t < 120 && (best == null || in.size() < best.size()); t++) {
+                        int fx = (int) Math.floor(s.posX), fy = (int) Math.floor(s.posY), fz = (int) Math.floor(s.posZ);
+                        if (fx == top.x && fy == top.y && fz == top.z) {
+                            best = new ArrayList<PlayerInput>(in);
+                            break;
+                        }
+                        // Where the ladder goes on a block up: straight up, or a column aside.
+                        int nx = fx, nz = fz;
+                        if (!climbable(fx, fy + 1, fz)) {
+                            for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                                if (climbable(fx + d[0], fy + 1, fz + d[1])) {
+                                    nx = fx + d[0];
+                                    nz = fz + d[1];
+                                    break;
+                                }
+                            }
+                        }
+                        double frac = s.posY - fy, wx = s.posX, wz = s.posZ, tol = 0.12;
+                        if (nx != fx || nz != fz) {
+                            boolean cross = frac > th;
+                            if (nx != fx) wx = cross ? (nx > fx ? fx + 1.02 : fx - 0.02) : (nx > fx ? fx + 1 - edge : fx + edge);
+                            if (nz != fz) wz = cross ? (nz > fz ? fz + 1.02 : fz - 0.02) : (nz > fz ? fz + 1 - edge : fz + edge);
+                            if (cross) tol = 0;
+                        }
+                        double side = (wx - s.posX) * lx + (wz - s.posZ) * lz;
+                        int keys = PlayerInput.W | (side > tol ? PlayerInput.A : side < -tol ? PlayerInput.D : 0)
+                                | (s.onGround ? PlayerInput.JUMP : 0);
+                        PlayerInput a = PlayerInput.of(keys, yaw);
+                        s = Physics.tick(problem.world, s, a);
+                        in.add(a);
+                        if (s.posY < s0.posY - 2) break;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private boolean climbable(int x, int y, int z) {
+        return Route.isClimbable(problem.world.getBlock(x, y, z));
     }
 
     /** True when sneaking from {@code s} keeps the player standing on {@code c}. */
