@@ -67,13 +67,6 @@ final class Planner {
     double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
-    /** Experiment (E-522): the landing window per half-block cell of a foothold rather than per foothold. */
-    static final boolean WINDOW_CELLS = Boolean.getBoolean("planner.windowCells");
-    /** Experiment (E-522): a walk that ends at a corner of its platform is kept whatever the window says. */
-    static final boolean CORNER_FREE = Boolean.getBoolean("planner.cornerFree");
-    static final boolean CORNER_FIRST = Boolean.getBoolean("planner.cornerFirst");
-    static final boolean CORNER_TRACE = Boolean.getBoolean("planner.cornerTrace");
-    static final boolean START_FROM_PLAYER = Boolean.getBoolean("planner.startFromPlayer");
     /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
     java.util.Set<Integer> corridor;
 
@@ -101,11 +94,11 @@ final class Planner {
         StepManeuver steps = new StepManeuver(far);
         PriorityQueue<Node> open = new PriorityQueue<Node>(64, (a, b) -> a.f != b.f ? Double.compare(a.f, b.f) : Integer.compare(b.g, a.g));
         Map<Long, Integer> seen = new HashMap<Long, Integer>();
-        Map<Long, Integer> bestOnSurface = new HashMap<Long, Integer>();
+        Map<Integer, Integer> bestOnSurface = new HashMap<Integer, Integer>();
         Map<Node, Runup.Root> rootOf = new HashMap<Node, Runup.Root>();
         for (Runup.Root r : roots) {
             Node n = new Node(r.run, null, null, r.inputs, weight * h(r.run));
-            if (admit(n, seen, bestOnSurface, false)) {
+            if (admit(n, seen, bestOnSurface)) {
                 open.add(n);
                 rootOf.put(n, r);
             }
@@ -164,8 +157,7 @@ final class Planner {
                     continue;
                 }
                 c = new Node(x.run, n, x.move, x.inputs, c.g + weight * hc);
-                boolean free = CORNER_FREE && x.move instanceof Step && ((Step) x.move).jumpAt == Step.CORNER;
-                if (admit(c, seen, bestOnSurface, free)) {
+                if (admit(c, seen, bestOnSurface)) {
                     open.add(c);
                     why[3]++;
                 } else {
@@ -173,7 +165,7 @@ final class Planner {
                     if (trace && why[2] <= 3) {
                         Course.Surface su = x.run.s.onGround ? course.support(x.run.s.posX, x.run.s.posY, x.run.s.posZ) : null;
                         System.err.printf("      rejected g %d at (%.2f, %.2f, %.2f) surface %s best %s seen %s%n", c.g, x.run.s.posX, x.run.s.posY, x.run.s.posZ,
-                            su, su == null ? "-" : bestOnSurface.get((long) su.id), seen.get(key(x.run)));
+                            su, su == null ? "-" : bestOnSurface.get(su.id), seen.get(key(x.run)));
                     }
                 }
             }
@@ -264,17 +256,16 @@ final class Planner {
         return course.toGo(r.s.posX, r.s.posY, r.s.posZ);
     }
 
-    private boolean admit(Node n, Map<Long, Integer> seen, Map<Long, Integer> bestOnSurface, boolean free) {
+    private boolean admit(Node n, Map<Long, Integer> seen, Map<Integer, Integer> bestOnSurface) {
         long k = key(n.run);
         Integer s = seen.get(k);
         if (s != null && s <= n.g) return false;
         if (n.run.s.onGround) {
             Course.Surface c = course.support(n.run.s.posX, n.run.s.posY, n.run.s.posZ);
             if (c != null) {
-                long id = WINDOW_CELLS ? mix(mix(c.id, Math.round(n.run.s.posX * 2)), Math.round(n.run.s.posZ * 2)) : c.id;
-                Integer b = bestOnSurface.get(id);
-                if (b != null && n.g > b + window && !free) return false;
-                if (b == null || n.g < b) bestOnSurface.put(id, n.g);
+                Integer b = bestOnSurface.get(c.id);
+                if (b != null && n.g > b + window) return false;
+                if (b == null || n.g < b) bestOnSurface.put(c.id, n.g);
             }
         }
         seen.put(k, n.g);
@@ -332,23 +323,30 @@ final class Planner {
                 }
             }
         }
-        if (WALK_RANK && here >= 0) {
-            // By the walk over this platform to a foothold the candidate is reached from, then the
-            // move: a candidate behind a wall on the platform comes after one the walk gets to (E-522).
-            final Map<Course.Surface, Double> walk = walkFrom(course.support(x, y, z));
-            final Map<Course.Surface, Double> score = new HashMap<Course.Surface, Double>();
+        cand.sort((p, q) -> Double.compare(Math.hypot(p.cx() - x, p.cz() - z) / v + p.toGo, Math.hypot(q.cx() - x, q.cz() - z) / v + q.toGo));
+        if (here >= 0 && cand.size() > targets) {
+            // Keep the straight-line order, but make room among the targets for the best candidate by
+            // the walk over this platform: the nearest ones may all be behind a wall (a slab up out of
+            // a slalom of panes, F-523).
+            Map<Course.Surface, Double> walk = walkFrom(course.support(x, y, z));
+            Course.Surface pick = null;
+            double ps = Double.POSITIVE_INFINITY;
             for (Course.Surface b : cand) {
-                double best = Double.POSITIVE_INFINITY;
                 for (Map.Entry<Course.Surface, Double> e : walk.entrySet()) {
                     Course.Surface a = e.getKey();
                     if (!a.next.contains(b) || a.notByStep.contains(b)) continue;
-                    best = Math.min(best, e.getValue() + Math.hypot(b.cx() - a.cx(), b.cz() - a.cz()));
+                    double sc = (e.getValue() + Math.hypot(b.cx() - a.cx(), b.cz() - a.cz())) / v + b.toGo;
+                    if (sc < ps) {
+                        ps = sc;
+                        pick = b;
+                    }
                 }
-                score.put(b, (best == Double.POSITIVE_INFINITY ? 1000 + Math.hypot(b.cx() - x, b.cz() - z) : best) / v + b.toGo);
             }
-            cand.sort((p, q) -> Double.compare(score.get(p), score.get(q)));
-        } else {
-            cand.sort((p, q) -> Double.compare(Math.hypot(p.cx() - x, p.cz() - z) / v + p.toGo, Math.hypot(q.cx() - x, q.cz() - z) / v + q.toGo));
+            int i = pick == null ? -1 : cand.indexOf(pick);
+            if (i >= targets - 1) {
+                cand.remove(i);
+                cand.add(targets - 1, pick);
+            }
         }
         Map<Integer, Integer> perPlatform = new HashMap<Integer, Integer>();
         int taken = 0;
@@ -417,7 +415,6 @@ final class Planner {
         return out;
     }
 
-    static final boolean WALK_RANK = Boolean.getBoolean("planner.walkRank");
     private final Map<Course.Surface, Map<Course.Surface, Double>> walks = new java.util.concurrent.ConcurrentHashMap<Course.Surface, Map<Course.Surface, Double>>();
 
     /**
@@ -511,16 +508,12 @@ final class Planner {
                 if (col == null) continue;
                 for (Course.Surface n : col) {
                     if (n.platform != a.platform || n.top != a.top || back.containsKey(n)) continue;
-                    // From the start, the line leaves from where the player stands: the middle of the
-                    // start foothold may be inside a wall (a foothold that wraps around a pane's end).
-                    double ax = a == start && START_FROM_PLAYER ? x : a.cx(), az = a == start && START_FROM_PLAYER ? z : a.cz();
-                    if (course.blockedLine(ax, az, n.cx(), n.cz(), a.top)) continue;
+                    if (course.blockedLine(a.cx(), a.cz(), n.cx(), n.cz(), a.top)) continue;
                     back.put(n, a);
                     queue.add(n);
                 }
             }
         }
-        if (CORNER_TRACE) System.err.println("    corner search from " + start + ": " + back.size() + " visited, end " + end + (end == null ? " " + back.keySet() : ""));
         if (end == null) return;
         List<Course.Surface> path = new ArrayList<Course.Surface>();
         for (Course.Surface a = end; a != start; a = back.get(a)) path.add(0, a);
@@ -529,10 +522,6 @@ final class Planner {
             if (course.blockedLine(x, z, a.cx(), a.cz(), y)) break;
             corner = a;
         }
-        // Experiment (E-522): pressed against a wall, the player sees no foothold of the way; walk
-        // towards the first one anyway (the walk slides along the wall).
-        if (CORNER_TRACE) System.err.println("    path " + path + " corner " + corner);
-        if (corner == null && CORNER_FIRST && !path.isEmpty()) corner = path.get(0);
         if (corner == null) return;
         for (double[] o : out) if (o.length == 8 && o[0] == corner.cx() && o[1] == corner.cz()) return;
         // Length 8 marks a corner: the walk stops there (StepManeuver).

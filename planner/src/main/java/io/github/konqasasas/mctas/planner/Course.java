@@ -379,21 +379,16 @@ final class Course {
     }
 
     /** Something solid at chest height above {@code base} on the straight line (x1,z1)-(x2,z2). */
-    static final double LINE_HALF = Double.parseDouble(System.getProperty("planner.lineHalf", "0.3"));
-
     boolean blockedLine(double x1, double z1, double x2, double z2, double base) {
         double len = Math.hypot(x2 - x1, z2 - z1);
         int steps = Math.max(1, (int) Math.ceil(len / 0.2));
         List<Aabb> hit = new ArrayList<Aabb>();
         for (int i = 1; i < steps; i++) {
             double px = x1 + (x2 - x1) * i / steps, pz = z1 + (z2 - z1) * i / steps;
-            // A hair under the player's half width: a player pressed against a wall touches it, and
-            // a line along the wall is not blocked by it.
-            double w = LINE_HALF;
-            Aabb probe = new Aabb(px - w, base + 0.6, pz - w, px + w, base + 1.3, pz + w);
+            Aabb probe = new Aabb(px - 0.3, base + 0.6, pz - 0.3, px + 0.3, base + 1.3, pz + 0.3);
             hit.clear();
-            for (int bx = (int) Math.floor(px - w); bx <= (int) Math.floor(px + w); bx++) {
-                for (int bz = (int) Math.floor(pz - w); bz <= (int) Math.floor(pz + w); bz++) {
+            for (int bx = (int) Math.floor(px - 0.3); bx <= (int) Math.floor(px + 0.3); bx++) {
+                for (int bz = (int) Math.floor(pz - 0.3); bz <= (int) Math.floor(pz + 0.3); bz++) {
                     for (int y = (int) Math.floor(base + 0.6) - 1; y <= (int) Math.floor(base + 1.3); y++) {
                         // The ladders of the body are climbed through, not walls (a ladder's box sticks out
                         // at the corner the player leaves past).
