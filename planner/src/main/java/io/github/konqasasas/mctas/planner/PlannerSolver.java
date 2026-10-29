@@ -66,6 +66,12 @@ public final class PlannerSolver {
     private final long budgetMillis;
     private PrintStream log;
     private boolean segments = true;
+    private GuideData.Recorder recorder;
+    private GuideModel guide;
+    private double guidePenalty = 10;
+    /** The rounds (from 0) up to which the guide steers the A*. */
+    static final int GUIDE_UP_TO = Integer.getInteger("planner.guideUpTo", Integer.MAX_VALUE);
+    private Course course;
 
     public PlannerSolver(Problem problem, long budgetMillis) {
         this.problem = problem;
@@ -76,6 +82,28 @@ public final class PlannerSolver {
     public PlannerSolver segments(boolean on) {
         this.segments = on;
         return this;
+    }
+
+    /** Records what each A* round aimed at and made, for the learned guide (WS13). */
+    PlannerSolver record(GuideData.Recorder r) {
+        this.recorder = r;
+        return this;
+    }
+
+    /**
+     * Steers the A* with a learned guide (WS13, {@link GuideField}): moves between platforms that the
+     * model ({@link GuideModel}) thinks the search will not make cost {@code penalty} ticks more per
+     * unit of minus the log of their probability in the estimate the A* orders by.
+     */
+    public PlannerSolver guide(java.nio.file.Path model, double penalty) throws java.io.IOException {
+        this.guide = GuideModel.read(model);
+        this.guidePenalty = penalty;
+        return this;
+    }
+
+    /** The course of the last {@link #solve}. */
+    Course course() {
+        return course;
     }
 
     public PlannerSolver log(PrintStream out) {
@@ -91,6 +119,7 @@ public final class PlannerSolver {
         long t0 = System.currentTimeMillis();
         long deadline = t0 + budgetMillis;
         Course course = new Course(problem);
+        this.course = course;
         Run spawn = Run.spawn(course);
         Course.Surface under = course.support(spawn.s.posX, spawn.s.posY, spawn.s.posZ);
         say(course.surfaces.size() + " footholds, " + course.platforms.size() + " platforms, bound from spawn "
@@ -98,6 +127,11 @@ public final class PlannerSolver {
             + (under == null ? " (spawn not on a foothold)" : "") + " (" + (System.currentTimeMillis() - t0) + " ms)");
         if (Planner.DEBUG) for (Map.Entry<Integer, List<Course.Hole>> e : course.holes.entrySet()) say("holes in platform " + e.getKey() + ": " + e.getValue());
         if (Planner.DEBUG && under != null && under.toGo == Double.POSITIVE_INFINITY) gap(course, under);
+        GuideField field = null;
+        if (guide != null) {
+            field = new GuideField(course, guide, guidePenalty);
+            say("guide estimate from spawn " + String.format("%.1f", field.toGo(spawn.s.posX, spawn.s.posY, spawn.s.posZ)) + " ticks (" + (System.currentTimeMillis() - t0) + " ms)");
+        }
         List<Runup.Root> roots = Runup.roots(course);
         List<Runup.Root> picked = ROOTS > 0 ? new Planner(course).pickRoots(roots, ROOTS) : roots;
         say(roots.size() + " run-up roots, searching from " + picked.size() + " (" + (System.currentTimeMillis() - t0) + " ms)");
@@ -111,6 +145,8 @@ public final class PlannerSolver {
         // jump branching, until the budget runs out. Each new plan is tightened.
         for (int level = 0; System.currentTimeMillis() < deadline; level++) {
             Planner planner = new Planner(course);
+            planner.recorder = recorder;
+            if (level <= GUIDE_UP_TO) planner.field = field;
             planner.weight = level == 0 ? FIRST_WEIGHT : WEIGHTS[Math.min(level, WEIGHTS.length) - 1];
             planner.targets = Math.min(4 + TARGETS_STEP * level, 10);
             planner.window = 4 + 2 * level;
@@ -129,10 +165,19 @@ public final class PlannerSolver {
             long until = best == null ? deadline : System.currentTimeMillis() + (level == 1 ? (long) (left * LEVEL1_SHARE) : left / 2);
             Planner.Plan p = planner.search(picked, until, best == null ? Integer.MAX_VALUE : best.time);
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
-                + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
+                + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)"
+                + (planner.firstAt > 0 && best == null ? ", first plan after " + planner.firstExpanded + " expanded at " + (planner.firstAt - t0) + " ms" : ""));
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
             // Nothing to search from (no way to the goal in the foothold graph): more rounds change nothing.
             if (best == null && planner.expanded == 0) break;
+            if (p == null && planner.stalled && field != null) {
+                // A guided search that stalls goes on unguided, with the graph as it was: the guide may be
+                // what led it astray (realdev ex2).
+                field = null;
+                say("stalled with the guide: going on without it");
+                level--;
+                continue;
+            }
             if (p == null && planner.stalled) {
                 // Stalled with no plan: the bound promised moves that no move makes. Off the platform the
                 // search came nearest the goal on that still has such moves, they are dropped.
