@@ -75,6 +75,14 @@ public final class GuideTool {
                 continue;
             }
             List<TickInput> in = SolutionIO.readInputs(json);
+            if (Boolean.getBoolean("guide.quick")) {
+                List<int[]> q = GuideData.quickJumps(problem, in);
+                if (q != null) {
+                    StringBuilder b = new StringBuilder();
+                    for (int[] x : q) b.append(x[0]).append(':').append(x[1]).append(':').append(x[2]).append(' ');
+                    System.out.println("quick " + problem.id + " " + b);
+                }
+            }
             if (Boolean.getBoolean("guide.ranks")) {
                 for (int targets : new int[] {4, 10}) {
                     List<int[]> rk = GuideData.aimRanks(problem, in, targets);
