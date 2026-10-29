@@ -109,6 +109,9 @@ public final class ImproveMain {
             PlayerInput[] arr = new PlayerInput[in.size()];
             for (int i = 0; i < arr.length; i++) arr[i] = PhysicsModel.toPhysics(in.get(i));
             Run r = course.evaluate(arr);
+            Run m = Improver.mend(course, r, o.seed);
+            if (m != r) System.out.println(p.id + ": seed " + s + ": " + r + "; mended: " + m);
+            r = m;
             judged.add(r);
             System.out.println(p.id + ": seed " + s + ": " + r);
             if (r.valid() && r.betterThan(first)) first = r;

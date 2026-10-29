@@ -8,7 +8,7 @@ improve/build/install/mctas-improve/bin/mctas-improve run PROBLEM.json --seeds a
 problem/build/install/mctas-problem/bin/mctas-problem score PROBLEM_DIR out/
 ```
 
-- `run <問題|問題のフォルダ> --seeds <ファイル|フォルダ>[,...] --out <フォルダ> [--budget 秒] [--threads N] [--rng N] [--width N] [--window N] [--shares a,b,c,d] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)改善し、`<id の / を _ に>.solution.json` と `.tas` を書きます。ティック数が縮むたびに書き直すので、途中で止めても最良の解が残ります。初期解は `.tas` か `.solution.json`。フォルダを渡すと、`.solution.json` は中の問題 id で、`.tas` は `<id の / を _ に>.tas` か `<問題ファイル名>.tas` で対応づけます。問題の目標の解(`target.witness`)も初期解に入ります。
+- `run <問題|問題のフォルダ> --seeds <ファイル|フォルダ>[,...] --out <フォルダ> [--budget 秒] [--threads N] [--rng N] [--width N] [--window N] [--shares a,b,c,d] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--quiet]`: 問題ごとに `--budget` 秒(既定 60)改善し、`<id の / を _ に>.solution.json` と `.tas` を書きます。ティック数が縮むたびに書き直すので、途中で止めても最良の解が残ります。初期解は `.tas` か `.solution.json`。フォルダを渡すと、`.solution.json` は中の問題 id で、`.tas` は `<id の / を _ に>.tas` か `<問題ファイル名>.tas` で対応づけます。問題の目標の解(`target.witness`)も初期解に入ります。切り替えの 3 ティック規則だけを破る初期解(動画から復元した人間の入力など)は、読むときにキーの押し離しや向きを少し変えて直します。
 - 解答ファイルの `result.search` は `engine` が `improve-lns`、`wallMillis` は改善器にかけた時間です(初期解を作った時間は入りません)。
 - 書き出す解はすべて `problem` モジュールの判定(`Evaluator`、`ToggleRule`)で確かめ直します。
 

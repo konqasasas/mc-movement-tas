@@ -89,6 +89,20 @@ public final class Improver {
         return s;
     }
 
+    /**
+     * A seed that breaks only the toggle rule (D-004), mended with {@link ToggleFix}: runs taken from
+     * human recordings (WS14) have a few toggles 1 or 2 ticks apart. Returns {@code r} when it is valid,
+     * breaks another rule, or cannot be mended.
+     */
+    public static Run mend(Course c, Run r, long seed) {
+        if (ToggleFix.clash(r) < 0) return r;
+        ToggleFix f = new ToggleFix();
+        f.maxRounds = 32;
+        f.tries = 200;
+        f.onlyClashes = true;
+        return f.apply(c, r, new Random(seed));
+    }
+
     /** Adds a starting run; returns it judged. Invalid runs are not added. */
     public Run seed(Run r) {
         if (r.valid) {
