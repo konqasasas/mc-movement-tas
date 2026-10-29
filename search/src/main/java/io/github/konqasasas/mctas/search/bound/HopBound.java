@@ -71,6 +71,13 @@ public final class HopBound {
          */
         double[] stepFrom = new double[0];
         /**
+         * The tops near a top more than 0.6 under it that a falling tick from 0.6 under this top or
+         * higher can be stopped by while it hits this top's side: the step-up try then starts where
+         * the tick started, so it can end on this top, or, if it comes down clear of it, on the ground
+         * where it started (a hover landing; over a top in {@link #stepFrom} too).
+         */
+        double[] hoverFrom = new double[0];
+        /**
          * How far above this top the highest top within a column of it is, up to 0.6 (NaN if none): a
          * jump tick from here can step up onto it and then falls from there, landing a tick later.
          */
@@ -89,8 +96,9 @@ public final class HopBound {
         double[] climb;
         /**
          * How far below its feet range a flight can come down and still end in it by stepping up onto
-         * a top: for a top the depth of the lowest top up to 0.6 under it (see {@link #stepFrom}),
-         * nothing for a ladder (a tick that steps up ends on the ground), 0.6 for the rest.
+         * a top: for a top or the goal the depth of the lowest top up to 0.6 under it (see
+         * {@link #stepFrom}; 0.6 if it has {@link #hoverFrom}), nothing for a
+         * ladder (a tick that steps up ends on the ground), 0.6 for the rest.
          */
         double drop = STEP;
 
@@ -206,15 +214,24 @@ public final class HopBound {
         // Boxes by column, to find what covers a top and the ceilings over it.
         Map<Long, List<double[]>> byColumn = new HashMap<Long, List<double[]>>();
         for (double[] b : boxes) list(byColumn, (int) b[7], (int) b[8]).add(b);
+        boolean anySlime = false;
+        for (double[] b : boxes) anySlime |= b[6] > 0;
         for (double[] b : boxes) {
             List<double[]> col = byColumn.get(key((int) b[7], (int) b[8]));
             if (covered(col, b)) continue;
             boolean slime = b[6] > 0;
+            double[] stepFrom = stepFrom(byColumn, (int) b[7], (int) b[8], b[4]);
+            double[] hoverFrom = hoverFrom(byColumn, (int) b[7], (int) b[8], b[4]);
+            double drop = hoverFrom.length > 0 ? STEP : b[4] - stepFrom[0];
+            // A hover landing leaves the feet up to drop under the top (see low), over a lower top
+            // that can be a slime block.
             double up = slime ? impact(highest - b[4]) : JUMP;
+            if (anySlime && drop > EPS) up = Math.max(up, impact(highest - b[4] + drop));
             Node n = new Node(SURFACE, b[0] - HALF, b[3] + HALF, b[2] - HALF, b[5] + HALF, b[4], b[4], up, -0.0784D);
             n.ceilingBoxes = ceilings(byColumn, (int) b[7], (int) b[8], b[4], ceilingReach);
-            n.stepFrom = stepFrom(byColumn, (int) b[7], (int) b[8], b[4]);
-            n.drop = b[4] - n.stepFrom[0];
+            n.stepFrom = stepFrom;
+            n.hoverFrom = hoverFrom;
+            n.drop = drop;
             n.stepUp = stepUp(byColumn, (int) b[7], (int) b[8], b[4]);
             add(n, (int) b[7], (int) b[8]);
         }
@@ -280,6 +297,18 @@ public final class HopBound {
         start = new Node(START, from.minX, from.maxX, from.minZ, from.maxZ, from.minY, from.maxY,
             startUp, groundSpeed >= 0 ? -0.0784D : -TERMINAL);
         goal = new Node(GOAL, to.minX, to.maxX, to.minZ, to.maxZ, to.minY, to.maxY, 0, 0);
+        // A tick into the goal can step up from a top up to 0.6 under it.
+        double deepest = 0;
+        for (int x = (int) Math.floor(to.minX) - 2; x <= (int) Math.floor(to.maxX) + 2; x++) {
+            for (int z = (int) Math.floor(to.minZ) - 2; z <= (int) Math.floor(to.maxZ) + 2; z++) {
+                List<double[]> col = byColumn.get(key(x, z));
+                if (col == null) continue;
+                for (double[] b : col) {
+                    if (b[4] >= to.minY - STEP - EPS && b[4] <= to.minY + EPS) deepest = Math.max(deepest, to.minY - b[4]);
+                }
+            }
+        }
+        goal.drop = deepest;
         for (Node n : new Node[] {start, goal}) {
             int id = nodes.size();
             nodes.add(n);
@@ -360,6 +389,32 @@ public final class HopBound {
         int i = 0;
         for (double h : hs) out[i++] = h;
         return out;
+    }
+
+    /** Tops in the columns around (x, z) that a tick falling from 0.6 under {@code y} or higher can land on. */
+    private static double[] hoverFrom(Map<Long, List<double[]>> byColumn, int x, int z, double y) {
+        TreeSet<Double> hs = new TreeSet<Double>();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                List<double[]> col = byColumn.get(key(x + dx, z + dz));
+                if (col == null) continue;
+                for (double[] b : col) {
+                    if (b[4] < y - STEP - EPS && b[4] > y - STEP - TERMINAL) hs.add(b[4]);
+                }
+            }
+        }
+        double[] out = new double[hs.size()];
+        int i = 0;
+        for (double h : hs) out[i++] = h;
+        return out;
+    }
+
+    /**
+     * The lowest feet a hop from {@code a} can start at. A hover landing next to a top leaves them
+     * between the lower top the tick came down onto and the top, and no more than 0.6 under it.
+     */
+    private static double low(Node a) {
+        return a.type == SURFACE ? a.yLo - a.drop : a.yLo;
     }
 
     private static double stepUp(Map<Long, List<double[]>> byColumn, int x, int z, double y) {
@@ -455,15 +510,6 @@ public final class HopBound {
 
     private final Map<Double, double[]> arcMemo = new HashMap<Double, double[]>();
 
-    /** The first tick a flight {@code y} comes down onto height {@code h} (relative to the take-off), or INF. */
-    private static int landsOn(double[] y, double h) {
-        for (int t = 1; t < y.length; t++) {
-            if (y[t] < y[t - 1] && y[t] <= h + EPS && y[t - 1] >= h - EPS) return t;
-            if (y[t] < y[t - 1] && y[t - 1] < h - EPS) return INF;
-        }
-        return INF;
-    }
-
     /** The first tick a flight {@code y} has the feet in [lo, hi] (relative to the take-off), or INF. */
     private static int passes(double[] y, double lo, double hi, double drop) {
         for (int t = 1; t < y.length; t++) {
@@ -474,6 +520,27 @@ public final class HopBound {
     }
 
     /**
+     * Whether tick n of a flight {@code y} from {@code a} (from anywhere between its lowest feet
+     * and its top) ends standing on the top {@code b}: it starts no lower than one of b's step-from
+     * tops and comes down onto it, or starts 0.6 under b or higher and comes down onto a lower top.
+     */
+    private static boolean arrives(double[] y, int n, Node a, Node b) {
+        return arrives(y, n, low(a), a.yHi, b);
+    }
+
+    /** {@link #arrives} for a flight that starts anywhere from {@code from} up to {@code to}. */
+    private static boolean arrives(double[] y, int n, double from, double to, Node b) {
+        if (y[n] >= y[n - 1]) return false;
+        for (double f : b.stepFrom) {
+            if (Math.max(from, f - y[n - 1]) <= Math.min(to, f - y[n]) + EPS) return true;
+        }
+        for (double f : b.hoverFrom) {
+            if (Math.max(from, b.yLo - STEP - y[n - 1]) <= Math.min(to, f - y[n]) + EPS) return true;
+        }
+        return false;
+    }
+
+    /**
      * The first tick of a flight {@code y} from {@code a} that ends standing in {@code b}: landing on
      * one of b's step-from tops (b's own top, or one up to 0.6 below it that the landing steps up from);
      * for the goal or a ladder, liquid or web, also passing through its feet range or landing up to 0.6
@@ -481,11 +548,14 @@ public final class HopBound {
      */
     private static int earliest(double[] y, Node a, Node b) {
         if (b.type == SURFACE) {
-            int best = INF;
-            for (double h : b.stepFrom) best = Math.min(best, landsOn(y, h - a.yHi));
-            return best;
+            double lowest = b.yLo - drop(b) - a.yHi;
+            for (int t = 1; t < y.length; t++) {
+                if (arrives(y, t, a, b)) return t;
+                if (y[t] < y[t - 1] && y[t - 1] < lowest - EPS) break;
+            }
+            return INF;
         }
-        double lo = b.yLo - a.yHi, hi = b.yHi - a.yLo, d = drop(b);
+        double lo = b.yLo - a.yHi, hi = b.yHi - low(a), d = drop(b);
         int best = passes(y, lo, hi, d);
         for (int t = 1; t < y.length && best == INF; t++) {
             if (y[t] < y[t - 1] && y[t] <= hi + EPS && y[t - 1] >= lo - d - EPS) best = t;
@@ -501,7 +571,15 @@ public final class HopBound {
 
     /** The last tick a flight {@code y} can still end standing in {@code b} (see {@link #earliest}). */
     private static int latest(double[] y, Node a, Node b) {
-        double lo = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - drop(b)) - a.yHi;
+        double lo = (b.yLo - drop(b)) - a.yHi;
+        if (b.type == SURFACE) {
+            int last = -1;
+            for (int t = 1; t < y.length; t++) {
+                if (arrives(y, t, a, b)) last = t;
+                if (y[t] < y[t - 1] && y[t - 1] < lo - EPS) break;
+            }
+            return last;
+        }
         for (int t = 1; t < y.length; t++) {
             if (y[t] < y[t - 1] && y[t] <= lo + EPS) return t;
         }
@@ -510,6 +588,17 @@ public final class HopBound {
 
     /** dropK[k]: how far a player walking off a top has fallen after k ticks (it falls 0.0784 on the first). */
     private double[] walkDrop;
+
+    /** Heights after each tick of walking off a top (index 0 is 0), as a flight for {@link #arrives}. */
+    private double[] walkArc() {
+        if (walkArc == null) {
+            walkArc = new double[far.length + 1];
+            for (int t = 1; t < walkArc.length; t++) walkArc[t] = -walkDrop(t);
+        }
+        return walkArc;
+    }
+
+    private double[] walkArc;
 
     private double walkDrop(int k) {
         if (walkDrop == null) {
@@ -600,7 +689,7 @@ public final class HopBound {
     private int[] flights(Node a, Node b) {
         boolean lands = b.type == SURFACE;
         // Feet heights of b relative to a: the range to reach.
-        double lo = b.yLo - a.yHi, hi = b.yHi - a.yLo;
+        double lo = b.yLo - a.yHi, hi = b.yHi - low(a);
         int[] out = new int[6];
         int k = 0;
         if (a.type == SURFACE && a.up <= JUMP) {
@@ -612,9 +701,25 @@ public final class HopBound {
             }
             // Walking off: landing on tick n on a top between walkDrop(n - 1) and walkDrop(n) down (b's
             // own, or one it steps up from), or into the goal or a ladder, liquid or web on the way down.
-            double reachLo = lands ? b.stepFrom[0] - a.yHi : lo - drop(b);
-            double reachHi = lands ? b.yHi - a.yLo : hi;
-            int first = Math.max(2, reachHi < -EPS ? fallTicks(a.down, -reachHi) : 1);
+            double reachLo = lo - drop(b);
+            double reachHi = hi;
+            if (lands) {
+                // Onto a top: the ticks that end standing on it (see arrives).
+                double[] yw = walkArc();
+                int first = INF, last = -1;
+                for (int n = 2; n < far.length; n++) {
+                    if (arrives(yw, n, a, b)) {
+                        first = Math.min(first, n);
+                        last = n;
+                    }
+                    if (yw[n - 1] < reachLo - EPS) break;
+                }
+                if (first <= last) {
+                    out[k++] = first;
+                    out[k++] = last;
+                }
+            }
+            int first = lands ? INF : Math.max(2, reachHi < -EPS ? fallTicks(a.down, -reachHi) : 1);
             if (first < INF && -walkDrop(first - 1) >= reachLo - EPS) {
                 int last = first;
                 while (last + 1 < far.length && -walkDrop(last) >= reachLo - EPS) last++;
@@ -665,7 +770,7 @@ public final class HopBound {
         double[] free = jumpArc(Double.POSITIVE_INFINITY);
         int last = latest(free, a, b);
         int firstJump = earliest(free, a, b);
-        double lowest = lands ? b.stepFrom[0] - a.yHi : lo - drop(b);
+        double lowest = lo - drop(b);
         for (double[] c : a.ceilingBoxes) {
             if (c[0] < lowest - EPS) continue;
             double[] y = jumpArc(c[0]);
@@ -689,10 +794,29 @@ public final class HopBound {
         // place no higher than that (b's lowest step-from top, or for a ladder, liquid or web its feet).
         if (!Double.isNaN(a.stepUp) && lowest <= a.stepUp + EPS) {
             double reachLo = lowest;
-            int m = 1;
-            while (m + 1 < far.length && a.stepUp - walkDrop(m) >= reachLo - EPS) m++;
-            lo2 = 2;
-            hi2 = Math.max(hi2, Math.min(far.length - 1, m + 1));
+            if (lands) {
+                // Onto a top: the ticks that end standing on it (see arrives), from any top the jump
+                // tick can step up onto (no higher than a.stepUp over a).
+                double[] y = new double[far.length];
+                for (int t = 1; t < y.length; t++) y[t] = -walkDrop(t - 1);
+                int first = INF, end = -1;
+                for (int n = 2; n < y.length; n++) {
+                    if (arrives(y, n, low(a), a.yHi + a.stepUp, b)) {
+                        first = Math.min(first, n);
+                        end = n;
+                    }
+                    if (a.stepUp + y[n - 1] < reachLo - EPS) break;
+                }
+                if (first <= end) {
+                    lo2 = Math.min(lo2, first);
+                    hi2 = Math.max(hi2, end);
+                }
+            } else {
+                int m = 1;
+                while (m + 1 < far.length && a.stepUp - walkDrop(m) >= reachLo - EPS) m++;
+                lo2 = 2;
+                hi2 = Math.max(hi2, Math.min(far.length - 1, m + 1));
+            }
         }
         return hi2 >= lo2 ? new int[] {lo2, hi2} : new int[0];
     }
@@ -1002,7 +1126,7 @@ public final class HopBound {
                     if (bi == s || !seen.add(bi)) continue;
                     Node b = nodes.get(bi);
                     // Cheap check first: no flight down to b's lowest landing height lasts longer.
-                    double deepest = (b.type == SURFACE ? b.stepFrom[0] : b.yLo - drop(b)) - a.yHi;
+                    double deepest = (b.yLo - drop(b)) - a.yHi;
                     int longest = Math.min(far.length - 1, latestLanding(Math.max(a.up, JUMP), deepest) + 1);
                     if (a.distance(b) - 3 * step > far[longest]) continue;
                     int[] r = ranges(a, b);
