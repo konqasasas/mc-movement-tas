@@ -12,4 +12,9 @@ public interface MovementModel<S> {
     S tick(S state, TickInput input);
 
     Vec3 position(S state);
+
+    /** Why the tick from {@code before} to {@code after} breaks D-005 (see {@link Hazards}), or null. */
+    default String violation(S before, S after) {
+        return null;
+    }
 }

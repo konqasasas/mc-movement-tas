@@ -6,6 +6,7 @@ import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.DenseBlockWorld;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.problem.judge.Hazards;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 
@@ -520,23 +521,8 @@ final class Grid {
         return out;
     }
 
-    /** True when the player gets hurt in this state (D-005): on magma, or touching cactus, fire or lava. */
-    boolean hurts(PlayerState s) {
-        if (s.onGround && !s.isSneaking()) {
-            int x = (int) Math.floor(s.posX), y = (int) Math.floor(s.posY - 0.2), z = (int) Math.floor(s.posZ);
-            if (magma(world.getBlock(x, y, z))) return true;
-        }
-        Aabb b = s.box;
-        int x0 = (int) Math.floor(b.minX + 0.001), x1 = (int) Math.floor(b.maxX - 0.001);
-        int y0 = (int) Math.floor(b.minY + 0.001), y1 = (int) Math.floor(b.maxY - 0.001);
-        int z0 = (int) Math.floor(b.minZ + 0.001), z1 = (int) Math.floor(b.maxZ - 0.001);
-        for (int x = x0; x <= x1; x++) {
-            for (int y = y0; y <= y1; y++) {
-                for (int z = z0; z <= z1; z++) {
-                    if (hazard(world.getBlock(x, y, z))) return true;
-                }
-            }
-        }
-        return false;
+    /** True when the tick from {@code before} to {@code after} hurts or tramples (D-005, {@link Hazards}). */
+    boolean hurts(PlayerState before, PlayerState after) {
+        return Hazards.check(world, before, after) != null;
     }
 }

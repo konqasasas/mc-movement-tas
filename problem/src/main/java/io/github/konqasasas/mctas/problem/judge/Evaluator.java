@@ -13,8 +13,16 @@ public final class Evaluator {
         Judge judge = new Judge(problem);
         S state = model.spawn(problem);
         for (TickInput in : inputs) {
+            S before = state;
             state = model.tick(state, in);
-            if (judge.observe(model.position(state))) break;
+            boolean done = judge.observe(model.position(state));
+            // (Also on the tick that reaches the goal: getting hurt there makes the run invalid too.)
+            String v = model.violation(before, state);
+            if (v != null) {
+                judge.reject(v);
+                break;
+            }
+            if (done) break;
         }
         return judge.result();
     }

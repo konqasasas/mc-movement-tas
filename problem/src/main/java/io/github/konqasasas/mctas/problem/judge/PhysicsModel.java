@@ -11,9 +11,11 @@ import io.github.konqasasas.mctas.problem.input.TickInput;
 
 public final class PhysicsModel implements MovementModel<PlayerState> {
     private final BlockWorld world;
+    private final boolean hazards;
 
     public PhysicsModel(Problem problem) {
         this.world = problem.world;
+        this.hazards = Hazards.present(problem.world);
     }
 
     @Override
@@ -33,6 +35,11 @@ public final class PhysicsModel implements MovementModel<PlayerState> {
     @Override
     public PlayerState tick(PlayerState state, TickInput input) {
         return Physics.tick(world, state, toPhysics(input));
+    }
+
+    @Override
+    public String violation(PlayerState before, PlayerState after) {
+        return hazards ? Hazards.check(world, before, after) : null;
     }
 
     @Override

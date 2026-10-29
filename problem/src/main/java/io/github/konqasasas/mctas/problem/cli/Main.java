@@ -95,6 +95,7 @@ public final class Main {
         System.out.println("problem: " + problem.id);
         System.out.println("engineBuild: " + EngineBuild.ID);
         System.out.println("status: " + r.status.name().toLowerCase());
+        if (r.violation != null) System.out.println("violation: " + r.violation + " at tick " + r.violationTick + " (D-005)");
         if (r.finished()) {
             System.out.println("startTick: " + r.startTick);
             System.out.println("goalTick: " + r.goalTick);
