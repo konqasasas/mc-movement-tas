@@ -39,6 +39,8 @@ final class Field {
     final float[] seedValue;
     /** Cells the field may use, or null for all (a backward field keeps to the cells the start reaches). */
     private final Field within;
+    /** Blocks of flight left at each cell ({@link #AIR_RUN}): how much further the way may go across the air. */
+    private final float[] left;
     private long[] heap = new long[1024];
     private int heapSize;
 
@@ -56,6 +58,7 @@ final class Field {
         next = forward ? null : new int[g.flags.length];
         if (next != null) Arrays.fill(next, -1);
         seedValue = forward ? null : new float[g.flags.length];
+        left = AIR_RUN > 0 ? new float[g.flags.length] : null;
     }
 
     float value(int id) {
@@ -71,6 +74,7 @@ final class Field {
                     next[id] = -1;
                     seedValue[id] = v;
                 }
+                if (left != null) left[id] = AIR_RUN;
                 push(v, id);
             }
         }
@@ -89,7 +93,33 @@ final class Field {
     }
 
     private void offer(int id, float v, int via) {
+        offer(id, v, via, AIR_RUN);
+    }
+
+    /**
+     * Across the air a flight goes only so far: {@link #AIR_RUN} blocks from the stand (ladder, water)
+     * it leaves or lands on, and {@link #AIR_DROP} more for every level it comes down. Without the
+     * limit, the air of stands next to each other joins into a way that floats at one height.
+     */
+    static final float AIR_RUN = System.getenv("FUNNEL_AIRRUN") != null ? Float.parseFloat(System.getenv("FUNNEL_AIRRUN")) : 0;
+    static final float AIR_DROP = System.getenv("FUNNEL_AIRDROP") != null ? Float.parseFloat(System.getenv("FUNNEL_AIRDROP")) : 1.0F;
+
+    private boolean held(int id) {
+        return (g.flags[id] & (Grid.STAND | Grid.CLIMB | Grid.WATER)) != 0;
+    }
+
+    /** The flight left after a move from {@code from} that adds {@code b} to it (negative: across). */
+    private float flight(int from, float b) {
+        return left == null ? AIR_RUN : (held(from) ? AIR_RUN : left[from]) + b;
+    }
+
+    private void offer(int id, float v, int via, float b) {
+        if (left != null) {
+            if (held(id)) b = AIR_RUN;
+            else if (b < 0) return;
+        }
         if (v < d[id] && (within == null || within.d[id] < INF)) {
+            if (left != null) left[id] = b;
             d[id] = v;
             if (next != null) {
                 next[id] = via;
@@ -129,13 +159,13 @@ final class Field {
                 int u = g.id(l, jx, jz);
                 if (!movable(u)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v);
+                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v, flight(v, (float) -(k < 4 ? Grid.RES : Grid.RES * Math.sqrt(2))));
             }
         }
         // A fall from the cell above.
         if (l + 1 < g.ny) {
             int u = g.id(l + 1, ix, iz);
-            if (movable(u)) offer(u, dv + DROP, v);
+            if (movable(u)) offer(u, dv + DROP, v, flight(v, AIR_DROP));
         }
         // A jump from a stand below, a climb or a swim up.
         for (int k = 1; k <= RISE_LEVELS && l - k >= 0; k++) {
@@ -167,11 +197,11 @@ final class Field {
                 int v = g.id(l, jx, jz);
                 if (!movable(v)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u);
+                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u, flight(u, (float) -(k < 4 ? Grid.RES : Grid.RES * Math.sqrt(2))));
             }
             if (l > 0) {
                 int v = g.id(l - 1, ix, iz);
-                if (movable(v)) offer(v, du + DROP, u);
+                if (movable(v)) offer(v, du + DROP, u, flight(u, AIR_DROP));
             }
         }
         for (int k = 1; k <= RISE_LEVELS && l + k < g.ny; k++) {
