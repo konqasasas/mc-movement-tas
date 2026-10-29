@@ -1,0 +1,11 @@
+{"format": "mctas-problem", "version": 1, "id": "elem-dev/e13-posts-rejump", "mcVersion": "1.12.2", "world": {"source": "inline", "fills": [
+    {"from": [-2, 64, -10], "to": [2, 64, 0], "block": "minecraft:stone"}, 
+    {"from": [0, 64, 3], "to": [0, 64, 3], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 3], "to": [0, 65, 3], "block": "minecraft:stained_glass_pane"}, 
+    {"from": [0, 64, 6], "to": [0, 64, 6], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 6], "to": [0, 65, 6], "block": "minecraft:cobblestone_wall"}, 
+    {"from": [0, 64, 9], "to": [0, 64, 9], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 9], "to": [0, 65, 9], "block": "minecraft:iron_bars"}, 
+    {"from": [0, 64, 13], "to": [0, 64, 13], "block": "minecraft:stone"}, 
+    {"from": [0, 65, 13], "to": [0, 65, 13], "block": "minecraft:spruce_fence"}, 
+    {"from": [-1, 64, 15], "to": [1, 65, 18], "block": "minecraft:stone"}]}, "spawn": {"pos": [0.5, 65, -5.5], "yaw": 0.0, "pitch": 0.0}, "start": {"min": [-2.0, 65, -3.0], "max": [3.0, 71, -2.5]}, "goal": {"min": [-1, 66, 16], "max": [2, 66, 19]}, "limits": {"maxTicks": 800, "voidY": 50.0}}

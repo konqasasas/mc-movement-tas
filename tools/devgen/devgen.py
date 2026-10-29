@@ -259,7 +259,8 @@ def build(kind, r, m):
             u += du
             if gap < 3:
                 l = max(-1, min(1, l + r.choice([-1, 0, 1])))
-            m.lane(f - gap, f - 1, l, max(u, u - du) + 1, 3)
+            # From the lower of the two feet heights, and a block more for a jump up (F-528).
+            m.lane(f - gap, f - 1, l, min(u, u - du) + 1, 4 if du > 0 else 3)
             m.put(f, l, u, "minecraft:barrier")
             m.clear(f, l, u + 1, 3)
         f += 2
