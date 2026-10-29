@@ -41,6 +41,8 @@ public final class Improver {
         public double landChance = 0;
         /** Chance that a rebuild ends on a landing of the old run ({@link Rebuild#landExitChance}). */
         public double landExitChance = 0;
+        /** Chance that a rebuild is a jump on a short landing steered at the next one ({@link Rebuild#aimLanding}). */
+        public double aimChance = 0;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -97,6 +99,12 @@ public final class Improver {
      * The landings of a run by how many ticks it stays on the ground before the next jump: "landings
      * N, 1: a, 2-4: b, 5+: c". 1 is a jump on the landing tick (WS14, F-1007).
      */
+    /** Steered jumps on short landings so far ({@link Rebuild#aimLanding}): tried, landed near, valid, better. */
+    public static String aimCounts() {
+        return String.format("tried %d, landed near %d, valid %d, better %d", Rebuild.AIM[0].get(), Rebuild.AIM[1].get(),
+                Rebuild.AIM[2].get(), Rebuild.AIM[3].get());
+    }
+
     public static String landings(Run r) {
         int one = 0, short_ = 0, longer = 0;
         int end = r.valid ? r.goalTick : r.length;
@@ -175,6 +183,7 @@ public final class Improver {
         Micro.rejumpChance = o.rejumpChance;
         rebuild.landChance = o.landChance;
         rebuild.landExitChance = o.landExitChance;
+        rebuild.aimChance = o.aimChance;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
