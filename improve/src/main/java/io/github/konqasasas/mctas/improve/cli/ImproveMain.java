@@ -170,6 +170,7 @@ public final class ImproveMain {
         if (a.has(PlayerInput.SPRINT)) k.add(Key.SPRINT);
         if (a.has(PlayerInput.SNEAK)) k.add(Key.SNEAK);
         if (a.has(PlayerInput.USE)) k.add(Key.USE);
+        if (a.has(PlayerInput.CLOSE)) k.add(Key.CLOSE);
         return new TickInput(k, a.yaw, a.pitch, a.slot);
     }
 

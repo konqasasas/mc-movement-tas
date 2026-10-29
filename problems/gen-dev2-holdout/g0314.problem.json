@@ -1818,14 +1818,6 @@
    {
     "from": [
      -79,
-     117,
-     63
-    ],
-    "block": "minecraft:cobblestone_wall"
-   },
-   {
-    "from": [
-     -79,
      121,
      94
     ],

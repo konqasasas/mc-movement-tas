@@ -15,9 +15,14 @@ public final class PlayerInput {
     public static final int SNEAK = 1 << 6;
     /** The right mouse button: places the held block. */
     public static final int USE = 1 << 7;
-    public static final int ALL_KEYS = (1 << 8) - 1;
+    /**
+     * Closes the open screen (a shulker box's) at the start of the tick, before anything else in it, as
+     * {@code EntityPlayerSP.closeScreen} does; the rest of the input then applies as usual.
+     */
+    public static final int CLOSE = 1 << 8;
+    public static final int ALL_KEYS = (1 << 9) - 1;
 
-    private static final String NAMES = "WASDJRNU";
+    private static final String NAMES = "WASDJRNUC";
 
     public final int keys;
     /** {@code rotationYaw}, unwrapped, as the game stores it. */
@@ -67,7 +72,7 @@ public final class PlayerInput {
         return ((keys * 31 + Float.floatToIntBits(yaw)) * 31 + Float.floatToIntBits(pitch)) * 31 + slot;
     }
 
-    /** Keys as letters: W A S D, J = jump, R = sprint, N = sneak, U = use (right button). */
+    /** Keys as letters: W A S D, J = jump, R = sprint, N = sneak, U = use (right button), C = close the screen. */
     public String keyString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < NAMES.length(); i++) {

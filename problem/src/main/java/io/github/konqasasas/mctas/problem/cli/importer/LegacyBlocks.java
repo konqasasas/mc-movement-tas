@@ -248,7 +248,64 @@ public final class LegacyBlocks {
             case 198: // BlockEndRod
                 p.put("facing", FRONT[meta % 6]);
                 break;
+            // The properties below change only where the view ray hits the block.
+            case 77: case 143: { // BlockButton
+                String[] f = {"down", "east", "west", "south", "north", "up", "up", "up"};
+                p.put("facing", f[meta & 7]);
+                p.put("powered", bool((meta & 8) != 0));
+                break;
+            }
+            case 50: case 75: case 76: { // BlockTorch
+                String[] f = {"up", "east", "west", "south", "north", "up", "up", "up"};
+                p.put("facing", f[meta & 7]);
+                break;
+            }
+            case 69: { // BlockLever
+                String[] f = {"down_x", "east", "west", "south", "north", "up_z", "up_x", "down_z"};
+                p.put("facing", f[meta & 7]);
+                break;
+            }
+            case 131: // BlockTripWireHook
+                p.put("facing", HORIZONTAL[meta & 3]);
+                break;
+            case 132: // BlockTripWire
+                p.put("attached", bool((meta & 4) != 0));
+                break;
+            case 66: { // BlockRail
+                String[] shapes = {"north_south", "east_west", "ascending_east", "ascending_west", "ascending_north",
+                        "ascending_south", "south_east", "south_west", "north_west", "north_east"};
+                if (meta >= shapes.length) throw badMeta(id, meta);
+                p.put("shape", shapes[meta]);
+                break;
+            }
+            case 27: case 28: case 157: { // BlockRailPowered, BlockRailDetector
+                String[] shapes = {"north_south", "east_west", "ascending_east", "ascending_west", "ascending_north",
+                        "ascending_south"};
+                if ((meta & 7) >= shapes.length) throw badMeta(id, meta);
+                p.put("shape", shapes[meta & 7]);
+                break;
+            }
+            case 59: case 104: case 105: case 141: case 142: // BlockCrops, BlockStem
+                p.put("age", Integer.toString(meta & 7));
+                break;
+            case 115: case 207: // BlockNetherWart, BlockBeetroot
+                p.put("age", Integer.toString(meta & 3));
+                break;
+            case 70: case 72: // BlockPressurePlate
+                p.put("powered", bool(meta == 1));
+                break;
+            case 147: case 148: // BlockPressurePlateWeighted
+                p.put("power", Integer.toString(meta));
+                break;
+            case 68: case 177: { // BlockWallSign, BlockBannerHanging
+                String f = FRONT[meta % 6];
+                p.put("facing", f.equals("down") || f.equals("up") ? "north" : f);
+                break;
+            }
             default:
+                if (id >= 219 && id <= 234) { // BlockShulkerBox
+                    p.put("facing", FRONT[meta % 6]);
+                }
                 break;
         }
         return p;

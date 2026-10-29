@@ -8898,14 +8898,6 @@
    {
     "from": [
      44,
-     73,
-     24
-    ],
-    "block": "minecraft:glass"
-   },
-   {
-    "from": [
-     44,
      77,
      30
     ],
@@ -12942,14 +12934,6 @@
      64
     ],
     "block": "minecraft:skull[facing=up]"
-   },
-   {
-    "from": [
-     71,
-     92,
-     72
-    ],
-    "block": "minecraft:cobblestone_wall"
    },
    {
     "from": [

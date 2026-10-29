@@ -151,7 +151,8 @@ def build(kind, r, m):
             l = max(-1, min(1, l + r.choice([-1, 0, 0, 1])))
             m.column(f, l, 0, u - 1, "minecraft:stone")
             m.put(f, l, u, "minecraft:skull[facing=up]")
-            m.lane(f - (4 if HARD else 2), f, l, u + 1, 3)
+            # The jump up to a skull passes the column before it at the skull's own height.
+            m.lane(f - 4, f, l, u, 4) if HARD else m.lane(f - 2, f, l, u + 1, 3)
         f += 2
         m.column(f, l, 0, u - 1, "minecraft:stone")
         m.lane(f - 2, f, l, u + 1)

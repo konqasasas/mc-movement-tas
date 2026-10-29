@@ -547,14 +547,6 @@
     "from": [
      -45,
      111,
-     -57
-    ],
-    "block": "minecraft:iron_bars"
-   },
-   {
-    "from": [
-     -45,
-     111,
      -54
     ],
     "block": "minecraft:skull[facing=up]"

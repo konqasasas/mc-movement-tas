@@ -35,6 +35,8 @@ final class ClientWorldBlocks implements BlockWorld {
     /** The state each position had at {@link #freeze}, for the positions changed since. */
     private final Map<BlockPos, IBlockState> before = new HashMap<BlockPos, IBlockState>();
     private IWorldEventListener listener;
+    /** Every change seen since {@link #freeze}, as "x y z: old -> new", until {@link #drainChanges}. */
+    private final List<String> changes = new java.util.ArrayList<String>();
 
     ClientWorldBlocks(World world) {
         this.world = world;
@@ -84,12 +86,28 @@ final class ClientWorldBlocks implements BlockWorld {
         before.clear();
     }
 
+    /** The changes seen since the last call, oldest first. */
+    List<String> drainChanges() {
+        List<String> out = new java.util.ArrayList<String>(changes);
+        changes.clear();
+        return out;
+    }
+
+    private static String describe(IBlockState s) {
+        String name = catalogName(s);
+        return name == null ? String.valueOf(Block.REGISTRY.getNameForObject(s.getBlock())) : name.replace("minecraft:", "");
+    }
+
     /** Records the first old state of every block that changes. */
     private final class Changes implements IWorldEventListener {
         @Override
         public void notifyBlockUpdate(World w, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
             if (!before.containsKey(pos)) {
                 before.put(pos.toImmutable(), oldState);
+            }
+            if (oldState != newState) {
+                changes.add(pos.getX() + " " + pos.getY() + " " + pos.getZ() + ": " + describe(oldState) + " -> "
+                        + describe(newState));
             }
         }
 

@@ -58,6 +58,10 @@ public final class PlayerState implements Cloneable {
      * shared between copies; {@link #world} gives the combined view.
      */
     public WorldDelta placed = WorldDelta.EMPTY;
+    /** Buttons the player pressed that may still be on. Immutable and shared between copies. */
+    public Pressed pressed = Pressed.NONE;
+    /** The shulker box the player opened, until it is shut again. Immutable and shared between copies. */
+    public Shulker shulker = Shulker.NONE;
     /** The hotbar. Immutable and shared between copies. */
     public Hotbar hotbar = Hotbar.EMPTY;
     /** {@code InventoryPlayer.currentItem}. */
@@ -136,9 +140,9 @@ public final class PlayerState implements Cloneable {
         return prevSneak;
     }
 
-    /** The world as this player sees it: {@code base} with {@link #placed} on top. */
+    /** The world as this player sees it: {@code base} with {@link #placed}, {@link #pressed} and {@link #shulker} on top. */
     public BlockWorld world(BlockWorld base) {
-        return placed.over(base);
+        return placed.over(pressed.over(shulker.over(base)));
     }
 
     public PlayerState copy() {
@@ -184,13 +188,16 @@ public final class PlayerState implements Cloneable {
         if (speedAmplifier != o.speedAmplifier) return "speedAmplifier";
         if (slownessAmplifier != o.slownessAmplifier) return "slownessAmplifier";
         if (jumpBoostAmplifier != o.jumpBoostAmplifier) return "jumpBoostAmplifier";
+        if (!pressed.equals(o.pressed)) return "pressed";
+        if (!shulker.equals(o.shulker)) return "shulker";
         if (!hotbar.equals(o.hotbar)) return "hotbar";
         if (selectedSlot != o.selectedSlot) return "selectedSlot";
         if (rightClickDelay != o.rightClickDelay) return "rightClickDelay";
         if (prevUse != o.prevUse) return "prevUse";
         if (unsupportedAction != o.unsupportedAction) return "unsupportedAction";
-        // What the server knows matters only for placing blocks, so it is left out once there are none.
-        if (hotbar.isEmpty()) return null;
+        // What the server knows matters only for placing blocks and for an open shulker box (how far away
+        // the server takes the player to be), so it is left out without either.
+        if (hotbar.isEmpty() && shulker.isNone()) return null;
         if (!same(lastReportedPosX, o.lastReportedPosX)) return "lastReportedPosX";
         if (!same(lastReportedPosY, o.lastReportedPosY)) return "lastReportedPosY";
         if (!same(lastReportedPosZ, o.lastReportedPosZ)) return "lastReportedPosZ";
@@ -254,11 +261,13 @@ public final class PlayerState implements Cloneable {
         h = mix(h, speedAmplifier);
         h = mix(h, slownessAmplifier);
         h = mix(h, jumpBoostAmplifier);
+        h = mix(h, pressed.hashCode());
+        h = mix(h, shulker.hashCode());
         h = mix(h, hotbar.hashCode());
         h = mix(h, selectedSlot);
         h = mix(h, rightClickDelay);
         h = mix(h, placed.contentHash());
-        if (!hotbar.isEmpty()) {
+        if (!hotbar.isEmpty() || !shulker.isNone()) {
             h = mix(h, Double.doubleToLongBits(lastReportedPosX));
             h = mix(h, Double.doubleToLongBits(lastReportedPosY));
             h = mix(h, Double.doubleToLongBits(lastReportedPosZ));
@@ -288,6 +297,8 @@ public final class PlayerState implements Cloneable {
                 + " jumpTicks=" + jumpTicks + " " + box
                 + (hotbar == Hotbar.EMPTY ? "" : " hotbar=" + hotbar + " slot=" + selectedSlot)
                 + (placed.isEmpty() ? "" : " placed=" + placed.size())
+                + (pressed.isEmpty() ? "" : " pressed=" + pressed)
+                + (shulker.isNone() ? "" : " shulker=" + shulker)
                 + (rightClickDelay == 0 ? "" : " useDelay=" + rightClickDelay)
                 + (unsupportedAction ? " UNSUPPORTED" : "");
     }
