@@ -16,7 +16,7 @@ import java.util.Set;
  * best with {@link Refiner}, until the time budget runs out or a wider beam stops paying off.
  */
 public final class ApproxSolver {
-    public static final String ENGINE = "approx-beam-v7";
+    public static final String ENGINE = "approx-beam-v8";
     /** Reach to spare on route jumps, one route per value. */
     static final double[] SLACKS = {0, 0.5, 1.0};
 

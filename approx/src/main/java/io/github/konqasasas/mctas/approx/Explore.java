@@ -38,6 +38,21 @@ final class Explore {
     static final long WIDE_MILLIS = Long.getLong("mctas.wideMillis", 4000);
     /** A landing must bring the cost down at least this much. */
     static final double MIN_GAIN = 2;
+    /** How much further from the goal a surface may be, when none nearer is reached. */
+    static final double RELAX = 40;
+    /**
+     * Whether that second round runs (environment variable {@code EXPLORE_RELAX}). Off: it gets
+     * waza1h4 up its trapdoors, but made verdure 20 ticks slower.
+     */
+    static final boolean RELAX_ON = System.getenv("EXPLORE_RELAX") != null;
+    private double gain = MIN_GAIN;
+    /** By where nodes stand ({@link #near}), the candidates the slow searches missed from there. */
+    private final java.util.Map<Long, Set<Route.Surface>> missedWide = new java.util.HashMap<Long, Set<Route.Surface>>();
+
+    /** Where a node stands, to a few blocks across and half a block up. */
+    private static long near(PlayerState s) {
+        return ((long) Math.floor(s.posX / 3) * 73856093L) ^ ((long) Math.floor(s.posZ / 3) * 19349663L) ^ ((long) Math.floor(s.posY * 2) * 83492791L);
+    }
     /** Candidates at the same height tried from one node. */
     static final int PER_TOP = 3;
     /** Ticks a block of distance from the slime block counts against a landing after a bounce. */
@@ -143,6 +158,7 @@ final class Explore {
         Set<Route.Surface> closed = new HashSet<Route.Surface>();
         Set<Route.Surface> closedHeld = new HashSet<Route.Surface>();
         Set<Long> places = new HashSet<Long>();
+        missedWide.clear();
         double[] h = route.costToGoal();
         int expanded = 0;
         while (!open.isEmpty() && System.currentTimeMillis() < deadlineMillis) {
@@ -171,11 +187,24 @@ final class Explore {
                     if (done != null) return done;
                 }
             }
+            // When none of the surfaces nearer the goal is reached, those a little further from it
+            // too: the way the cost takes may be one the player cannot fly (a bounce that needs a
+            // higher fall), and a way up first may lead on.
+            List<Route.Surface> tried = new ArrayList<Route.Surface>();
+            for (int round = 0; round < (RELAX_ON ? 2 : 1); round++) {
+            gain = round == 0 ? MIN_GAIN : -RELAX;
             List<Route.Surface> cands = candidates(s, n.on, closed, h);
+            cands.removeAll(tried);
+            tried.addAll(cands);
             int landed = 0;
             for (int k = 0; k < cands.size(); k++) {
                 Route.Surface c = cands.get(k);
                 if (System.currentTimeMillis() >= deadlineMillis) break;
+                // The slow searches only for the nearest candidates, and not again from near where
+                // they missed one before (the next node on that floor would miss too).
+                Set<Route.Surface> missed = missedWide.computeIfAbsent(near(s),
+                        x -> java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Route.Surface, Boolean>()));
+                boolean wide = k < WIDE && !missed.contains(c);
                 // Onto a surface, or into a ladder, vine or water block.
                 Exit e = c.climb ? Exit.box(c.x, c.y, c.z, c.x + 1, c.y + 1 - 1e-9, c.z + 1)
                         : landing(c);
@@ -183,8 +212,11 @@ final class Explore {
                 Node m;
                 if (slime != null) {
                     // Down onto the slime block first, then from the bounce to the landing.
-                    m = bounce(n, since, slime, e, c, deadlineMillis, k < WIDE ? segmentMillis : 0);
-                    if (m == null) continue;
+                    m = bounce(n, since, slime, e, c, deadlineMillis, wide ? segmentMillis : 0);
+                    if (m == null) {
+                        if (wide) missed.add(c);
+                        continue;
+                    }
                 } else {
                     // Up a ladder or vine: to the top of it in one go when that works, a block a node is slow.
                     Route.Surface t = c.climb && !Route.isWater(problem.world.getBlock(c.x, c.y, c.z)) ? route.climbTop(c) : c;
@@ -202,10 +234,10 @@ final class Explore {
                             }
                         }
                         g = segment(s, since, Exit.box(t.x, t.y, t.z, t.x + 1, t.y + 1 - 1e-9, t.z + 1), t.cx(), t.cz(),
-                                deadlineMillis, k < WIDE ? segmentMillis : 0);
+                                deadlineMillis, wide ? segmentMillis : 0);
                         if (g != null) c = t;
                     }
-                    if (g == null) g = segment(s, since, e, c.cx(), c.cz(), deadlineMillis, k < WIDE ? segmentMillis : 0);
+                    if (g == null) g = segment(s, since, e, c.cx(), c.cz(), deadlineMillis, wide ? segmentMillis : 0);
                     // Onto a post at speed after all: a jump on from the landing tick may still carry on.
                     if (g == null && !c.climb && narrow(c)) {
                         g = segment(s, since, Exit.landing(target(c)), c.cx(), c.cz(), deadlineMillis, 0);
@@ -225,7 +257,7 @@ final class Explore {
                                 open.add(plain);
                             }
                         }
-                    } else if (k < WIDE && n.on != null && !n.on.climb) {
+                    } else if (wide && n.on != null && !n.on.climb) {
                         m = runUp(n, e, c, deadlineMillis, segmentMillis, false);
                         // Along a strip (an open trapdoor, a wall top) to its end nearest the landing.
                         if (m == null && narrow(n.on)) m = runUp(n, e, c, deadlineMillis, segmentMillis, true);
@@ -233,12 +265,17 @@ final class Explore {
                         continue;
                     }
                 }
-                if (m == null) continue;
+                if (m == null) {
+                    if (wide) missed.add(c);
+                    continue;
+                }
                 if (stop != null && stop.test(m.state)) return m;
                 open.add(m);
                 landed++;
             }
-            say("explore:   " + cands.size() + " candidates, " + landed + " landed" + (System.getenv("EXPLORE_DEBUG") != null ? " " + cands : ""));
+            say("explore:   " + cands.size() + " candidates, " + landed + " landed" + (round > 0 ? " (further)" : "") + (System.getenv("EXPLORE_DEBUG") != null ? " " + cands : ""));
+            if (landed > 0) break;
+            }
         }
         say("explore: gave up after " + expanded + " nodes");
         return null;
@@ -258,7 +295,7 @@ final class Explore {
             if (System.getenv("EXPLORE_WHY") != null && c.dist(s.posX, s.posZ) < 2.5) say("explore:     near " + c + " on " + (c == on) + " closed " + closed.contains(c) + " hc " + route.cost(c) + " here " + here);
             if (c == on || closed.contains(c)) continue;
             double hc = route.cost(c);
-            if (!(hc < here - MIN_GAIN)) continue;
+            if (!(hc < here - gain)) continue;
             double gap = c.dist(s.posX, s.posZ);
             double dy = c.top - s.posY;
             // Further down a drop, as far as the jump carries.
@@ -279,7 +316,7 @@ final class Explore {
             for (Route.Surface c : route.bounceTargets(under)) {
                 if (closed.contains(c)) continue;
                 double hc = route.cost(c);
-                if (!(hc < here - MIN_GAIN)) continue;
+                if (!(hc < here - gain)) continue;
                 Route.Surface slime = route.bounceSlime(under, c);
                 via.put(c, slime);
                 // Nearest the slime block first: the bounce barely carries aside.
@@ -565,8 +602,9 @@ final class Explore {
         Exit onSlime = new Exit() {
             @Override
             public boolean reached(PlayerState before, PlayerState after) {
+                // Off any slime block of the pad: the one nearest the landing may be out of reach.
                 return before.motionY < 0 && after.motionY >= need && after.posY < slime.top + 1.5
-                        && slime.contains(after.posX, after.posZ);
+                        && Route.isSlime(problem.world.getBlock((int) Math.floor(after.posX), (int) Math.floor(after.posY - 0.2), (int) Math.floor(after.posZ)));
             }
 
             @Override

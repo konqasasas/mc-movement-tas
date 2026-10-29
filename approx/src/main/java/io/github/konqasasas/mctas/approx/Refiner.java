@@ -48,6 +48,9 @@ final class Refiner {
     }
 
     Outcome improve(List<PlayerInput> inputs, int ticks) {
+        Outcome h = jumpSooner(problem, inputs, ticks, deadline);
+        inputs = h.inputs;
+        ticks = h.ticks;
         boolean better = true;
         while (better && System.currentTimeMillis() < deadline) {
             better = false;
@@ -63,6 +66,49 @@ final class Refiner {
                     ticks = r.ticks;
                     better = true;
                     break;
+                }
+            }
+        }
+        return new Outcome(inputs, ticks);
+    }
+
+    /** Ground ticks after a landing that {@link #jumpSooner} tries to cut. */
+    static final int MAX_GROUND = 6;
+
+    /**
+     * Jumping again sooner after landing: where the run stays on the ground for 2 to
+     * {@link #MAX_GROUND} ticks between a landing and the next take-off, drop some of those ground
+     * ticks (the rest of the inputs move earlier) and keep the change when the run still finishes,
+     * sooner. The take-off's own input is kept, so it still jumps.
+     */
+    static Outcome jumpSooner(Problem problem, List<PlayerInput> inputs, int ticks, long deadline) {
+        boolean better = true;
+        while (better && System.currentTimeMillis() < deadline) {
+            better = false;
+            List<PlayerState> st = new ArrayList<PlayerState>();
+            PlayerState s = Rollout.spawn(problem);
+            st.add(s);
+            for (PlayerInput a : inputs) {
+                s = Physics.tick(problem.world, s, a);
+                st.add(s);
+            }
+            // Latest landings first: an edit there leaves the earlier ones as they were.
+            for (int t = st.size() - 2; t >= 1 && !better && System.currentTimeMillis() < deadline; t--) {
+                if (!st.get(t).onGround || st.get(t - 1).onGround) continue;
+                int j = t;
+                while (j < st.size() && st.get(j).onGround) j++;
+                int ground = j - t;
+                if (j >= st.size() || ground < 2 || ground > MAX_GROUND) continue;
+                for (int del = ground - 1; del >= 1; del--) {
+                    List<PlayerInput> in = new ArrayList<PlayerInput>(inputs.subList(0, t));
+                    in.addAll(inputs.subList(t + del, inputs.size()));
+                    int n = Rollout.ticks(problem, in, new int[1]);
+                    if (n > 0 && n < ticks) {
+                        inputs = in;
+                        ticks = n;
+                        better = true;
+                        break;
+                    }
                 }
             }
         }

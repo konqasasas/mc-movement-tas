@@ -456,7 +456,10 @@ public final class Route {
         }
         if (a.climb && waterAt(a) && rectGap(a, b) > EPS) {
             double top = b.climb ? b.y : b.top;
-            if (rectGap(a, b) > WATER_HOP || top > a.y + 1 + 0.6 || top < a.y - 3) return -1;
+            // Lower down, the fall out of the water carries the player further (as off the end of
+            // a stream).
+            double drop = Math.max(0, a.y - top);
+            if (rectGap(a, b) > WATER_HOP + WATER_DROP_REACH * drop || top > a.y + 1 + 0.6 || top < a.y - 8) return -1;
             if (!throughWalls && obstructed(a, b)) return -1;
             return WATER_HOP_TICKS + d / CLIMB_SPEED;
         }
@@ -490,6 +493,8 @@ public final class Route {
 
     /** Gap a hop out of water clears, and the ticks it is counted. */
     static final double WATER_HOP = 1.5, WATER_HOP_TICKS = 12;
+    /** Further a fall out of water carries, for each block it drops. */
+    static final double WATER_DROP_REACH = 0.5;
 
     private boolean waterAt(Surface c) {
         return isWater(problem.world.getBlock(c.x, c.y, c.z));
@@ -745,6 +750,8 @@ public final class Route {
                     Surface b = graph.get(t[0]);
                     double rise = (b.climb ? b.y : b.top) - sl.top;
                     if (b == a || rise > BOUNCE * fall) continue;
+                    // Over what stands between the slime block and the landing, below the bounce's top.
+                    if (!bounceClear(sl, b, sl.top + BOUNCE * fall)) continue;
                     // Up and over: the bounce's airtime, about twice the rise at the slime's top speed.
                     double c = f[1] + 2 * Math.sqrt(2 * rise / 0.08) + centreDist(sl, b) / RUN_SPEED;
                     bounceIn.computeIfAbsent(t[0], k -> new ArrayList<double[]>()).add(new double[] {f[0], c});
@@ -757,6 +764,65 @@ public final class Route {
             }
         }
         return bounceIn;
+    }
+
+    /** How much longer than the straight line a bounce's way round may be. */
+    static final double BOUNCE_DETOUR = 3;
+
+    /**
+     * Whether the player can get from above the slime block {@code sl} to {@code b} at heights from
+     * {@code b}'s top up to {@code peak} (the bounce's top): straight, or round what stands between by
+     * one turn (along a gap beside a wall, say), passing over every collision box met on the way while
+     * the body still clears it.
+     */
+    private boolean bounceClear(Surface sl, Surface b, double peak) {
+        double x0 = sl.cx(), z0 = sl.cz();
+        double x1 = Math.max(b.minX, Math.min(b.maxX, x0)), z1 = Math.max(b.minZ, Math.min(b.maxZ, z0));
+        double low = b.climb ? b.y : b.top;
+        if (legClear(x0, z0, x1, z1, low, peak)) return true;
+        double straight = Math.hypot(x1 - x0, z1 - z0);
+        double ax = Math.min(x0, b.minX) - 1.5, bx = Math.max(x0, b.maxX) + 1.5;
+        double az = Math.min(z0, b.minZ) - 1.5, bz = Math.max(z0, b.maxZ) + 1.5;
+        for (double qx = ax; qx <= bx + 1e-9; qx += 0.5) {
+            for (double qz = az; qz <= bz + 1e-9; qz += 0.5) {
+                double ex = Math.max(b.minX, Math.min(b.maxX, qx)), ez = Math.max(b.minZ, Math.min(b.maxZ, qz));
+                if (Math.hypot(qx - x0, qz - z0) + Math.hypot(ex - qx, ez - qz) > straight + BOUNCE_DETOUR) continue;
+                if (legClear(x0, z0, qx, qz, low, peak) && legClear(qx, qz, ex, ez, low, peak)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean legClear(double x0, double z0, double x1, double z1, double low, double peak) {
+        int n = Math.max(1, (int) Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.25));
+        double h = low;
+        for (int guard = 0; guard < 16; guard++) {
+            double top = Double.NEGATIVE_INFINITY;
+            for (int i = 0; i <= n; i++) {
+                double px = x0 + (x1 - x0) * i / n, pz = z0 + (z1 - z0) * i / n;
+                top = Math.max(top, hitTop(px, h, pz, h + 1.8, 0.2999));
+            }
+            if (top == Double.NEGATIVE_INFINITY) return true;
+            h = top;
+            if (h > peak - 0.3) return false;
+        }
+        return false;
+    }
+
+    /** The highest top of the collision boxes in the given box, or negative infinity when none. */
+    private double hitTop(double x, double y0, double z, double y1, double half) {
+        Aabb box = new Aabb(x - half, y0 + 1e-6, z - half, x + half, y1, z + half);
+        List<Aabb> hit = new ArrayList<Aabb>();
+        for (int yy = (int) Math.floor(y0) - 1; yy <= (int) Math.floor(y1); yy++) {
+            for (int xx = (int) Math.floor(x - half); xx <= (int) Math.floor(x + half); xx++) {
+                for (int zz = (int) Math.floor(z - half); zz <= (int) Math.floor(z + half); zz++) {
+                    problem.world.getBlock(xx, yy, zz).addCollisionBoxes(problem.world, xx, yy, zz, box, hit);
+                }
+            }
+        }
+        double top = Double.NEGATIVE_INFINITY;
+        for (Aabb a : hit) top = Math.max(top, a.maxY);
+        return top;
     }
 
     /** The slime block a bounce from {@code a} to {@code b} lands on, or null when there is none. */
