@@ -1,7 +1,7 @@
 {
  "format": "mctas-problem",
  "version": 1,
- "id": "gen-dev2-holdout/g0313",
+ "id": "gen-dev2/g0313",
  "title": "generated dev course (seed 313), 592 blocks: skullspiral, passage, skulls, barrier, thicket, skulls, skullspiral, zigzag, skulls, posts, thicket, barrier, slabs, skullspiral, posts, barrier, barrier, barrier, passage, zigzag, ladderjump, postladder, zigzag, slabs, barrier, skullspiral, thicket, barrier, zigzag, posts, postladder, passage, ladder, barrier, posts, thicket, slabs, barrier, stairtower, thicket, slabs, skullspiral, stairs, postladder, zigzag, thicket, zigzag, skulls, skulls, barrier, postladder, barrier, zigzag, zigzag, stairtower",
  "mcVersion": "1.12.2",
  "world": {

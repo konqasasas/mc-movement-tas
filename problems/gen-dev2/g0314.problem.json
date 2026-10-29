@@ -1,7 +1,7 @@
 {
  "format": "mctas-problem",
  "version": 1,
- "id": "gen-dev2-holdout/g0314",
+ "id": "gen-dev2/g0314",
  "title": "generated dev course (seed 314), 404 blocks: posts, ladder, ladderjump, thicket, ladderjump, stairtower, ladderjump, barrier, stairtower, posts, skulls, postladder, thicket, zigzag, skullspiral, slabs, slabs, postladder, slalom, thicket, skulls, skulls, postladder, skullspiral, ladderjump, stairtower, stairs, postladder, slabs, ladder, skullspiral, thicket, postladder, barrier, skulls, drop, postladder, stairtower, slalom",
  "mcVersion": "1.12.2",
  "world": {
