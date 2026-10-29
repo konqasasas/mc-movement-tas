@@ -37,6 +37,8 @@ public final class Improver {
         public double focusChance = 0;
         /** Chance that a small edit jumps again on a landing ({@link Micro#rejump}). */
         public double rejumpChance = 0;
+        /** Chance that a rebuild starts by jumping on a short landing ({@link Rebuild#jumpOnLanding}). */
+        public double landChance = 0;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -87,6 +89,24 @@ public final class Improver {
         System.arraycopy(stats.nanos, 0, s.nanos, 0, s.nanos.length);
         System.arraycopy(stats.bests, 0, s.bests, 0, s.bests.length);
         return s;
+    }
+
+    /**
+     * The landings of a run by how many ticks it stays on the ground before the next jump: "landings
+     * N, 1: a, 2-4: b, 5+: c". 1 is a jump on the landing tick (WS14, F-1007).
+     */
+    public static String landings(Run r) {
+        int one = 0, short_ = 0, longer = 0;
+        int end = r.valid ? r.goalTick : r.length;
+        for (int t = Math.max(1, r.startTick); t < end; t++) {
+            if (!r.states[t].onGround || r.states[t - 1].onGround) continue;
+            int g = Rebuild.groundTicks(r, t);
+            if (t + g > end) break;
+            if (g == 1) one++;
+            else if (g <= 4) short_++;
+            else longer++;
+        }
+        return "landings " + (one + short_ + longer) + ", 1: " + one + ", 2-4: " + short_ + ", 5+: " + longer;
     }
 
     /**
@@ -151,6 +171,7 @@ public final class Improver {
         rebuild.useDrift = o.useDrift;
         rebuild.focusChance = o.focusChance;
         Micro.rejumpChance = o.rejumpChance;
+        rebuild.landChance = o.landChance;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
