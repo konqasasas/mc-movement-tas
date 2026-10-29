@@ -99,3 +99,17 @@ for z in (2,7,12,17):
         F([0,67,z-1],[0,67,z-1],"structure_void"),F([0,67,z+1],[0,67,z+1],"structure_void")]
 f.append(F([-1,64,20],[1,64,23],"stone"))
 course("e11-water-hops",f,G(-1,65,21,2,24))
+# e12: a hard posts row of mixed kinds, each on a stone block: a fence, iron bars four on, then a
+# wall and a pane three on each (bars and panes are a block high, fences and walls a block and a half)
+f=[]
+for z,blk in ((3,"spruce_fence"),(7,"iron_bars"),(10,"cobblestone_wall"),(13,"stained_glass_pane")):
+    f+=[F([0,64,z],[0,64,z],"stone"),F([0,65,z],[0,65,z],blk)]
+f.append(F([-1,64,15],[1,65,18],"stone"))
+course("e12-mixed-posts",f,G(-1,66,16,2,19))
+# e13: the same kinds the other way round: a pane, a wall three on, iron bars three on, then a fence
+# four on and half a block up, which takes the hop off the bars straight away, with the speed kept
+f=[]
+for z,blk in ((3,"stained_glass_pane"),(6,"cobblestone_wall"),(9,"iron_bars"),(13,"spruce_fence")):
+    f+=[F([0,64,z],[0,64,z],"stone"),F([0,65,z],[0,65,z],blk)]
+f.append(F([-1,64,15],[1,65,18],"stone"))
+course("e13-posts-rejump",f,G(-1,66,16,2,19))

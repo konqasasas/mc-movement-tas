@@ -106,7 +106,7 @@ waza は別のサーバーのコースをユーザーが手で再現したもの
 
 ## gen-dev2-holdout: 生成した難しいコース(報告専用)
 
-`tools/devgen/devgen.py problems/gen-dev2-holdout gen-dev2-holdout 301 15 --hard --min-length 300 --max-length 600` で作った 15 問(種 301〜315)。調整には使わず、版の節目ごとに報告します。
+`tools/devgen/devgen.py problems/gen-dev2-holdout gen-dev2-holdout 301 15 --hard --min-length 300 --max-length 600` で作った 15 問(種 301〜315)。2026-10-29 に生成器の誤り(1 段上へのバリア跳びの通り道に飾りが置かれることがあった)を直して作り直し、g0302 と g0315 からそれぞれ 1 ブロックが消えました(ほかの 13 問は同じ。F-528)。調整には使わず、版の節目ごとに報告します。
 
 ## place: ブロック設置
 

@@ -12371,14 +12371,6 @@
     "from": [
      75,
      129,
-     96
-    ],
-    "block": "minecraft:quartz_block"
-   },
-   {
-    "from": [
-     75,
-     129,
      99
     ],
     "block": "minecraft:quartz_block"
