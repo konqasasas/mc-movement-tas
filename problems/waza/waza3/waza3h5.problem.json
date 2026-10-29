@@ -1,0 +1,15205 @@
+{
+ "format": "mctas-problem",
+ "version": 1,
+ "id": "waza/waza3h5",
+ "mcVersion": "1.12.2",
+ "world": {
+  "source": "inline",
+  "imported": {
+   "exportedFrom": "mctas-recorder",
+   "from": [
+    47,
+    16,
+    1771
+   ],
+   "to": [
+    61,
+    37,
+    1893
+   ]
+  },
+  "fills": [
+   {
+    "from": [
+     47,
+     20,
+     1775
+    ],
+    "to": [
+     47,
+     24,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     20,
+     1775
+    ],
+    "to": [
+     56,
+     20,
+     1775
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     48,
+     20,
+     1776
+    ],
+    "to": [
+     48,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     49,
+     20,
+     1776
+    ],
+    "to": [
+     49,
+     20,
+     1888
+    ],
+    "block": "minecraft:sandstone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1776
+    ],
+    "to": [
+     52,
+     20,
+     1777
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1776
+    ],
+    "to": [
+     54,
+     20,
+     1776
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     20,
+     1776
+    ],
+    "to": [
+     55,
+     20,
+     1888
+    ],
+    "block": "minecraft:sandstone"
+   },
+   {
+    "from": [
+     56,
+     20,
+     1776
+    ],
+    "to": [
+     56,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1777
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1777
+    ],
+    "to": [
+     54,
+     20,
+     1778
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1778
+    ],
+    "to": [
+     50,
+     20,
+     1779
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1778
+    ],
+    "to": [
+     53,
+     20,
+     1778
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1779
+    ],
+    "to": [
+     54,
+     20,
+     1780
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1780
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1781
+    ],
+    "to": [
+     51,
+     20,
+     1782
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1781
+    ],
+    "to": [
+     53,
+     20,
+     1782
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1782
+    ],
+    "to": [
+     52,
+     20,
+     1785
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1782
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1783
+    ],
+    "to": [
+     50,
+     20,
+     1784
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1783
+    ],
+    "to": [
+     51,
+     20,
+     1785
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1783
+    ],
+    "to": [
+     54,
+     20,
+     1783
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1784
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1784
+    ],
+    "to": [
+     54,
+     20,
+     1785
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1785
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1785
+    ],
+    "to": [
+     53,
+     20,
+     1789
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1786
+    ],
+    "to": [
+     51,
+     20,
+     1786
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1786
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1786
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1787
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1787
+    ],
+    "to": [
+     52,
+     20,
+     1789
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1787
+    ],
+    "to": [
+     54,
+     20,
+     1790
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1788
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1789
+    ],
+    "to": [
+     50,
+     20,
+     1791
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1790
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1790
+    ],
+    "to": [
+     52,
+     20,
+     1795
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1790
+    ],
+    "to": [
+     53,
+     20,
+     1791
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1791
+    ],
+    "to": [
+     51,
+     20,
+     1793
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1791
+    ],
+    "to": [
+     54,
+     20,
+     1794
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1792
+    ],
+    "to": [
+     50,
+     20,
+     1793
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1792
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1793
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1794
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1794
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1794
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1795
+    ],
+    "to": [
+     50,
+     20,
+     1796
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1795
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1795
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1795
+    ],
+    "to": [
+     54,
+     20,
+     1797
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1796
+    ],
+    "to": [
+     52,
+     20,
+     1797
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1796
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1797
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1797
+    ],
+    "to": [
+     53,
+     20,
+     1799
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1798
+    ],
+    "to": [
+     50,
+     20,
+     1799
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1798
+    ],
+    "to": [
+     52,
+     20,
+     1798
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1798
+    ],
+    "to": [
+     54,
+     20,
+     1799
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1799
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1799
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1800
+    ],
+    "to": [
+     51,
+     20,
+     1800
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1800
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1800
+    ],
+    "to": [
+     54,
+     20,
+     1800
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1801
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1801
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1801
+    ],
+    "to": [
+     53,
+     20,
+     1801
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1801
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1802
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1802
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1802
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1802
+    ],
+    "to": [
+     54,
+     20,
+     1802
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1803
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1803
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1803
+    ],
+    "to": [
+     53,
+     20,
+     1804
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1803
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1804
+    ],
+    "to": [
+     50,
+     20,
+     1807
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1804
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1804
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1805
+    ],
+    "to": [
+     51,
+     20,
+     1808
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1805
+    ],
+    "to": [
+     52,
+     20,
+     1811
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1805
+    ],
+    "to": [
+     54,
+     20,
+     1806
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1807
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1807
+    ],
+    "to": [
+     54,
+     20,
+     1810
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1808
+    ],
+    "to": [
+     50,
+     20,
+     1812
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1808
+    ],
+    "to": [
+     53,
+     20,
+     1809
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1809
+    ],
+    "to": [
+     51,
+     20,
+     1811
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1810
+    ],
+    "to": [
+     53,
+     20,
+     1812
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1811
+    ],
+    "to": [
+     54,
+     20,
+     1813
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1812
+    ],
+    "to": [
+     52,
+     20,
+     1812
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1813
+    ],
+    "to": [
+     50,
+     20,
+     1818
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1813
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1813
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1813
+    ],
+    "to": [
+     53,
+     20,
+     1814
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1814
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1814
+    ],
+    "to": [
+     52,
+     20,
+     1815
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1814
+    ],
+    "to": [
+     54,
+     20,
+     1818
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1815
+    ],
+    "to": [
+     51,
+     20,
+     1818
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1815
+    ],
+    "to": [
+     53,
+     20,
+     1816
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1816
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1817
+    ],
+    "to": [
+     53,
+     20,
+     1818
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1819
+    ],
+    "to": [
+     50,
+     20,
+     1823
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1819
+    ],
+    "to": [
+     52,
+     20,
+     1821
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1819
+    ],
+    "to": [
+     53,
+     20,
+     1820
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1819
+    ],
+    "to": [
+     54,
+     20,
+     1824
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1821
+    ],
+    "to": [
+     53,
+     20,
+     1822
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1822
+    ],
+    "to": [
+     52,
+     20,
+     1822
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1823
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1823
+    ],
+    "to": [
+     52,
+     20,
+     1825
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1823
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1824
+    ],
+    "to": [
+     51,
+     20,
+     1824
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1824
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1825
+    ],
+    "to": [
+     51,
+     20,
+     1825
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1825
+    ],
+    "to": [
+     54,
+     20,
+     1825
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1826
+    ],
+    "to": [
+     50,
+     20,
+     1827
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1826
+    ],
+    "to": [
+     52,
+     20,
+     1827
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1826
+    ],
+    "to": [
+     53,
+     20,
+     1827
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1826
+    ],
+    "to": [
+     54,
+     20,
+     1827
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1828
+    ],
+    "to": [
+     51,
+     20,
+     1828
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1828
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1828
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1828
+    ],
+    "to": [
+     54,
+     20,
+     1830
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1829
+    ],
+    "to": [
+     51,
+     20,
+     1830
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1829
+    ],
+    "to": [
+     52,
+     20,
+     1832
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1829
+    ],
+    "to": [
+     53,
+     20,
+     1830
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1831
+    ],
+    "to": [
+     50,
+     20,
+     1833
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1831
+    ],
+    "to": [
+     51,
+     20,
+     1833
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1831
+    ],
+    "to": [
+     54,
+     20,
+     1832
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1833
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1833
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1833
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1834
+    ],
+    "to": [
+     50,
+     20,
+     1841
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1834
+    ],
+    "to": [
+     52,
+     20,
+     1834
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1834
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1834
+    ],
+    "to": [
+     54,
+     20,
+     1837
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1835
+    ],
+    "to": [
+     51,
+     20,
+     1838
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1835
+    ],
+    "to": [
+     52,
+     20,
+     1836
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1835
+    ],
+    "to": [
+     53,
+     20,
+     1836
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1837
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1837
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1838
+    ],
+    "to": [
+     52,
+     20,
+     1840
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1838
+    ],
+    "to": [
+     53,
+     20,
+     1839
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1838
+    ],
+    "to": [
+     54,
+     20,
+     1839
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1839
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1840
+    ],
+    "to": [
+     51,
+     20,
+     1842
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1840
+    ],
+    "to": [
+     53,
+     20,
+     1841
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1840
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1841
+    ],
+    "to": [
+     52,
+     20,
+     1842
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1841
+    ],
+    "to": [
+     54,
+     20,
+     1846
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1842
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1842
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1843
+    ],
+    "to": [
+     53,
+     20,
+     1844
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1845
+    ],
+    "to": [
+     52,
+     20,
+     1845
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1845
+    ],
+    "to": [
+     53,
+     20,
+     1846
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1846
+    ],
+    "to": [
+     51,
+     20,
+     1846
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1846
+    ],
+    "to": [
+     52,
+     20,
+     1851
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1847
+    ],
+    "to": [
+     50,
+     20,
+     1848
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1847
+    ],
+    "to": [
+     51,
+     20,
+     1851
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1847
+    ],
+    "to": [
+     54,
+     20,
+     1847
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1848
+    ],
+    "to": [
+     54,
+     20,
+     1849
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1849
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1850
+    ],
+    "to": [
+     50,
+     20,
+     1853
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1850
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1850
+    ],
+    "to": [
+     54,
+     20,
+     1851
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1851
+    ],
+    "to": [
+     53,
+     20,
+     1852
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1852
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1852
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1852
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1853
+    ],
+    "to": [
+     51,
+     20,
+     1854
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1853
+    ],
+    "to": [
+     53,
+     20,
+     1853
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1853
+    ],
+    "to": [
+     54,
+     20,
+     1854
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1854
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1854
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1854
+    ],
+    "to": [
+     53,
+     20,
+     1856
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1855
+    ],
+    "to": [
+     52,
+     20,
+     1855
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1855
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1856
+    ],
+    "to": [
+     50,
+     20,
+     1859
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1856
+    ],
+    "to": [
+     51,
+     20,
+     1857
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1856
+    ],
+    "to": [
+     52,
+     20,
+     1859
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1856
+    ],
+    "to": [
+     54,
+     20,
+     1857
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1857
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1858
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1858
+    ],
+    "to": [
+     54,
+     20,
+     1859
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1859
+    ],
+    "to": [
+     51,
+     20,
+     1860
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1860
+    ],
+    "to": [
+     50,
+     20,
+     1863
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1860
+    ],
+    "to": [
+     54,
+     20,
+     1860
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1861
+    ],
+    "to": [
+     53,
+     20,
+     1861
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1861
+    ],
+    "to": [
+     54,
+     20,
+     1863
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1862
+    ],
+    "to": [
+     52,
+     20,
+     1862
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1862
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1863
+    ],
+    "to": [
+     51,
+     20,
+     1865
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1863
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1863
+    ],
+    "to": [
+     53,
+     20,
+     1865
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1864
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1864
+    ],
+    "to": [
+     52,
+     20,
+     1865
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1864
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1865
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1865
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1866
+    ],
+    "to": [
+     54,
+     20,
+     1866
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1867
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1867
+    ],
+    "to": [
+     52,
+     20,
+     1867
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1867
+    ],
+    "to": [
+     54,
+     20,
+     1868
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1868
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1868
+    ],
+    "to": [
+     52,
+     20,
+     1868
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1869
+    ],
+    "to": [
+     51,
+     20,
+     1871
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1869
+    ],
+    "to": [
+     54,
+     20,
+     1869
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1870
+    ],
+    "to": [
+     52,
+     20,
+     1873
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1870
+    ],
+    "to": [
+     53,
+     20,
+     1872
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1870
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1871
+    ],
+    "to": [
+     54,
+     20,
+     1874
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1872
+    ],
+    "to": [
+     50,
+     20,
+     1873
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1872
+    ],
+    "to": [
+     51,
+     20,
+     1878
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1873
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1874
+    ],
+    "to": [
+     50,
+     20,
+     1876
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1874
+    ],
+    "to": [
+     53,
+     20,
+     1874
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1875
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1875
+    ],
+    "to": [
+     54,
+     20,
+     1877
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1876
+    ],
+    "to": [
+     52,
+     20,
+     1877
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1877
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1878
+    ],
+    "to": [
+     50,
+     20,
+     1879
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1878
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1878
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1878
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1879
+    ],
+    "to": [
+     52,
+     20,
+     1880
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1879
+    ],
+    "to": [
+     53,
+     20,
+     1880
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1879
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1880
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1880
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1881
+    ],
+    "block": "minecraft:slime"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1881
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1881
+    ],
+    "block": "minecraft:slime"
+   },
+   {
+    "from": [
+     53,
+     20,
+     1881
+    ],
+    "to": [
+     53,
+     20,
+     1884
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1881
+    ],
+    "block": "minecraft:slime"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1882
+    ],
+    "to": [
+     51,
+     20,
+     1882
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1882
+    ],
+    "to": [
+     52,
+     20,
+     1884
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1882
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1883
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1883
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1883
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1884
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1884
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     20,
+     1884
+    ],
+    "to": [
+     54,
+     20,
+     1886
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     20,
+     1885
+    ],
+    "to": [
+     50,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1885
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     20,
+     1885
+    ],
+    "to": [
+     53,
+     20,
+     1886
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1886
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1887
+    ],
+    "to": [
+     54,
+     20,
+     1887
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     20,
+     1888
+    ],
+    "to": [
+     54,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     49,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     20,
+     1889
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1775
+    ],
+    "to": [
+     48,
+     34,
+     1775
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1775
+    ],
+    "to": [
+     55,
+     22,
+     1775
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1775
+    ],
+    "to": [
+     56,
+     34,
+     1775
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1776
+    ],
+    "to": [
+     48,
+     21,
+     1780
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1776
+    ],
+    "to": [
+     56,
+     21,
+     1780
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1781
+    ],
+    "to": [
+     56,
+     21,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1782
+    ],
+    "to": [
+     48,
+     21,
+     1786
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1782
+    ],
+    "to": [
+     54,
+     24,
+     1782
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1782
+    ],
+    "to": [
+     56,
+     21,
+     1786
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1784
+    ],
+    "to": [
+     49,
+     28,
+     1784
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1784
+    ],
+    "to": [
+     55,
+     28,
+     1784
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1787
+    ],
+    "to": [
+     48,
+     34,
+     1787
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1787
+    ],
+    "to": [
+     56,
+     34,
+     1787
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1788
+    ],
+    "to": [
+     48,
+     21,
+     1792
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     51,
+     21,
+     1788
+    ],
+    "to": [
+     51,
+     28,
+     1788
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1788
+    ],
+    "to": [
+     54,
+     28,
+     1788
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1788
+    ],
+    "to": [
+     56,
+     21,
+     1792
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1793
+    ],
+    "to": [
+     48,
+     34,
+     1793
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1793
+    ],
+    "to": [
+     56,
+     34,
+     1793
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1794
+    ],
+    "to": [
+     48,
+     21,
+     1798
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1794
+    ],
+    "to": [
+     56,
+     21,
+     1798
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1799
+    ],
+    "to": [
+     48,
+     34,
+     1799
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1799
+    ],
+    "to": [
+     52,
+     28,
+     1799
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1799
+    ],
+    "to": [
+     56,
+     34,
+     1799
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1800
+    ],
+    "to": [
+     48,
+     21,
+     1804
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1800
+    ],
+    "to": [
+     56,
+     21,
+     1804
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1802
+    ],
+    "to": [
+     52,
+     28,
+     1802
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1804
+    ],
+    "to": [
+     51,
+     31,
+     1804
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1804
+    ],
+    "to": [
+     52,
+     31,
+     1804
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     21,
+     1804
+    ],
+    "to": [
+     55,
+     31,
+     1804
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1805
+    ],
+    "to": [
+     48,
+     34,
+     1805
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1805
+    ],
+    "to": [
+     56,
+     34,
+     1805
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1806
+    ],
+    "to": [
+     48,
+     21,
+     1810
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1806
+    ],
+    "to": [
+     49,
+     28,
+     1806
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1806
+    ],
+    "to": [
+     54,
+     26,
+     1806
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1806
+    ],
+    "to": [
+     55,
+     28,
+     1806
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1806
+    ],
+    "to": [
+     56,
+     21,
+     1810
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1810
+    ],
+    "to": [
+     49,
+     28,
+     1810
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1810
+    ],
+    "to": [
+     54,
+     26,
+     1810
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1810
+    ],
+    "to": [
+     55,
+     28,
+     1810
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1811
+    ],
+    "to": [
+     48,
+     34,
+     1811
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1811
+    ],
+    "to": [
+     54,
+     27,
+     1811
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1811
+    ],
+    "to": [
+     56,
+     34,
+     1811
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1812
+    ],
+    "to": [
+     48,
+     21,
+     1816
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1812
+    ],
+    "to": [
+     56,
+     21,
+     1816
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1814
+    ],
+    "to": [
+     49,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     51,
+     21,
+     1814
+    ],
+    "to": [
+     53,
+     28,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1814
+    ],
+    "to": [
+     55,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1817
+    ],
+    "to": [
+     48,
+     34,
+     1817
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1817
+    ],
+    "to": [
+     56,
+     34,
+     1817
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1818
+    ],
+    "to": [
+     48,
+     21,
+     1822
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1818
+    ],
+    "to": [
+     50,
+     24,
+     1818
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1818
+    ],
+    "to": [
+     52,
+     24,
+     1818
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1818
+    ],
+    "to": [
+     54,
+     24,
+     1818
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1818
+    ],
+    "to": [
+     56,
+     21,
+     1822
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1823
+    ],
+    "to": [
+     48,
+     34,
+     1823
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1823
+    ],
+    "to": [
+     56,
+     34,
+     1823
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1824
+    ],
+    "to": [
+     48,
+     21,
+     1828
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1824
+    ],
+    "to": [
+     56,
+     21,
+     1828
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1825
+    ],
+    "to": [
+     50,
+     26,
+     1825
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1825
+    ],
+    "to": [
+     54,
+     26,
+     1825
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1827
+    ],
+    "to": [
+     50,
+     26,
+     1827
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1827
+    ],
+    "to": [
+     54,
+     26,
+     1827
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1828
+    ],
+    "to": [
+     50,
+     26,
+     1828
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1828
+    ],
+    "to": [
+     54,
+     26,
+     1828
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1829
+    ],
+    "to": [
+     48,
+     34,
+     1829
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1829
+    ],
+    "to": [
+     56,
+     34,
+     1829
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1830
+    ],
+    "to": [
+     48,
+     21,
+     1834
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1830
+    ],
+    "to": [
+     50,
+     26,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1830
+    ],
+    "to": [
+     52,
+     26,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1830
+    ],
+    "to": [
+     54,
+     26,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1830
+    ],
+    "to": [
+     56,
+     21,
+     1834
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     51,
+     21,
+     1833
+    ],
+    "to": [
+     51,
+     27,
+     1833
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     21,
+     1833
+    ],
+    "to": [
+     53,
+     27,
+     1833
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1835
+    ],
+    "to": [
+     48,
+     34,
+     1835
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1835
+    ],
+    "to": [
+     56,
+     34,
+     1835
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1836
+    ],
+    "to": [
+     48,
+     21,
+     1840
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1836
+    ],
+    "to": [
+     49,
+     28,
+     1836
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1836
+    ],
+    "to": [
+     54,
+     26,
+     1836
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1836
+    ],
+    "to": [
+     55,
+     28,
+     1836
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1836
+    ],
+    "to": [
+     56,
+     21,
+     1840
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1840
+    ],
+    "to": [
+     49,
+     28,
+     1840
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1840
+    ],
+    "to": [
+     54,
+     26,
+     1840
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1840
+    ],
+    "to": [
+     55,
+     28,
+     1840
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1841
+    ],
+    "to": [
+     48,
+     34,
+     1841
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1841
+    ],
+    "to": [
+     50,
+     27,
+     1841
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1841
+    ],
+    "to": [
+     52,
+     27,
+     1841
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1841
+    ],
+    "to": [
+     54,
+     27,
+     1841
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1841
+    ],
+    "to": [
+     56,
+     34,
+     1841
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1842
+    ],
+    "to": [
+     48,
+     21,
+     1846
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1842
+    ],
+    "to": [
+     56,
+     21,
+     1846
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1847
+    ],
+    "to": [
+     48,
+     34,
+     1847
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1847
+    ],
+    "to": [
+     56,
+     34,
+     1847
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1848
+    ],
+    "to": [
+     48,
+     21,
+     1852
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1848
+    ],
+    "to": [
+     56,
+     21,
+     1852
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1849
+    ],
+    "to": [
+     49,
+     27,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     51,
+     21,
+     1849
+    ],
+    "to": [
+     51,
+     27,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     21,
+     1849
+    ],
+    "to": [
+     53,
+     27,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     21,
+     1849
+    ],
+    "to": [
+     55,
+     27,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1851
+    ],
+    "to": [
+     50,
+     28,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1851
+    ],
+    "to": [
+     52,
+     28,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1851
+    ],
+    "to": [
+     54,
+     28,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1853
+    ],
+    "to": [
+     48,
+     34,
+     1853
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1853
+    ],
+    "to": [
+     56,
+     34,
+     1853
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1854
+    ],
+    "to": [
+     48,
+     21,
+     1858
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1854
+    ],
+    "to": [
+     56,
+     21,
+     1858
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1859
+    ],
+    "to": [
+     48,
+     34,
+     1859
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1859
+    ],
+    "to": [
+     56,
+     34,
+     1859
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1860
+    ],
+    "to": [
+     48,
+     21,
+     1864
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1860
+    ],
+    "to": [
+     56,
+     21,
+     1864
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1861
+    ],
+    "to": [
+     50,
+     26,
+     1861
+    ],
+    "block": "minecraft:sandstone"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1861
+    ],
+    "to": [
+     54,
+     26,
+     1861
+    ],
+    "block": "minecraft:sandstone"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1864
+    ],
+    "to": [
+     51,
+     32,
+     1864
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     53,
+     21,
+     1864
+    ],
+    "to": [
+     55,
+     32,
+     1864
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1865
+    ],
+    "to": [
+     48,
+     34,
+     1865
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1865
+    ],
+    "to": [
+     52,
+     25,
+     1865
+    ],
+    "block": "minecraft:sandstone"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1865
+    ],
+    "to": [
+     56,
+     34,
+     1865
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1866
+    ],
+    "to": [
+     48,
+     21,
+     1870
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1866
+    ],
+    "to": [
+     56,
+     21,
+     1870
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1871
+    ],
+    "to": [
+     48,
+     34,
+     1871
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1871
+    ],
+    "to": [
+     56,
+     34,
+     1871
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1872
+    ],
+    "to": [
+     48,
+     21,
+     1876
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1872
+    ],
+    "to": [
+     56,
+     21,
+     1876
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1877
+    ],
+    "to": [
+     48,
+     34,
+     1877
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1877
+    ],
+    "to": [
+     56,
+     34,
+     1877
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1878
+    ],
+    "to": [
+     48,
+     21,
+     1882
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1878
+    ],
+    "to": [
+     56,
+     21,
+     1882
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     21,
+     1881
+    ],
+    "to": [
+     50,
+     29,
+     1881
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     52,
+     21,
+     1881
+    ],
+    "to": [
+     52,
+     29,
+     1881
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     54,
+     21,
+     1881
+    ],
+    "to": [
+     54,
+     29,
+     1881
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1883
+    ],
+    "to": [
+     56,
+     21,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1884
+    ],
+    "to": [
+     48,
+     21,
+     1888
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1884
+    ],
+    "to": [
+     56,
+     21,
+     1888
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     21,
+     1889
+    ],
+    "to": [
+     48,
+     34,
+     1889
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     49,
+     21,
+     1889
+    ],
+    "to": [
+     55,
+     22,
+     1889
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     56,
+     21,
+     1889
+    ],
+    "to": [
+     56,
+     34,
+     1889
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1776
+    ],
+    "to": [
+     48,
+     23,
+     1780
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1776
+    ],
+    "to": [
+     56,
+     23,
+     1780
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1781
+    ],
+    "to": [
+     49,
+     25,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     22,
+     1781
+    ],
+    "to": [
+     51,
+     22,
+     1781
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     52,
+     22,
+     1781
+    ],
+    "to": [
+     52,
+     24,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     22,
+     1781
+    ],
+    "to": [
+     54,
+     22,
+     1781
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     55,
+     22,
+     1781
+    ],
+    "to": [
+     56,
+     25,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1782
+    ],
+    "to": [
+     48,
+     23,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1782
+    ],
+    "to": [
+     56,
+     23,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1788
+    ],
+    "to": [
+     48,
+     23,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1788
+    ],
+    "to": [
+     56,
+     23,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1794
+    ],
+    "to": [
+     48,
+     23,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1794
+    ],
+    "to": [
+     56,
+     23,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1800
+    ],
+    "to": [
+     48,
+     23,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1800
+    ],
+    "to": [
+     56,
+     23,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1806
+    ],
+    "to": [
+     48,
+     23,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1806
+    ],
+    "to": [
+     56,
+     23,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1812
+    ],
+    "to": [
+     48,
+     23,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1812
+    ],
+    "to": [
+     56,
+     23,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1818
+    ],
+    "to": [
+     48,
+     23,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1818
+    ],
+    "to": [
+     56,
+     23,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1824
+    ],
+    "to": [
+     48,
+     23,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1824
+    ],
+    "to": [
+     56,
+     23,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1830
+    ],
+    "to": [
+     48,
+     23,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1830
+    ],
+    "to": [
+     56,
+     23,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1836
+    ],
+    "to": [
+     48,
+     23,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1836
+    ],
+    "to": [
+     56,
+     23,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1842
+    ],
+    "to": [
+     48,
+     23,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1842
+    ],
+    "to": [
+     56,
+     23,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1848
+    ],
+    "to": [
+     48,
+     23,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1848
+    ],
+    "to": [
+     56,
+     23,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1854
+    ],
+    "to": [
+     48,
+     23,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1854
+    ],
+    "to": [
+     56,
+     23,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1860
+    ],
+    "to": [
+     48,
+     23,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1860
+    ],
+    "to": [
+     56,
+     23,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1866
+    ],
+    "to": [
+     48,
+     23,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1866
+    ],
+    "to": [
+     56,
+     23,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1872
+    ],
+    "to": [
+     48,
+     23,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1872
+    ],
+    "to": [
+     56,
+     23,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1878
+    ],
+    "to": [
+     48,
+     23,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1878
+    ],
+    "to": [
+     56,
+     23,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1883
+    ],
+    "to": [
+     49,
+     25,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     22,
+     1883
+    ],
+    "to": [
+     50,
+     24,
+     1883
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     51,
+     22,
+     1883
+    ],
+    "to": [
+     53,
+     22,
+     1883
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     22,
+     1883
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     55,
+     22,
+     1883
+    ],
+    "to": [
+     56,
+     25,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     22,
+     1884
+    ],
+    "to": [
+     48,
+     23,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     22,
+     1884
+    ],
+    "to": [
+     56,
+     23,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     23,
+     1775
+    ],
+    "to": [
+     51,
+     24,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     23,
+     1775
+    ],
+    "to": [
+     52,
+     26,
+     1775
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     23,
+     1775
+    ],
+    "to": [
+     55,
+     24,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     23,
+     1781
+    ],
+    "to": [
+     50,
+     24,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     23,
+     1781
+    ],
+    "to": [
+     51,
+     24,
+     1781
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     53,
+     23,
+     1781
+    ],
+    "to": [
+     54,
+     23,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     23,
+     1814
+    ],
+    "to": [
+     50,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     54,
+     23,
+     1814
+    ],
+    "to": [
+     54,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     51,
+     23,
+     1883
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     23,
+     1883
+    ],
+    "to": [
+     52,
+     24,
+     1883
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     53,
+     23,
+     1883
+    ],
+    "to": [
+     54,
+     24,
+     1883
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     49,
+     23,
+     1889
+    ],
+    "to": [
+     51,
+     24,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     23,
+     1889
+    ],
+    "to": [
+     52,
+     26,
+     1889
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     23,
+     1889
+    ],
+    "to": [
+     55,
+     24,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1776
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1776
+    ],
+    "to": [
+     56,
+     30,
+     1776
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1777
+    ],
+    "to": [
+     48,
+     24,
+     1779
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1777
+    ],
+    "to": [
+     56,
+     24,
+     1779
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1780
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1780
+    ],
+    "to": [
+     56,
+     30,
+     1780
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     24,
+     1781
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     24,
+     1781
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1782
+    ],
+    "to": [
+     48,
+     30,
+     1782
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1782
+    ],
+    "to": [
+     56,
+     30,
+     1782
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1783
+    ],
+    "to": [
+     48,
+     24,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1783
+    ],
+    "to": [
+     56,
+     24,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1786
+    ],
+    "to": [
+     48,
+     30,
+     1786
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1786
+    ],
+    "to": [
+     56,
+     30,
+     1786
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1788
+    ],
+    "to": [
+     48,
+     30,
+     1788
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1788
+    ],
+    "to": [
+     56,
+     30,
+     1788
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1789
+    ],
+    "to": [
+     48,
+     24,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1789
+    ],
+    "to": [
+     56,
+     24,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1792
+    ],
+    "to": [
+     48,
+     30,
+     1792
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1792
+    ],
+    "to": [
+     56,
+     30,
+     1792
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1794
+    ],
+    "to": [
+     48,
+     30,
+     1794
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1794
+    ],
+    "to": [
+     56,
+     30,
+     1794
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1795
+    ],
+    "to": [
+     48,
+     24,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1795
+    ],
+    "to": [
+     56,
+     24,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1798
+    ],
+    "to": [
+     48,
+     30,
+     1798
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1798
+    ],
+    "to": [
+     56,
+     30,
+     1798
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1800
+    ],
+    "to": [
+     48,
+     30,
+     1800
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1800
+    ],
+    "to": [
+     56,
+     30,
+     1800
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1801
+    ],
+    "to": [
+     48,
+     24,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1801
+    ],
+    "to": [
+     56,
+     24,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1804
+    ],
+    "to": [
+     48,
+     30,
+     1804
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1804
+    ],
+    "to": [
+     56,
+     30,
+     1804
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1806
+    ],
+    "to": [
+     48,
+     30,
+     1806
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1806
+    ],
+    "to": [
+     56,
+     30,
+     1806
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1807
+    ],
+    "to": [
+     48,
+     24,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1807
+    ],
+    "to": [
+     56,
+     24,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1810
+    ],
+    "to": [
+     48,
+     30,
+     1810
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1810
+    ],
+    "to": [
+     56,
+     30,
+     1810
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1812
+    ],
+    "to": [
+     48,
+     30,
+     1812
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1812
+    ],
+    "to": [
+     56,
+     30,
+     1812
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1813
+    ],
+    "to": [
+     48,
+     24,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1813
+    ],
+    "to": [
+     56,
+     24,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1816
+    ],
+    "to": [
+     48,
+     30,
+     1816
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1816
+    ],
+    "to": [
+     56,
+     30,
+     1816
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1818
+    ],
+    "to": [
+     48,
+     30,
+     1818
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1818
+    ],
+    "to": [
+     56,
+     30,
+     1818
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1819
+    ],
+    "to": [
+     48,
+     24,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1819
+    ],
+    "to": [
+     56,
+     24,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1822
+    ],
+    "to": [
+     48,
+     30,
+     1822
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1822
+    ],
+    "to": [
+     56,
+     30,
+     1822
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1824
+    ],
+    "to": [
+     48,
+     30,
+     1824
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1824
+    ],
+    "to": [
+     56,
+     30,
+     1824
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1825
+    ],
+    "to": [
+     48,
+     24,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1825
+    ],
+    "to": [
+     56,
+     24,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1828
+    ],
+    "to": [
+     48,
+     30,
+     1828
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1828
+    ],
+    "to": [
+     56,
+     30,
+     1828
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1830
+    ],
+    "to": [
+     48,
+     30,
+     1830
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1830
+    ],
+    "to": [
+     56,
+     30,
+     1830
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1831
+    ],
+    "to": [
+     48,
+     24,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1831
+    ],
+    "to": [
+     56,
+     24,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1834
+    ],
+    "to": [
+     48,
+     30,
+     1834
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1834
+    ],
+    "to": [
+     56,
+     30,
+     1834
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1836
+    ],
+    "to": [
+     48,
+     30,
+     1836
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1836
+    ],
+    "to": [
+     56,
+     30,
+     1836
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1837
+    ],
+    "to": [
+     48,
+     24,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1837
+    ],
+    "to": [
+     56,
+     24,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1840
+    ],
+    "to": [
+     48,
+     30,
+     1840
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1840
+    ],
+    "to": [
+     56,
+     30,
+     1840
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1842
+    ],
+    "to": [
+     48,
+     30,
+     1842
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1842
+    ],
+    "to": [
+     56,
+     30,
+     1842
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1843
+    ],
+    "to": [
+     48,
+     24,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1843
+    ],
+    "to": [
+     56,
+     24,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1846
+    ],
+    "to": [
+     48,
+     30,
+     1846
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1846
+    ],
+    "to": [
+     56,
+     30,
+     1846
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1848
+    ],
+    "to": [
+     48,
+     30,
+     1848
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1848
+    ],
+    "to": [
+     56,
+     30,
+     1848
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1849
+    ],
+    "to": [
+     48,
+     24,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1849
+    ],
+    "to": [
+     56,
+     24,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1852
+    ],
+    "to": [
+     48,
+     30,
+     1852
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1852
+    ],
+    "to": [
+     56,
+     30,
+     1852
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1854
+    ],
+    "to": [
+     48,
+     30,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1854
+    ],
+    "to": [
+     56,
+     30,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1855
+    ],
+    "to": [
+     48,
+     24,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1855
+    ],
+    "to": [
+     56,
+     24,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1858
+    ],
+    "to": [
+     48,
+     30,
+     1858
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1858
+    ],
+    "to": [
+     56,
+     30,
+     1858
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1860
+    ],
+    "to": [
+     48,
+     30,
+     1860
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1860
+    ],
+    "to": [
+     56,
+     30,
+     1860
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1861
+    ],
+    "to": [
+     48,
+     24,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1861
+    ],
+    "to": [
+     56,
+     24,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1864
+    ],
+    "to": [
+     48,
+     30,
+     1864
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1864
+    ],
+    "to": [
+     56,
+     30,
+     1864
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1866
+    ],
+    "to": [
+     48,
+     30,
+     1866
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1866
+    ],
+    "to": [
+     56,
+     30,
+     1866
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1867
+    ],
+    "to": [
+     48,
+     24,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1867
+    ],
+    "to": [
+     56,
+     24,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1870
+    ],
+    "to": [
+     48,
+     30,
+     1870
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1870
+    ],
+    "to": [
+     56,
+     30,
+     1870
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1872
+    ],
+    "to": [
+     48,
+     30,
+     1872
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1872
+    ],
+    "to": [
+     56,
+     30,
+     1872
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1873
+    ],
+    "to": [
+     48,
+     24,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1873
+    ],
+    "to": [
+     56,
+     24,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1876
+    ],
+    "to": [
+     48,
+     30,
+     1876
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1876
+    ],
+    "to": [
+     56,
+     30,
+     1876
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1878
+    ],
+    "to": [
+     48,
+     30,
+     1878
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1878
+    ],
+    "to": [
+     56,
+     30,
+     1878
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1879
+    ],
+    "to": [
+     48,
+     24,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1879
+    ],
+    "to": [
+     56,
+     24,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1882
+    ],
+    "to": [
+     48,
+     30,
+     1882
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1882
+    ],
+    "to": [
+     56,
+     30,
+     1882
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     51,
+     24,
+     1883
+    ],
+    "block": "minecraft:dirt"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1884
+    ],
+    "to": [
+     48,
+     30,
+     1884
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1884
+    ],
+    "to": [
+     56,
+     30,
+     1884
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1885
+    ],
+    "to": [
+     48,
+     24,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1885
+    ],
+    "to": [
+     56,
+     24,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     24,
+     1888
+    ],
+    "to": [
+     48,
+     30,
+     1888
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     24,
+     1888
+    ],
+    "to": [
+     56,
+     30,
+     1888
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1775
+    ],
+    "to": [
+     47,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1775
+    ],
+    "to": [
+     50,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     25,
+     1775
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1775
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     54,
+     25,
+     1775
+    ],
+    "to": [
+     55,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1776
+    ],
+    "to": [
+     55,
+     25,
+     1776
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1777
+    ],
+    "to": [
+     50,
+     25,
+     1777
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     25,
+     1777
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     25,
+     1777
+    ],
+    "to": [
+     54,
+     25,
+     1779
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     25,
+     1777
+    ],
+    "to": [
+     55,
+     25,
+     1780
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1777
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1778
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1778
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1778
+    ],
+    "to": [
+     50,
+     25,
+     1778
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     25,
+     1778
+    ],
+    "to": [
+     51,
+     25,
+     1780
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1778
+    ],
+    "to": [
+     56,
+     32,
+     1778
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1779
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1779
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1779
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1779
+    ],
+    "to": [
+     50,
+     25,
+     1780
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1779
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1780
+    ],
+    "to": [
+     49,
+     25,
+     1780
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     52,
+     25,
+     1780
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1780
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     25,
+     1780
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     25,
+     1781
+    ],
+    "to": [
+     47,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1781
+    ],
+    "to": [
+     54,
+     25,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1783
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1783
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1784
+    ],
+    "to": [
+     48,
+     32,
+     1784
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1784
+    ],
+    "to": [
+     56,
+     32,
+     1784
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1785
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1785
+    ],
+    "to": [
+     55,
+     25,
+     1785
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1785
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     52,
+     25,
+     1788
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1788
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1789
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1789
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1790
+    ],
+    "to": [
+     48,
+     32,
+     1790
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1790
+    ],
+    "to": [
+     56,
+     32,
+     1790
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1791
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1791
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1795
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1795
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1796
+    ],
+    "to": [
+     48,
+     32,
+     1796
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1796
+    ],
+    "to": [
+     56,
+     32,
+     1796
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1797
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1797
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1801
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1801
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1802
+    ],
+    "to": [
+     48,
+     32,
+     1802
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1802
+    ],
+    "to": [
+     56,
+     32,
+     1802
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1803
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1803
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1807
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1807
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1808
+    ],
+    "to": [
+     48,
+     32,
+     1808
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1808
+    ],
+    "to": [
+     56,
+     32,
+     1808
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1809
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1809
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1813
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1813
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1814
+    ],
+    "to": [
+     48,
+     32,
+     1814
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1814
+    ],
+    "to": [
+     56,
+     32,
+     1814
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1815
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1815
+    ],
+    "to": [
+     55,
+     25,
+     1817
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1815
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1818
+    ],
+    "to": [
+     55,
+     25,
+     1818
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1819
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1819
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1820
+    ],
+    "to": [
+     48,
+     32,
+     1820
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1820
+    ],
+    "to": [
+     56,
+     32,
+     1820
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1821
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1821
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1825
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1825
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1826
+    ],
+    "to": [
+     48,
+     32,
+     1826
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1826
+    ],
+    "to": [
+     56,
+     32,
+     1826
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1827
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1827
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1831
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1831
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1832
+    ],
+    "to": [
+     48,
+     32,
+     1832
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1832
+    ],
+    "to": [
+     56,
+     32,
+     1832
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1833
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1833
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1837
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1837
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1838
+    ],
+    "to": [
+     48,
+     32,
+     1838
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1838
+    ],
+    "to": [
+     56,
+     32,
+     1838
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1839
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1839
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1843
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1843
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1844
+    ],
+    "to": [
+     48,
+     32,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1844
+    ],
+    "to": [
+     56,
+     32,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1845
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1845
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1849
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1849
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1850
+    ],
+    "to": [
+     48,
+     32,
+     1850
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1850
+    ],
+    "to": [
+     56,
+     32,
+     1850
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1851
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1851
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1855
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1855
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1856
+    ],
+    "to": [
+     48,
+     32,
+     1856
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1856
+    ],
+    "to": [
+     56,
+     32,
+     1856
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1857
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1857
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1861
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1861
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1862
+    ],
+    "to": [
+     48,
+     32,
+     1862
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1862
+    ],
+    "to": [
+     56,
+     32,
+     1862
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1863
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1863
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1867
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1867
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1868
+    ],
+    "to": [
+     48,
+     32,
+     1868
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1868
+    ],
+    "to": [
+     56,
+     32,
+     1868
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1869
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1869
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1873
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1873
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1874
+    ],
+    "to": [
+     48,
+     32,
+     1874
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1874
+    ],
+    "to": [
+     56,
+     32,
+     1874
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1875
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1875
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1879
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1879
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1880
+    ],
+    "to": [
+     48,
+     32,
+     1880
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1880
+    ],
+    "to": [
+     56,
+     32,
+     1880
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1881
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1881
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1883
+    ],
+    "to": [
+     54,
+     25,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1884
+    ],
+    "to": [
+     49,
+     25,
+     1888
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1884
+    ],
+    "to": [
+     51,
+     25,
+     1884
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     25,
+     1884
+    ],
+    "to": [
+     52,
+     25,
+     1886
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1884
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     25,
+     1884
+    ],
+    "to": [
+     54,
+     25,
+     1885
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     25,
+     1884
+    ],
+    "to": [
+     55,
+     25,
+     1888
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1885
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1885
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     51,
+     25,
+     1885
+    ],
+    "to": [
+     51,
+     25,
+     1887
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1885
+    ],
+    "to": [
+     53,
+     25,
+     1887
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1885
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1886
+    ],
+    "to": [
+     48,
+     32,
+     1886
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1886
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     25,
+     1886
+    ],
+    "to": [
+     54,
+     25,
+     1887
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1886
+    ],
+    "to": [
+     56,
+     32,
+     1886
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     25,
+     1887
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1887
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     52,
+     25,
+     1887
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     56,
+     25,
+     1887
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     25,
+     1888
+    ],
+    "to": [
+     54,
+     25,
+     1888
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     49,
+     25,
+     1889
+    ],
+    "to": [
+     50,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     25,
+     1889
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     53,
+     25,
+     1889
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     54,
+     25,
+     1889
+    ],
+    "to": [
+     55,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     26,
+     1775
+    ],
+    "to": [
+     51,
+     30,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     53,
+     26,
+     1775
+    ],
+    "to": [
+     53,
+     30,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1777
+    ],
+    "to": [
+     56,
+     28,
+     1777
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1779
+    ],
+    "to": [
+     56,
+     28,
+     1779
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1781
+    ],
+    "to": [
+     48,
+     34,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1781
+    ],
+    "to": [
+     56,
+     34,
+     1781
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1783
+    ],
+    "to": [
+     48,
+     28,
+     1783
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     26,
+     1783
+    ],
+    "to": [
+     54,
+     29,
+     1783
+    ],
+    "block": "minecraft:vine"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1783
+    ],
+    "to": [
+     56,
+     28,
+     1783
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1785
+    ],
+    "to": [
+     48,
+     28,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1785
+    ],
+    "to": [
+     56,
+     28,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1789
+    ],
+    "to": [
+     48,
+     28,
+     1789
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     26,
+     1789
+    ],
+    "to": [
+     51,
+     27,
+     1789
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     54,
+     26,
+     1789
+    ],
+    "to": [
+     54,
+     27,
+     1789
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1789
+    ],
+    "to": [
+     56,
+     28,
+     1789
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1791
+    ],
+    "to": [
+     48,
+     28,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     26,
+     1791
+    ],
+    "to": [
+     55,
+     26,
+     1791
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1791
+    ],
+    "to": [
+     56,
+     28,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1795
+    ],
+    "to": [
+     48,
+     28,
+     1795
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1795
+    ],
+    "to": [
+     56,
+     28,
+     1795
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     26,
+     1796
+    ],
+    "to": [
+     55,
+     26,
+     1796
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1797
+    ],
+    "to": [
+     48,
+     28,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1797
+    ],
+    "to": [
+     56,
+     28,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1801
+    ],
+    "to": [
+     48,
+     28,
+     1801
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1801
+    ],
+    "to": [
+     56,
+     28,
+     1801
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1803
+    ],
+    "to": [
+     48,
+     28,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1803
+    ],
+    "to": [
+     56,
+     28,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1807
+    ],
+    "to": [
+     48,
+     28,
+     1807
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1807
+    ],
+    "to": [
+     56,
+     28,
+     1807
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1809
+    ],
+    "to": [
+     48,
+     28,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1809
+    ],
+    "to": [
+     56,
+     28,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1813
+    ],
+    "to": [
+     48,
+     28,
+     1813
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1813
+    ],
+    "to": [
+     56,
+     28,
+     1813
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1815
+    ],
+    "to": [
+     48,
+     28,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1815
+    ],
+    "to": [
+     56,
+     28,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     26,
+     1817
+    ],
+    "to": [
+     51,
+     28,
+     1817
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     53,
+     26,
+     1817
+    ],
+    "to": [
+     55,
+     28,
+     1817
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1819
+    ],
+    "to": [
+     48,
+     28,
+     1819
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1819
+    ],
+    "to": [
+     56,
+     28,
+     1819
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1821
+    ],
+    "to": [
+     48,
+     28,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1821
+    ],
+    "to": [
+     56,
+     28,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     26,
+     1822
+    ],
+    "to": [
+     55,
+     26,
+     1822
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1825
+    ],
+    "to": [
+     48,
+     28,
+     1825
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1825
+    ],
+    "to": [
+     56,
+     28,
+     1825
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1827
+    ],
+    "to": [
+     48,
+     28,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1827
+    ],
+    "to": [
+     56,
+     28,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1831
+    ],
+    "to": [
+     48,
+     28,
+     1831
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1831
+    ],
+    "to": [
+     56,
+     28,
+     1831
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1833
+    ],
+    "to": [
+     48,
+     28,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1833
+    ],
+    "to": [
+     56,
+     28,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1837
+    ],
+    "to": [
+     48,
+     28,
+     1837
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1837
+    ],
+    "to": [
+     56,
+     28,
+     1837
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1839
+    ],
+    "to": [
+     48,
+     28,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1839
+    ],
+    "to": [
+     56,
+     28,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1843
+    ],
+    "to": [
+     48,
+     28,
+     1843
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1843
+    ],
+    "to": [
+     56,
+     28,
+     1843
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1845
+    ],
+    "to": [
+     48,
+     28,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1845
+    ],
+    "to": [
+     56,
+     28,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1849
+    ],
+    "to": [
+     48,
+     28,
+     1849
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1849
+    ],
+    "to": [
+     56,
+     28,
+     1849
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1851
+    ],
+    "to": [
+     48,
+     28,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1851
+    ],
+    "to": [
+     56,
+     28,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1855
+    ],
+    "to": [
+     48,
+     28,
+     1855
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1855
+    ],
+    "to": [
+     56,
+     28,
+     1855
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1857
+    ],
+    "to": [
+     48,
+     28,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1857
+    ],
+    "to": [
+     56,
+     28,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1861
+    ],
+    "to": [
+     48,
+     28,
+     1861
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1861
+    ],
+    "to": [
+     56,
+     28,
+     1861
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1863
+    ],
+    "to": [
+     48,
+     28,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1863
+    ],
+    "to": [
+     56,
+     28,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     26,
+     1865
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1867
+    ],
+    "to": [
+     48,
+     28,
+     1867
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1867
+    ],
+    "to": [
+     56,
+     28,
+     1867
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1869
+    ],
+    "to": [
+     48,
+     28,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1869
+    ],
+    "to": [
+     56,
+     28,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1873
+    ],
+    "to": [
+     48,
+     28,
+     1873
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1873
+    ],
+    "to": [
+     56,
+     28,
+     1873
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1875
+    ],
+    "to": [
+     48,
+     28,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1875
+    ],
+    "to": [
+     56,
+     28,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1879
+    ],
+    "to": [
+     48,
+     28,
+     1879
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1879
+    ],
+    "to": [
+     56,
+     28,
+     1879
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1881
+    ],
+    "to": [
+     48,
+     28,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1881
+    ],
+    "to": [
+     56,
+     28,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1883
+    ],
+    "to": [
+     48,
+     34,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1883
+    ],
+    "to": [
+     56,
+     34,
+     1883
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1885
+    ],
+    "to": [
+     48,
+     28,
+     1885
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1885
+    ],
+    "to": [
+     56,
+     28,
+     1885
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     26,
+     1887
+    ],
+    "to": [
+     48,
+     28,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     26,
+     1887
+    ],
+    "to": [
+     56,
+     28,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     26,
+     1889
+    ],
+    "to": [
+     51,
+     30,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     53,
+     26,
+     1889
+    ],
+    "to": [
+     53,
+     30,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     27,
+     1775
+    ],
+    "to": [
+     52,
+     29,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     27,
+     1791
+    ],
+    "to": [
+     55,
+     27,
+     1791
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     49,
+     27,
+     1796
+    ],
+    "to": [
+     55,
+     27,
+     1796
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1806
+    ],
+    "to": [
+     54,
+     27,
+     1806
+    ],
+    "block": "minecraft:planks"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1810
+    ],
+    "to": [
+     54,
+     27,
+     1810
+    ],
+    "block": "minecraft:planks"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1830
+    ],
+    "to": [
+     50,
+     29,
+     1830
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     52,
+     27,
+     1830
+    ],
+    "to": [
+     52,
+     29,
+     1830
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     54,
+     27,
+     1830
+    ],
+    "to": [
+     54,
+     29,
+     1830
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1836
+    ],
+    "to": [
+     54,
+     27,
+     1836
+    ],
+    "block": "minecraft:planks"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1840
+    ],
+    "to": [
+     54,
+     27,
+     1840
+    ],
+    "block": "minecraft:planks"
+   },
+   {
+    "from": [
+     49,
+     27,
+     1842
+    ],
+    "to": [
+     49,
+     27,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     51,
+     27,
+     1842
+    ],
+    "to": [
+     51,
+     27,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     53,
+     27,
+     1842
+    ],
+    "to": [
+     53,
+     27,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     55,
+     27,
+     1842
+    ],
+    "to": [
+     55,
+     27,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     27,
+     1861
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     54,
+     27,
+     1861
+    ],
+    "block": "minecraft:sand"
+   },
+   {
+    "from": [
+     52,
+     27,
+     1865
+    ],
+    "to": [
+     52,
+     29,
+     1865
+    ],
+    "block": "minecraft:cactus"
+   },
+   {
+    "from": [
+     49,
+     27,
+     1875
+    ],
+    "to": [
+     49,
+     27,
+     1876
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     27,
+     1875
+    ],
+    "to": [
+     52,
+     27,
+     1876
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     27,
+     1875
+    ],
+    "to": [
+     55,
+     27,
+     1876
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     27,
+     1889
+    ],
+    "to": [
+     52,
+     29,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1791
+    ],
+    "to": [
+     55,
+     28,
+     1791
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1796
+    ],
+    "to": [
+     55,
+     28,
+     1796
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1806
+    ],
+    "to": [
+     54,
+     28,
+     1806
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1807
+    ],
+    "to": [
+     49,
+     28,
+     1809
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1807
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     51,
+     28,
+     1807
+    ],
+    "to": [
+     53,
+     28,
+     1809
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1807
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1807
+    ],
+    "to": [
+     55,
+     28,
+     1809
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1808
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1808
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1809
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1809
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1810
+    ],
+    "to": [
+     54,
+     28,
+     1810
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1815
+    ],
+    "to": [
+     55,
+     28,
+     1816
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     52,
+     28,
+     1817
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     51,
+     28,
+     1833
+    ],
+    "to": [
+     51,
+     30,
+     1833
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     53,
+     28,
+     1833
+    ],
+    "to": [
+     53,
+     30,
+     1833
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1836
+    ],
+    "to": [
+     54,
+     28,
+     1836
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1837
+    ],
+    "to": [
+     49,
+     28,
+     1839
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1837
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     51,
+     28,
+     1837
+    ],
+    "to": [
+     53,
+     28,
+     1839
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1837
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1837
+    ],
+    "to": [
+     55,
+     28,
+     1839
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1838
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1838
+    ],
+    "block": "minecraft:grass"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1839
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1839
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1840
+    ],
+    "to": [
+     54,
+     28,
+     1840
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1842
+    ],
+    "to": [
+     49,
+     31,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1842
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     51,
+     28,
+     1842
+    ],
+    "to": [
+     51,
+     31,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     28,
+     1842
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     53,
+     28,
+     1842
+    ],
+    "to": [
+     53,
+     31,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1842
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1842
+    ],
+    "to": [
+     55,
+     31,
+     1844
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1846
+    ],
+    "to": [
+     54,
+     28,
+     1846
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1849
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     51,
+     28,
+     1849
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     52,
+     28,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     28,
+     1849
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1849
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     50,
+     28,
+     1861
+    ],
+    "to": [
+     50,
+     30,
+     1861
+    ],
+    "block": "minecraft:cactus"
+   },
+   {
+    "from": [
+     54,
+     28,
+     1861
+    ],
+    "to": [
+     54,
+     30,
+     1861
+    ],
+    "block": "minecraft:cactus"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1872
+    ],
+    "to": [
+     49,
+     28,
+     1873
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     28,
+     1872
+    ],
+    "to": [
+     52,
+     28,
+     1873
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1872
+    ],
+    "to": [
+     55,
+     28,
+     1873
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     49,
+     28,
+     1875
+    ],
+    "to": [
+     49,
+     30,
+     1876
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     52,
+     28,
+     1875
+    ],
+    "to": [
+     52,
+     30,
+     1876
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     55,
+     28,
+     1875
+    ],
+    "to": [
+     55,
+     30,
+     1876
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1777
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1779
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1783
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1783
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1784
+    ],
+    "to": [
+     55,
+     29,
+     1784
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1785
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1785
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     51,
+     29,
+     1788
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1788
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1789
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1789
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1791
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1791
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1795
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1795
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1797
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1797
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1799
+    ],
+    "to": [
+     51,
+     31,
+     1799
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1799
+    ],
+    "to": [
+     52,
+     31,
+     1799
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1799
+    ],
+    "to": [
+     55,
+     31,
+     1799
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1801
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1801
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1802
+    ],
+    "to": [
+     51,
+     31,
+     1802
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1802
+    ],
+    "to": [
+     52,
+     31,
+     1802
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1802
+    ],
+    "to": [
+     55,
+     31,
+     1802
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1803
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1803
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1806
+    ],
+    "to": [
+     51,
+     31,
+     1806
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1806
+    ],
+    "to": [
+     52,
+     31,
+     1806
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1806
+    ],
+    "to": [
+     55,
+     31,
+     1806
+    ],
+    "block": "minecraft:fence"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1807
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1807
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1808
+    ],
+    "block": "minecraft:standing_sign"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1809
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1809
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1813
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1813
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     51,
+     29,
+     1814
+    ],
+    "to": [
+     51,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1814
+    ],
+    "to": [
+     53,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1815
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1815
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1819
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1819
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1821
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1821
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1825
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1825
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1827
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1827
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1831
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1831
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1833
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1833
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1837
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1837
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1838
+    ],
+    "block": "minecraft:standing_sign"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1839
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1839
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1841
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1841
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1841
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1842
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1842
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1842
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1843
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1843
+    ],
+    "to": [
+     50,
+     29,
+     1844
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1843
+    ],
+    "to": [
+     52,
+     29,
+     1844
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1843
+    ],
+    "to": [
+     54,
+     29,
+     1844
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1843
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1845
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1845
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1849
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1849
+    ],
+    "to": [
+     49,
+     31,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     51,
+     29,
+     1849
+    ],
+    "to": [
+     51,
+     31,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1849
+    ],
+    "to": [
+     53,
+     31,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     29,
+     1849
+    ],
+    "to": [
+     55,
+     31,
+     1849
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1849
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1851
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1851
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     51,
+     29,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1851
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     53,
+     29,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1851
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     55,
+     29,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1851
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1853
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1853
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1853
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1855
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     50,
+     29,
+     1855
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1855
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     54,
+     29,
+     1855
+    ],
+    "block": "minecraft:soul_sand"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1855
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1857
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1857
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1859
+    ],
+    "to": [
+     55,
+     29,
+     1859
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1861
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1861
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1863
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1863
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1867
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1867
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1868
+    ],
+    "to": [
+     55,
+     29,
+     1868
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1869
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1869
+    ],
+    "to": [
+     49,
+     29,
+     1870
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1869
+    ],
+    "to": [
+     52,
+     29,
+     1870
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     55,
+     29,
+     1869
+    ],
+    "to": [
+     55,
+     29,
+     1870
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1869
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     49,
+     29,
+     1872
+    ],
+    "to": [
+     49,
+     31,
+     1873
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     52,
+     29,
+     1872
+    ],
+    "to": [
+     52,
+     31,
+     1873
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     55,
+     29,
+     1872
+    ],
+    "to": [
+     55,
+     31,
+     1873
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1873
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1873
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1875
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1875
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1879
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1879
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1881
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1881
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1885
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1885
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     48,
+     29,
+     1887
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     56,
+     29,
+     1887
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1775
+    ],
+    "to": [
+     52,
+     33,
+     1775
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1777
+    ],
+    "to": [
+     56,
+     32,
+     1777
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1779
+    ],
+    "to": [
+     56,
+     32,
+     1779
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1783
+    ],
+    "to": [
+     48,
+     32,
+     1783
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1783
+    ],
+    "to": [
+     56,
+     32,
+     1783
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     30,
+     1784
+    ],
+    "to": [
+     51,
+     30,
+     1784
+    ],
+    "block": "minecraft:iron_trapdoor[facing=east,half=bottom,open=false]"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1784
+    ],
+    "to": [
+     55,
+     30,
+     1784
+    ],
+    "block": "minecraft:iron_trapdoor[facing=west,half=bottom,open=false]"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1785
+    ],
+    "to": [
+     48,
+     32,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1785
+    ],
+    "to": [
+     56,
+     32,
+     1785
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1789
+    ],
+    "to": [
+     48,
+     32,
+     1789
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1789
+    ],
+    "to": [
+     56,
+     32,
+     1789
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1791
+    ],
+    "to": [
+     48,
+     32,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1791
+    ],
+    "to": [
+     56,
+     32,
+     1791
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1795
+    ],
+    "to": [
+     48,
+     32,
+     1795
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1795
+    ],
+    "to": [
+     56,
+     32,
+     1795
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1797
+    ],
+    "to": [
+     48,
+     32,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1797
+    ],
+    "to": [
+     56,
+     32,
+     1797
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1801
+    ],
+    "to": [
+     48,
+     32,
+     1801
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1801
+    ],
+    "to": [
+     56,
+     32,
+     1801
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1803
+    ],
+    "to": [
+     48,
+     32,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1803
+    ],
+    "to": [
+     56,
+     32,
+     1803
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1807
+    ],
+    "to": [
+     48,
+     32,
+     1807
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1807
+    ],
+    "to": [
+     56,
+     32,
+     1807
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1809
+    ],
+    "to": [
+     48,
+     32,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1809
+    ],
+    "to": [
+     56,
+     32,
+     1809
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1813
+    ],
+    "to": [
+     48,
+     32,
+     1813
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1813
+    ],
+    "to": [
+     56,
+     32,
+     1813
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1815
+    ],
+    "to": [
+     48,
+     32,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1815
+    ],
+    "to": [
+     56,
+     32,
+     1815
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1819
+    ],
+    "to": [
+     48,
+     32,
+     1819
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1819
+    ],
+    "to": [
+     56,
+     32,
+     1819
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1821
+    ],
+    "to": [
+     48,
+     32,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1821
+    ],
+    "to": [
+     56,
+     32,
+     1821
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1825
+    ],
+    "to": [
+     48,
+     32,
+     1825
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1825
+    ],
+    "to": [
+     56,
+     32,
+     1825
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1827
+    ],
+    "to": [
+     48,
+     32,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1827
+    ],
+    "to": [
+     56,
+     32,
+     1827
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1830
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1831
+    ],
+    "to": [
+     48,
+     32,
+     1831
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1831
+    ],
+    "to": [
+     56,
+     32,
+     1831
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1833
+    ],
+    "to": [
+     48,
+     32,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1833
+    ],
+    "to": [
+     56,
+     32,
+     1833
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1837
+    ],
+    "to": [
+     48,
+     32,
+     1837
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1837
+    ],
+    "to": [
+     56,
+     32,
+     1837
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1839
+    ],
+    "to": [
+     48,
+     32,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1839
+    ],
+    "to": [
+     56,
+     32,
+     1839
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1843
+    ],
+    "to": [
+     48,
+     32,
+     1843
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1843
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1843
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1843
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1843
+    ],
+    "to": [
+     56,
+     32,
+     1843
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1844
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1844
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1844
+    ],
+    "block": "minecraft:water[level=0]"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1845
+    ],
+    "to": [
+     48,
+     32,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1845
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1845
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1845
+    ],
+    "block": "minecraft:structure_void"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1845
+    ],
+    "to": [
+     56,
+     32,
+     1845
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1849
+    ],
+    "to": [
+     48,
+     32,
+     1849
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1849
+    ],
+    "to": [
+     56,
+     32,
+     1849
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1851
+    ],
+    "to": [
+     48,
+     32,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1851
+    ],
+    "to": [
+     50,
+     32,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1851
+    ],
+    "to": [
+     52,
+     32,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1851
+    ],
+    "to": [
+     54,
+     32,
+     1851
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1851
+    ],
+    "to": [
+     56,
+     32,
+     1851
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1854
+    ],
+    "to": [
+     50,
+     32,
+     1854
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1854
+    ],
+    "to": [
+     52,
+     32,
+     1854
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1854
+    ],
+    "to": [
+     54,
+     32,
+     1854
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1855
+    ],
+    "to": [
+     48,
+     32,
+     1855
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1855
+    ],
+    "to": [
+     56,
+     32,
+     1855
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1857
+    ],
+    "to": [
+     48,
+     32,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1857
+    ],
+    "to": [
+     56,
+     32,
+     1857
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     30,
+     1859
+    ],
+    "to": [
+     55,
+     30,
+     1859
+    ],
+    "block": "minecraft:carpet"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1861
+    ],
+    "to": [
+     48,
+     32,
+     1861
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1861
+    ],
+    "to": [
+     56,
+     32,
+     1861
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1863
+    ],
+    "to": [
+     48,
+     32,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1863
+    ],
+    "to": [
+     56,
+     32,
+     1863
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1867
+    ],
+    "to": [
+     48,
+     32,
+     1867
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1867
+    ],
+    "to": [
+     56,
+     32,
+     1867
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1869
+    ],
+    "to": [
+     48,
+     32,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     30,
+     1869
+    ],
+    "to": [
+     49,
+     32,
+     1870
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1869
+    ],
+    "to": [
+     52,
+     32,
+     1870
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     55,
+     30,
+     1869
+    ],
+    "to": [
+     55,
+     32,
+     1870
+    ],
+    "block": "minecraft:anvil[facing=north]"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1869
+    ],
+    "to": [
+     56,
+     32,
+     1869
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1873
+    ],
+    "to": [
+     48,
+     32,
+     1873
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1873
+    ],
+    "to": [
+     56,
+     32,
+     1873
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1875
+    ],
+    "to": [
+     48,
+     32,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1875
+    ],
+    "to": [
+     56,
+     32,
+     1875
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1879
+    ],
+    "to": [
+     48,
+     32,
+     1879
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1879
+    ],
+    "to": [
+     56,
+     32,
+     1879
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1881
+    ],
+    "to": [
+     48,
+     32,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     30,
+     1881
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1881
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     54,
+     30,
+     1881
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1881
+    ],
+    "to": [
+     56,
+     32,
+     1881
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1885
+    ],
+    "to": [
+     48,
+     32,
+     1885
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1885
+    ],
+    "to": [
+     56,
+     32,
+     1885
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     30,
+     1887
+    ],
+    "to": [
+     48,
+     32,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     30,
+     1887
+    ],
+    "to": [
+     56,
+     32,
+     1887
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     30,
+     1889
+    ],
+    "to": [
+     52,
+     33,
+     1889
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     51,
+     31,
+     1775
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     53,
+     31,
+     1775
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1776
+    ],
+    "to": [
+     56,
+     32,
+     1776
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1780
+    ],
+    "to": [
+     56,
+     32,
+     1780
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1782
+    ],
+    "to": [
+     48,
+     32,
+     1782
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1782
+    ],
+    "to": [
+     56,
+     32,
+     1782
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1786
+    ],
+    "to": [
+     48,
+     32,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1786
+    ],
+    "to": [
+     56,
+     32,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1788
+    ],
+    "to": [
+     48,
+     32,
+     1788
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1788
+    ],
+    "to": [
+     56,
+     32,
+     1788
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1792
+    ],
+    "to": [
+     48,
+     32,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1792
+    ],
+    "to": [
+     56,
+     32,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1794
+    ],
+    "to": [
+     48,
+     32,
+     1794
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1794
+    ],
+    "to": [
+     56,
+     32,
+     1794
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1798
+    ],
+    "to": [
+     48,
+     32,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1798
+    ],
+    "to": [
+     56,
+     32,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1800
+    ],
+    "to": [
+     48,
+     32,
+     1800
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1800
+    ],
+    "to": [
+     56,
+     32,
+     1800
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1804
+    ],
+    "to": [
+     48,
+     32,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1804
+    ],
+    "to": [
+     56,
+     32,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1806
+    ],
+    "to": [
+     48,
+     32,
+     1806
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1806
+    ],
+    "to": [
+     56,
+     32,
+     1806
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1810
+    ],
+    "to": [
+     48,
+     32,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1810
+    ],
+    "to": [
+     56,
+     32,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1812
+    ],
+    "to": [
+     48,
+     32,
+     1812
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1812
+    ],
+    "to": [
+     56,
+     32,
+     1812
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     31,
+     1814
+    ],
+    "to": [
+     52,
+     33,
+     1814
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1816
+    ],
+    "to": [
+     48,
+     32,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1816
+    ],
+    "to": [
+     56,
+     32,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1818
+    ],
+    "to": [
+     48,
+     32,
+     1818
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1818
+    ],
+    "to": [
+     56,
+     32,
+     1818
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1822
+    ],
+    "to": [
+     48,
+     32,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1822
+    ],
+    "to": [
+     56,
+     32,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1824
+    ],
+    "to": [
+     48,
+     32,
+     1824
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1824
+    ],
+    "to": [
+     56,
+     32,
+     1824
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1828
+    ],
+    "to": [
+     48,
+     32,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1828
+    ],
+    "to": [
+     56,
+     32,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1830
+    ],
+    "to": [
+     48,
+     32,
+     1830
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1830
+    ],
+    "to": [
+     56,
+     32,
+     1830
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     31,
+     1833
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     53,
+     31,
+     1833
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1834
+    ],
+    "to": [
+     48,
+     32,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1834
+    ],
+    "to": [
+     56,
+     32,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1836
+    ],
+    "to": [
+     48,
+     32,
+     1836
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1836
+    ],
+    "to": [
+     56,
+     32,
+     1836
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1840
+    ],
+    "to": [
+     48,
+     32,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1840
+    ],
+    "to": [
+     56,
+     32,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1842
+    ],
+    "to": [
+     48,
+     32,
+     1842
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1842
+    ],
+    "to": [
+     56,
+     32,
+     1842
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1846
+    ],
+    "to": [
+     48,
+     32,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1846
+    ],
+    "to": [
+     56,
+     32,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1848
+    ],
+    "to": [
+     48,
+     32,
+     1848
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1848
+    ],
+    "to": [
+     56,
+     32,
+     1848
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1852
+    ],
+    "to": [
+     48,
+     32,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1852
+    ],
+    "to": [
+     56,
+     32,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1854
+    ],
+    "to": [
+     48,
+     32,
+     1854
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1854
+    ],
+    "to": [
+     56,
+     32,
+     1854
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1858
+    ],
+    "to": [
+     48,
+     32,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1858
+    ],
+    "to": [
+     56,
+     32,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1860
+    ],
+    "to": [
+     48,
+     32,
+     1860
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1860
+    ],
+    "to": [
+     56,
+     32,
+     1860
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1864
+    ],
+    "to": [
+     48,
+     32,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1864
+    ],
+    "to": [
+     56,
+     32,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1866
+    ],
+    "to": [
+     48,
+     32,
+     1866
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1866
+    ],
+    "to": [
+     56,
+     32,
+     1866
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1870
+    ],
+    "to": [
+     48,
+     32,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1870
+    ],
+    "to": [
+     56,
+     32,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1872
+    ],
+    "to": [
+     48,
+     32,
+     1872
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1872
+    ],
+    "to": [
+     56,
+     32,
+     1872
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     49,
+     31,
+     1875
+    ],
+    "to": [
+     49,
+     31,
+     1876
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     52,
+     31,
+     1875
+    ],
+    "to": [
+     52,
+     31,
+     1876
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     55,
+     31,
+     1875
+    ],
+    "to": [
+     55,
+     31,
+     1876
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1876
+    ],
+    "to": [
+     48,
+     32,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1876
+    ],
+    "to": [
+     56,
+     32,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1878
+    ],
+    "to": [
+     48,
+     32,
+     1878
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1878
+    ],
+    "to": [
+     56,
+     32,
+     1878
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     50,
+     31,
+     1881
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     52,
+     31,
+     1881
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     54,
+     31,
+     1881
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1882
+    ],
+    "to": [
+     48,
+     32,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1882
+    ],
+    "to": [
+     56,
+     32,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1884
+    ],
+    "to": [
+     48,
+     32,
+     1884
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1884
+    ],
+    "to": [
+     56,
+     32,
+     1884
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     31,
+     1888
+    ],
+    "to": [
+     48,
+     32,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     31,
+     1888
+    ],
+    "to": [
+     56,
+     32,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     51,
+     31,
+     1889
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     53,
+     31,
+     1889
+    ],
+    "block": "minecraft:gold_block"
+   },
+   {
+    "from": [
+     51,
+     32,
+     1775
+    ],
+    "to": [
+     51,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     53,
+     32,
+     1775
+    ],
+    "to": [
+     53,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     32,
+     1799
+    ],
+    "to": [
+     52,
+     32,
+     1806
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     49,
+     32,
+     1842
+    ],
+    "to": [
+     49,
+     32,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     32,
+     1842
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     51,
+     32,
+     1842
+    ],
+    "to": [
+     51,
+     32,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     53,
+     32,
+     1842
+    ],
+    "to": [
+     53,
+     32,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     54,
+     32,
+     1842
+    ],
+    "block": "minecraft:jungle_fence"
+   },
+   {
+    "from": [
+     55,
+     32,
+     1842
+    ],
+    "to": [
+     55,
+     32,
+     1844
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     32,
+     1849
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     51,
+     32,
+     1849
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     53,
+     32,
+     1849
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     55,
+     32,
+     1849
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     49,
+     32,
+     1872
+    ],
+    "to": [
+     49,
+     32,
+     1873
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     52,
+     32,
+     1872
+    ],
+    "to": [
+     52,
+     32,
+     1873
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     55,
+     32,
+     1872
+    ],
+    "to": [
+     55,
+     32,
+     1873
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     51,
+     32,
+     1889
+    ],
+    "to": [
+     51,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     53,
+     32,
+     1889
+    ],
+    "to": [
+     53,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1776
+    ],
+    "to": [
+     56,
+     33,
+     1780
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1782
+    ],
+    "to": [
+     48,
+     33,
+     1786
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1782
+    ],
+    "to": [
+     56,
+     33,
+     1786
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1788
+    ],
+    "to": [
+     48,
+     33,
+     1792
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1788
+    ],
+    "to": [
+     56,
+     33,
+     1792
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1794
+    ],
+    "to": [
+     48,
+     33,
+     1798
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1794
+    ],
+    "to": [
+     56,
+     33,
+     1798
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1800
+    ],
+    "to": [
+     48,
+     33,
+     1804
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1800
+    ],
+    "to": [
+     56,
+     33,
+     1804
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1806
+    ],
+    "to": [
+     48,
+     33,
+     1810
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1806
+    ],
+    "to": [
+     56,
+     33,
+     1810
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1812
+    ],
+    "to": [
+     48,
+     33,
+     1816
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1812
+    ],
+    "to": [
+     56,
+     33,
+     1816
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1818
+    ],
+    "to": [
+     48,
+     33,
+     1822
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1818
+    ],
+    "to": [
+     56,
+     33,
+     1822
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1824
+    ],
+    "to": [
+     48,
+     33,
+     1828
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1824
+    ],
+    "to": [
+     56,
+     33,
+     1828
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1830
+    ],
+    "to": [
+     48,
+     33,
+     1834
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1830
+    ],
+    "to": [
+     56,
+     33,
+     1834
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1836
+    ],
+    "to": [
+     48,
+     33,
+     1840
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1836
+    ],
+    "to": [
+     56,
+     33,
+     1840
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1842
+    ],
+    "to": [
+     48,
+     33,
+     1846
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1842
+    ],
+    "to": [
+     56,
+     33,
+     1846
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1848
+    ],
+    "to": [
+     48,
+     33,
+     1852
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1848
+    ],
+    "to": [
+     56,
+     33,
+     1852
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     50,
+     33,
+     1851
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     52,
+     33,
+     1851
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     54,
+     33,
+     1851
+    ],
+    "block": "minecraft:leaves"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1854
+    ],
+    "to": [
+     48,
+     33,
+     1858
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     33,
+     1854
+    ],
+    "to": [
+     55,
+     33,
+     1854
+    ],
+    "block": "minecraft:log"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1854
+    ],
+    "to": [
+     56,
+     33,
+     1858
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1860
+    ],
+    "to": [
+     48,
+     33,
+     1864
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1860
+    ],
+    "to": [
+     56,
+     33,
+     1864
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1866
+    ],
+    "to": [
+     48,
+     33,
+     1870
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1866
+    ],
+    "to": [
+     56,
+     33,
+     1870
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     49,
+     33,
+     1869
+    ],
+    "to": [
+     49,
+     33,
+     1870
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     52,
+     33,
+     1869
+    ],
+    "to": [
+     52,
+     33,
+     1870
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     55,
+     33,
+     1869
+    ],
+    "to": [
+     55,
+     33,
+     1870
+    ],
+    "block": "minecraft:wooden_slab[half=bottom]"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1872
+    ],
+    "to": [
+     48,
+     33,
+     1876
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1872
+    ],
+    "to": [
+     56,
+     33,
+     1876
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1878
+    ],
+    "to": [
+     48,
+     33,
+     1882
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1878
+    ],
+    "to": [
+     56,
+     33,
+     1882
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     48,
+     33,
+     1884
+    ],
+    "to": [
+     48,
+     33,
+     1888
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     56,
+     33,
+     1884
+    ],
+    "to": [
+     56,
+     33,
+     1888
+    ],
+    "block": "minecraft:lapis_block"
+   },
+   {
+    "from": [
+     52,
+     34,
+     1775
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1776
+    ],
+    "to": [
+     56,
+     34,
+     1780
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1782
+    ],
+    "to": [
+     48,
+     34,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1782
+    ],
+    "to": [
+     56,
+     34,
+     1786
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1788
+    ],
+    "to": [
+     48,
+     34,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1788
+    ],
+    "to": [
+     56,
+     34,
+     1792
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1794
+    ],
+    "to": [
+     48,
+     34,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1794
+    ],
+    "to": [
+     56,
+     34,
+     1798
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1800
+    ],
+    "to": [
+     48,
+     34,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1800
+    ],
+    "to": [
+     56,
+     34,
+     1804
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1806
+    ],
+    "to": [
+     48,
+     34,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1806
+    ],
+    "to": [
+     56,
+     34,
+     1810
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1812
+    ],
+    "to": [
+     48,
+     34,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1812
+    ],
+    "to": [
+     56,
+     34,
+     1816
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1818
+    ],
+    "to": [
+     48,
+     34,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1818
+    ],
+    "to": [
+     56,
+     34,
+     1822
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1824
+    ],
+    "to": [
+     48,
+     34,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1824
+    ],
+    "to": [
+     56,
+     34,
+     1828
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1830
+    ],
+    "to": [
+     48,
+     34,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1830
+    ],
+    "to": [
+     56,
+     34,
+     1834
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1836
+    ],
+    "to": [
+     48,
+     34,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1836
+    ],
+    "to": [
+     56,
+     34,
+     1840
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1842
+    ],
+    "to": [
+     48,
+     34,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1842
+    ],
+    "to": [
+     56,
+     34,
+     1846
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1848
+    ],
+    "to": [
+     48,
+     34,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1848
+    ],
+    "to": [
+     56,
+     34,
+     1852
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1854
+    ],
+    "to": [
+     48,
+     34,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1854
+    ],
+    "to": [
+     56,
+     34,
+     1858
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1860
+    ],
+    "to": [
+     48,
+     34,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1860
+    ],
+    "to": [
+     56,
+     34,
+     1864
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1866
+    ],
+    "to": [
+     48,
+     34,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1866
+    ],
+    "to": [
+     56,
+     34,
+     1870
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1872
+    ],
+    "to": [
+     48,
+     34,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1872
+    ],
+    "to": [
+     56,
+     34,
+     1876
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1878
+    ],
+    "to": [
+     48,
+     34,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1878
+    ],
+    "to": [
+     56,
+     34,
+     1882
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     48,
+     34,
+     1884
+    ],
+    "to": [
+     48,
+     34,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     56,
+     34,
+     1884
+    ],
+    "to": [
+     56,
+     34,
+     1888
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     52,
+     34,
+     1889
+    ],
+    "block": "minecraft:wool"
+   }
+  ]
+ },
+ "spawn": {
+  "pos": [
+   52.2642003456386,
+   26.0,
+   1777.106747656188
+  ],
+  "yaw": -10.720126,
+  "pitch": 24.051807
+ },
+ "start": {
+  "min": [
+   52.0,
+   26.0,
+   1778.0
+  ],
+  "max": [
+   53.0,
+   27.0,
+   1779.0
+  ]
+ },
+ "goal": {
+  "min": [
+   52.0,
+   26.0,
+   1886.0
+  ],
+  "max": [
+   53.0,
+   27.0,
+   1887.0
+  ]
+ },
+ "limits": {
+  "maxTicks": 1200,
+  "voidY": 16.0
+ }
+}

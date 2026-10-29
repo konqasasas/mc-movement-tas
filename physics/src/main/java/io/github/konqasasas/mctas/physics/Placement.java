@@ -69,21 +69,31 @@ public final class Placement {
     /** {@code Minecraft.rightClickMouse} for a survival player with an empty off hand. */
     private static void rightClick(BlockWorld base, PlayerState s) {
         s.rightClickDelay = RIGHT_CLICK_DELAY;
-        BlockWorld world = s.placed.over(base);
+        BlockWorld world = s.world(base);
         try {
             Hit hit = lookingAt(world, s);
             if (hit == null) {
+                return;
+            }
+            if (!s.shulker.isNone()) {
+                // The server's lid pushes its copy of the player too, so where it has the player is not
+                // known well enough to place a block or open another box.
+                s.unsupportedAction = true;
                 return;
             }
             BlockType target = world.getBlock(hit.x, hit.y, hit.z);
             BlockType item = s.hotbar.item(s.selectedSlot);
             boolean sneaking = s.isSneaking();
             if ((!sneaking || item == null) && target.activates()) {
-                // A door, chest, button, ... does its own thing, which is not modelled.
-                s.unsupportedAction = true;
+                activate(world, s, hit, target, item);
                 return;
             }
             if (item == null) {
+                return;
+            }
+            if (target.activates() && s.sneakReportedTicks < SNEAK_SETTLE) {
+                // The server may not have seen the sneak yet and activate the block instead.
+                s.unsupportedAction = true;
                 return;
             }
             // ItemBlock.canPlaceBlockOnSide, checked by processRightClickBlock before onItemUse.
@@ -131,6 +141,137 @@ public final class Placement {
     }
 
     /**
+     * {@code onBlockActivated} of the block the player right-clicked without sneaking (or with an empty
+     * hand). A button turns on at once on the client; a lever only answers the click there and changes
+     * when the server says so, which does not change its selection box. Both power the block they hang
+     * on, so either is unsupported next to anything that reacts to power or to a neighbour update
+     * ({@link #reacts}). A shulker box opens ({@link #openShulker}). Every other block that does
+     * something of its own (doors, chests, ...) is unsupported.
+     */
+    private static void activate(BlockWorld world, PlayerState s, Hit hit, BlockType target, BlockType item) {
+        String id = VanillaBlocks.blockId(target.name());
+        if (id.endsWith("_shulker_box")) {
+            openShulker(world, s, hit, target, item);
+            return;
+        }
+        boolean button = id.equals("minecraft:stone_button") || id.equals("minecraft:wooden_button");
+        if (!button && !id.equals("minecraft:lever")) {
+            s.unsupportedAction = true;
+            return;
+        }
+        java.util.Map<String, String> props = VanillaBlocks.parseProperties(target.name());
+        String facing = props.get("facing");
+        if (facing == null || button && !props.containsKey("powered")) {
+            // A block from an older problem file, named without its facing: its state is unknown.
+            s.unsupportedAction = true;
+            return;
+        }
+        // The server activates it too only if it does not take the player to be sneaking with a block in
+        // hand ({@code PlayerInteractionManager.processRightClickBlock}).
+        if (item != null && (s.serverSneakState || s.sneakReportedTicks < SNEAK_SETTLE)) {
+            s.unsupportedAction = true;
+            return;
+        }
+        Facing attached = attachedSide(facing);
+        int ax = hit.x + attached.dx;
+        int ay = hit.y + attached.dy;
+        int az = hit.z + attached.dz;
+        // BlockButton.notifyNeighbors and BlockLever's: the neighbours of the block and of the one it
+        // hangs on, when it turns on and again when it turns off.
+        for (Facing f : Facing.values()) {
+            if (reacts(world.getBlock(hit.x + f.dx, hit.y + f.dy, hit.z + f.dz))
+                    || f != attached.opposite() && reacts(world.getBlock(ax + f.dx, ay + f.dy, az + f.dz))) {
+                s.unsupportedAction = true;
+                return;
+            }
+        }
+        if (!button) {
+            return;
+        }
+        if (props.get("powered").equals("true")) {
+            // BlockButton.onBlockActivated: already on, the click does nothing. One that may have turned
+            // off again has no powered property here and was refused above.
+            return;
+        }
+        s.pressed = s.pressed.with(hit.x, hit.y, hit.z, target);
+    }
+
+    /**
+     * A shulker box: the client only answers the click, and the server opens the box if it takes the click
+     * as one on the box, it is in reach, and nothing is in the way of the lid ({@code BlockShulkerBox
+     * .onBlockActivated}). The lid then starts to move a tick later ({@link Shulker}).
+     */
+    private static void openShulker(BlockWorld world, PlayerState s, Hit hit, BlockType target, BlockType item) {
+        String facing = VanillaBlocks.parseProperties(target.name()).get("facing");
+        if (facing == null) {
+            s.unsupportedAction = true;
+            return;
+        }
+        // PlayerInteractionManager.processRightClickBlock: a player the server takes to be sneaking with a
+        // block in hand uses the block instead.
+        if (item != null && (s.serverSneakState || s.sneakReportedTicks < SNEAK_SETTLE)) {
+            s.unsupportedAction = true;
+            return;
+        }
+        if (!serverReaches(s, hit)) {
+            return;
+        }
+        Facing f = Facing.valueOf(facing.toUpperCase(java.util.Locale.ROOT));
+        if (Shulker.blocked(world, hit.x, hit.y, hit.z, f)) {
+            return;
+        }
+        s.shulker = Shulker.clicked(hit.x, hit.y, hit.z, target, f);
+    }
+
+    /**
+     * {@code NetHandlerPlayServer.processTryUseItemOnBlock}: the server acts on the click only below the
+     * build limit and within 8 blocks of where the client last said the player was (Forge's reach
+     * attribute, 5, plus 3).
+     */
+    private static boolean serverReaches(PlayerState s, Hit hit) {
+        if (!(hit.y < 255 || hit.side != Facing.UP && hit.y < 256)) {
+            return false;
+        }
+        double dx = s.lastReportedPosX - ((double) hit.x + 0.5D);
+        double dy = s.lastReportedPosY - ((double) hit.y + 0.5D);
+        double dz = s.lastReportedPosZ - ((double) hit.z + 0.5D);
+        return dx * dx + dy * dy + dz * dz < 64.0D;
+    }
+
+    /**
+     * Whether a neighbour update or power may change the block: it reacts to power or changes by itself.
+     * Blocks that need support ({@link BlockType#isFragile}) are taken to have it, as in a world built by
+     * playing; one that hangs in the air would break.
+     */
+    private static boolean reacts(BlockType t) {
+        return t.reactsToPower() || t.isExcept(BlockType.UNSTABLE);
+    }
+
+    /** The side of a button or lever that touches the block it hangs on: opposite its facing. */
+    private static Facing attachedSide(String facing) {
+        switch (facing) {
+            case "down":
+            case "down_x":
+            case "down_z":
+                return Facing.UP;
+            case "up":
+            case "up_x":
+            case "up_z":
+                return Facing.DOWN;
+            case "north":
+                return Facing.SOUTH;
+            case "south":
+                return Facing.NORTH;
+            case "west":
+                return Facing.EAST;
+            case "east":
+                return Facing.WEST;
+            default:
+                throw new IllegalArgumentException(facing);
+        }
+    }
+
+    /**
      * Whether the server surely places the block too. The click reaches it after the position the client
      * last sent ({@code NetHandlerPlayServer.processTryUseItemOnBlock}), and its {@code ItemBlock.onItemUse}
      * checks the block against its own copy of the player's box, which {@code Entity.setPosition} rebuilt
@@ -138,13 +279,7 @@ public final class Placement {
      * to have been sent. The world is the same on both sides.
      */
     private static boolean serverPlaces(BlockWorld world, PlayerState s, Hit hit, int x, int y, int z) {
-        if (!(hit.y < 255 || hit.side != Facing.UP && hit.y < 256)) {
-            return false;
-        }
-        double dx = s.lastReportedPosX - ((double) hit.x + 0.5D);
-        double dy = s.lastReportedPosY - ((double) hit.y + 0.5D);
-        double dz = s.lastReportedPosZ - ((double) hit.z + 0.5D);
-        if (!(dx * dx + dy * dy + dz * dz < 64.0D)) {
+        if (!serverReaches(s, hit)) {
             return false;
         }
         float height = s.serverSneakState ? 1.65F : 1.8F;

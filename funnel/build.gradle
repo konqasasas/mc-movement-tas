@@ -1,0 +1,18 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':physics')
+    implementation project(':problem')
+}
+
+application {
+    mainClass = 'io.github.konqasasas.mctas.funnel.cli.FunnelMain'
+    applicationName = 'mctas-funnel'
+    applicationDefaultJvmArgs = ['-Xmx8g']
+}
+
+run {
+    workingDir = rootProject.projectDir
+}

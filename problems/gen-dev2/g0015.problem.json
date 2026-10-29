@@ -1,0 +1,11729 @@
+{
+ "format": "mctas-problem",
+ "version": 1,
+ "id": "gen-dev2/g0015",
+ "title": "generated dev course (seed 15), 418 blocks: postladder, ladderjump, skullspiral, barrier, skullspiral, barrier, stairtower, zigzag, thicket, thicket, zigzag, postladder, ladderjump, passage, zigzag, posts, stairtower, barrier, skullspiral, posts, skulls, postladder, skullspiral, posts, zigzag, postladder, posts, zigzag, ladderjump, slalom, postladder, skulls, drop, thicket, postladder, stairtower, skulls",
+ "mcVersion": "1.12.2",
+ "world": {
+  "source": "inline",
+  "fills": [
+   {
+    "from": [
+     -44,
+     95,
+     13
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -44,
+     95,
+     14
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -44,
+     95,
+     15
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     10
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     11
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     12
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     13
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     14
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     15
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     96,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     10
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     11
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     12
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     13
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     14
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     15
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -44,
+     97,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     -11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     95,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     -11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     7
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     10
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     12
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     14
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     96,
+     16
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     -11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     7
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     10
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     12
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     14
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     97,
+     16
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -43,
+     99,
+     -16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -43,
+     100,
+     -16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     91,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -42,
+     91,
+     19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -42,
+     92,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -42,
+     92,
+     19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -42,
+     93,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -42,
+     93,
+     19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     95,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -5
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     -1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     0
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     6
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     9
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     11
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     13
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     96,
+     14
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -5
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     -1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     0
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     6
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     9
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     11
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     13
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     97,
+     14
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -42,
+     99,
+     -12
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -42,
+     100,
+     -12
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -42,
+     101,
+     -12
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -41,
+     91,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     92,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     92,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     92,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     93,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     93,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     94,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     94,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     95,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -7
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -2
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     4
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     6
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     11
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     12
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     96,
+     13
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -11
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -7
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -2
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     4
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     6
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     11
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     12
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     97,
+     13
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -41,
+     98,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     99,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -41,
+     99,
+     -11
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     -40,
+     91,
+     14
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -40,
+     91,
+     15
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     91,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     91,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     91,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -40,
+     92,
+     14
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -40,
+     92,
+     15
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     92,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -40,
+     92,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -40,
+     93,
+     15
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     93,
+     18
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -40,
+     94,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -10
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     95,
+     18
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     -11
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     -3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     -2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     2
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     6
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     7
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     12
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -40,
+     96,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     -3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     -2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     6
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     7
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     8
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     9
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     12
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -40,
+     97,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -40,
+     98,
+     -18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     98,
+     -15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     98,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     98,
+     -11
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     -40,
+     99,
+     -18
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -40,
+     99,
+     -15
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -40,
+     99,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     101,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -40,
+     101,
+     -20
+    ],
+    "block": "minecraft:ladder[facing=south]"
+   },
+   {
+    "from": [
+     -39,
+     87,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     88,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     89,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     90,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     91,
+     14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -39,
+     91,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     5
+    ],
+    "block": "minecraft:concrete"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     11
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     95,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     -9
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     -6
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     -5
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     -3
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     4
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     7
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     14
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -39,
+     96,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     -9
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     -6
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     14
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -39,
+     97,
+     15
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -38,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     83,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     84,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     85,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     86,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     87,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -38,
+     88,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -38,
+     89,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -38,
+     90,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -38,
+     91,
+     17
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -11
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -10
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     13
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -38,
+     95,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -11
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -7
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -6
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     4
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     10
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     11
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     12
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     13
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     14
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     15
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     96,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -14
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -8
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -7
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -6
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     3
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     4
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     10
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     11
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     12
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     13
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     14
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     15
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     97,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -38,
+     101,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -38,
+     101,
+     -19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -38,
+     102,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -38,
+     102,
+     -19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -37,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     83,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     84,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     85,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     86,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -11
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -7
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -37,
+     95,
+     5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     -8
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     -7
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     -2
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     96,
+     5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     -8
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     -7
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     -2
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     97,
+     5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -37,
+     99,
+     -16
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -37,
+     100,
+     -16
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -37,
+     101,
+     -19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -37,
+     101,
+     -18
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -37,
+     101,
+     -16
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -37,
+     102,
+     -19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -37,
+     102,
+     -18
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -37,
+     103,
+     -21
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     -37,
+     103,
+     -19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -37,
+     103,
+     -18
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -36,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     83,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     84,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     85,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     86,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     87,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -36,
+     87,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -5
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     -1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     0
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     96,
+     4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -9
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -8
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -7
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -5
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     -1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     0
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     1
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     3
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     97,
+     4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -36,
+     103,
+     -23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -36,
+     104,
+     -23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     83,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     84,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     85,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -35,
+     86,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -35,
+     86,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -35,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -35,
+     104,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -35,
+     104,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -35,
+     105,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -35,
+     105,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -34,
+     103,
+     -24
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -34,
+     103,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -34,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -34,
+     103,
+     -19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -34,
+     103,
+     -18
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -34,
+     104,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -34,
+     104,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -34,
+     104,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -34,
+     104,
+     -18
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -34,
+     105,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -34,
+     105,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -34,
+     105,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -33,
+     81,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     81,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -33,
+     81,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -33,
+     82,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     82,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -33,
+     83,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     83,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -33,
+     84,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -33,
+     85,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -33,
+     85,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -33,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -33,
+     104,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -33,
+     104,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -33,
+     105,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -33,
+     105,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -32,
+     82,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -32,
+     83,
+     17
+    ],
+    "block": "minecraft:stone_brick_stairs[facing=west,half=bottom]"
+   },
+   {
+    "from": [
+     -32,
+     84,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -32,
+     84,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -32,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -32,
+     104,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     104,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     105,
+     -22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     105,
+     -20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     107,
+     -17
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     108,
+     -17
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -32,
+     117,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -32,
+     117,
+     4
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -32,
+     117,
+     6
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -32,
+     118,
+     6
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -31,
+     81,
+     15
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -31,
+     81,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -31,
+     81,
+     19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     82,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -31,
+     82,
+     19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     83,
+     16
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -31,
+     83,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -31,
+     103,
+     -24
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -31,
+     103,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -31,
+     103,
+     -21
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     -31,
+     107,
+     -21
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -31,
+     107,
+     -19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     108,
+     -19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     108,
+     -4
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -31,
+     108,
+     -2
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     109,
+     -19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -31,
+     109,
+     -4
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -31,
+     117,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -31,
+     118,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -30,
+     81,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     81,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     82,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     82,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     83,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     83,
+     20
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -30,
+     103,
+     -23
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -30,
+     103,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -30,
+     103,
+     -20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -30,
+     103,
+     -19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -30,
+     104,
+     -21
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     -30,
+     104,
+     -19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -30,
+     105,
+     -20
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     -30,
+     106,
+     -21
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     -30,
+     106,
+     -15
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -30,
+     107,
+     -20
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     -30,
+     107,
+     -15
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -30,
+     110,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -30,
+     111,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -30,
+     112,
+     -2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -30,
+     113,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -30,
+     114,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -30,
+     117,
+     11
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -30,
+     118,
+     6
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -29,
+     81,
+     17
+    ],
+    "block": "minecraft:prismarine"
+   },
+   {
+    "from": [
+     -29,
+     103,
+     -18
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -29,
+     104,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     104,
+     -20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     104,
+     -18
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -29,
+     105,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     105,
+     -20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     105,
+     -18
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -29,
+     106,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     106,
+     -20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     106,
+     -18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     106,
+     -12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     106,
+     -8
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -18
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -12
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -8
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -29,
+     107,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     108,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     -5
+    ],
+    "block": "minecraft:stone_brick_stairs[facing=south,half=bottom]"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     109,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     -4
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     110,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     111,
+     -2
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -29,
+     111,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     111,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     111,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     111,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     112,
+     -1
+    ],
+    "block": "minecraft:stone_brick_stairs[facing=south,half=bottom]"
+   },
+   {
+    "from": [
+     -29,
+     112,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     112,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     112,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     113,
+     0
+    ],
+    "block": "minecraft:stone_brick_stairs[facing=south,half=bottom]"
+   },
+   {
+    "from": [
+     -29,
+     113,
+     1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     113,
+     2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     114,
+     2
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     -29,
+     114,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     115,
+     2
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     -29,
+     115,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     116,
+     2
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     -29,
+     116,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     117,
+     2
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     -29,
+     117,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -29,
+     118,
+     14
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -29,
+     118,
+     16
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     -28,
+     103,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -28,
+     103,
+     -19
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     104,
+     -23
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -28,
+     104,
+     -19
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     110,
+     -5
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     111,
+     -4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     112,
+     -2
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     113,
+     -1
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -28,
+     114,
+     0
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -27,
+     81,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -27,
+     108,
+     -3
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -27,
+     108,
+     -2
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -27,
+     109,
+     -3
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -27,
+     117,
+     3
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -27,
+     117,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -27,
+     118,
+     4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -27,
+     118,
+     14
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -27,
+     118,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -27,
+     119,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -26,
+     107,
+     -19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -26,
+     107,
+     -17
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -26,
+     108,
+     -2
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -26,
+     109,
+     -2
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -26,
+     117,
+     4
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -26,
+     118,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -26,
+     118,
+     14
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -26,
+     118,
+     18
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -26,
+     118,
+     19
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -26,
+     119,
+     13
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -26,
+     119,
+     18
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -25,
+     118,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     118,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     118,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     119,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     119,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     119,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     120,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -25,
+     120,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     120,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     121,
+     18
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -25,
+     121,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -25,
+     122,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -23,
+     81,
+     17
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -23,
+     118,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -23,
+     119,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -23,
+     120,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -23,
+     121,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -23,
+     122,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -23,
+     123,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -21,
+     118,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     118,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     119,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     119,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     120,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     120,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     121,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     121,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     122,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     122,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     123,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     123,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -21,
+     124,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -21,
+     124,
+     22
+    ],
+    "block": "minecraft:concrete"
+   },
+   {
+    "from": [
+     -21,
+     124,
+     24
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -21,
+     125,
+     24
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -21,
+     126,
+     24
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -20,
+     80,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -19,
+     123,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -19,
+     124,
+     19
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -19,
+     124,
+     23
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -19,
+     125,
+     19
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -18,
+     124,
+     19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -18,
+     124,
+     24
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -18,
+     124,
+     25
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -18,
+     125,
+     19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -18,
+     125,
+     24
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -18,
+     125,
+     25
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -18,
+     126,
+     24
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -18,
+     126,
+     25
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -17,
+     124,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -17,
+     124,
+     25
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -17,
+     125,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -17,
+     126,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -16,
+     80,
+     14
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -16,
+     80,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -16,
+     81,
+     15
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -16,
+     123,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -16,
+     124,
+     22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     -15,
+     80,
+     15
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -15,
+     81,
+     16
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -14,
+     80,
+     20
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -14,
+     81,
+     20
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -13,
+     123,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -13,
+     124,
+     21
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -12,
+     75,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -12,
+     76,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -12,
+     77,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -12,
+     78,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -12,
+     79,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -12,
+     80,
+     15
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -12,
+     80,
+     17
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     -12,
+     80,
+     19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -12,
+     81,
+     15
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -12,
+     81,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -12,
+     82,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -10,
+     75,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -10,
+     76,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -10,
+     77,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -10,
+     78,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -10,
+     79,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -10,
+     80,
+     17
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -9,
+     123,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -9,
+     124,
+     21
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -8,
+     75,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     75,
+     18
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -8,
+     75,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     75,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     75,
+     24
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -8,
+     76,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     76,
+     18
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -8,
+     76,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     76,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     77,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     77,
+     18
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -8,
+     77,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     77,
+     21
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -8,
+     78,
+     17
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -8,
+     78,
+     19
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -8,
+     79,
+     17
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -7,
+     75,
+     18
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -7,
+     75,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -7,
+     76,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -7,
+     77,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     -6,
+     75,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -6,
+     76,
+     21
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     -5,
+     123,
+     21
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -5,
+     124,
+     21
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -4,
+     75,
+     21
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     -4,
+     75,
+     24
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -4,
+     76,
+     24
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -4,
+     77,
+     24
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     -3,
+     66,
+     12
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -3,
+     66,
+     13
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -3,
+     67,
+     13
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -3,
+     68,
+     13
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -2,
+     64,
+     0
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     64,
+     2
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -2,
+     65,
+     0
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     65,
+     2
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     -2,
+     66,
+     0
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     66,
+     11
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -2,
+     66,
+     12
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     67,
+     11
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     -2,
+     67,
+     12
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     68,
+     12
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     -2,
+     75,
+     21
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     -2,
+     123,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -2,
+     124,
+     22
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     -1,
+     64,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     63,
+     3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     63,
+     6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     64,
+     3
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     0,
+     64,
+     6
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     0,
+     66,
+     8
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     0,
+     66,
+     9
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     68,
+     11
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     0,
+     68,
+     12
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     68,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     68,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     69,
+     14
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     0,
+     69,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     0,
+     70,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -6
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -5
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -4
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -3
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -2
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     -1
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     64,
+     0
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     123,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     1,
+     124,
+     23
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     2,
+     64,
+     0
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     2,
+     68,
+     13
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     2,
+     68,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     2,
+     69,
+     13
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     2,
+     69,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     2,
+     70,
+     13
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     2,
+     70,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     2,
+     71,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     2,
+     76,
+     21
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     3,
+     68,
+     12
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     3,
+     124,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     3,
+     125,
+     23
+    ],
+    "block": "minecraft:prismarine"
+   },
+   {
+    "from": [
+     3,
+     125,
+     25
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     4,
+     68,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     68,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     68,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     69,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     69,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     69,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     70,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     70,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     70,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     71,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     71,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     71,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     72,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     4,
+     72,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     72,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     73,
+     18
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     4,
+     73,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     4,
+     74,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     5,
+     76,
+     19
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     5,
+     76,
+     24
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     5,
+     77,
+     24
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     5,
+     78,
+     24
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     5,
+     125,
+     21
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     5,
+     125,
+     25
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     5,
+     126,
+     21
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     5,
+     126,
+     25
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     5,
+     127,
+     21
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     6,
+     68,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     69,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     70,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     71,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     72,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     73,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     74,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     75,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     6,
+     76,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     6,
+     76,
+     21
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     6,
+     76,
+     25
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     6,
+     77,
+     19
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     6,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     6,
+     126,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     8,
+     68,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     68,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     69,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     69,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     70,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     70,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     71,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     71,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     72,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     72,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     73,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     73,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     74,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     74,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     75,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     75,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     8,
+     76,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     8,
+     76,
+     22
+    ],
+    "block": "minecraft:stonebrick"
+   },
+   {
+    "from": [
+     9,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     9,
+     126,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     13,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     13,
+     126,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     17,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     17,
+     126,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     19,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     19,
+     126,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     19,
+     127,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     22,
+     125,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     22,
+     126,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     22,
+     127,
+     23
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     25,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     25,
+     126,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     25,
+     127,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     27,
+     125,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     27,
+     126,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     27,
+     127,
+     22
+    ],
+    "block": "minecraft:concrete"
+   },
+   {
+    "from": [
+     27,
+     127,
+     24
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     27,
+     128,
+     24
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     27,
+     129,
+     24
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     28,
+     127,
+     24
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     28,
+     128,
+     24
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     29,
+     127,
+     19
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     29,
+     127,
+     20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     29,
+     128,
+     20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     29,
+     129,
+     20
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     30,
+     126,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     30,
+     127,
+     22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     30,
+     127,
+     24
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     30,
+     128,
+     24
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     33,
+     126,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     33,
+     127,
+     22
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     35,
+     129,
+     22
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     36,
+     129,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     38,
+     129,
+     20
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     38,
+     129,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     38,
+     130,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     40,
+     129,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     129,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     129,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     129,
+     24
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     40,
+     129,
+     25
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     40,
+     130,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     130,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     130,
+     22
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     130,
+     25
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     40,
+     131,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     131,
+     20
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     131,
+     22
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     40,
+     131,
+     25
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     40,
+     132,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     40,
+     132,
+     20
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     40,
+     133,
+     18
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     42,
+     129,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     42,
+     130,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     42,
+     131,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     42,
+     132,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     42,
+     133,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     42,
+     134,
+     18
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     42,
+     138,
+     34
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     42,
+     142,
+     34
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     42,
+     144,
+     46
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     42,
+     144,
+     47
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     42,
+     144,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     42,
+     145,
+     46
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     42,
+     145,
+     47
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     42,
+     145,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     42,
+     146,
+     46
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     42,
+     146,
+     47
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     42,
+     146,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     43,
+     137,
+     14
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     43,
+     138,
+     14
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     43,
+     138,
+     35
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     43,
+     138,
+     36
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     43,
+     142,
+     34
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     44,
+     129,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     129,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     129,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     130,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     130,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     130,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     131,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     131,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     131,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     132,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     132,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     132,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     133,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     133,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     133,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     134,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     134,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     134,
+     18
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     135,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     135,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     135,
+     18
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     44,
+     136,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     136,
+     16
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     44,
+     137,
+     14
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     44,
+     138,
+     33
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     139,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     140,
+     33
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     44,
+     140,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     141,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     142,
+     33
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     44,
+     142,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     143,
+     48
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     44,
+     144,
+     48
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     45,
+     136,
+     16
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     136,
+     30
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     137,
+     16
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     45,
+     137,
+     30
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     45,
+     137,
+     32
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     138,
+     32
+    ],
+    "block": "minecraft:stained_hardened_clay"
+   },
+   {
+    "from": [
+     45,
+     138,
+     33
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     139,
+     33
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     45,
+     139,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     140,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     141,
+     33
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     45,
+     141,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     141,
+     37
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     141,
+     40
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     141,
+     43
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     142,
+     34
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     142,
+     37
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     45,
+     142,
+     40
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     45,
+     142,
+     43
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     45,
+     143,
+     51
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     143,
+     68
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     144,
+     45
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     45,
+     144,
+     46
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     144,
+     51
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     45,
+     144,
+     68
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     45,
+     144,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     45,
+     145,
+     70
+    ],
+    "block": "minecraft:prismarine"
+   },
+   {
+    "from": [
+     46,
+     129,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     130,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     131,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     132,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     133,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     134,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     135,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     136,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     136,
+     19
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     136,
+     23
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     136,
+     27
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     137,
+     14
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     137,
+     19
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     46,
+     137,
+     23
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     46,
+     137,
+     27
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     46,
+     143,
+     54
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     143,
+     57
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     143,
+     61
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     143,
+     65
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     144,
+     54
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     46,
+     144,
+     57
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     46,
+     144,
+     61
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     46,
+     144,
+     65
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     46,
+     145,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     145,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     46,
+     145,
+     72
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     46,
+     146,
+     70
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     46,
+     146,
+     72
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     46,
+     147,
+     69
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     46,
+     148,
+     70
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     46,
+     149,
+     69
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     47,
+     144,
+     49
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     47,
+     144,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     47,
+     145,
+     49
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     47,
+     145,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     47,
+     145,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     47,
+     146,
+     49
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     47,
+     146,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     146,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     146,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     47,
+     147,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     147,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     148,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     148,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     149,
+     68
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     47,
+     149,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     149,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     47,
+     149,
+     72
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     48,
+     137,
+     14
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     137,
+     15
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     48,
+     138,
+     34
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     48,
+     142,
+     36
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     143,
+     36
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     144,
+     46
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     48,
+     144,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     145,
+     46
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     48,
+     145,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     146,
+     50
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     48,
+     149,
+     72
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     49,
+     145,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     49,
+     145,
+     68
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     49,
+     145,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     49,
+     146,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     49,
+     146,
+     68
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     49,
+     146,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     49,
+     147,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     49,
+     149,
+     67
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     49,
+     149,
+     68
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     49,
+     150,
+     67
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     49,
+     151,
+     70
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     50,
+     149,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     50,
+     150,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     50,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     50,
+     151,
+     73
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     152,
+     73
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     50,
+     153,
+     73
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     51,
+     151,
+     67
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     51,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     51,
+     151,
+     73
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     51,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     51,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     51,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     51,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     52,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     52,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     52,
+     152,
+     69
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     52,
+     152,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     52,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     52,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     52,
+     153,
+     69
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     52,
+     153,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     52,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     53,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     53,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     53,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     53,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     53,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     54,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     54,
+     151,
+     73
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     54,
+     152,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     152,
+     71
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     54,
+     152,
+     73
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     54,
+     153,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     153,
+     71
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     54,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     55,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     55,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     55,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     55,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     55,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     56,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     56,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     56,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     56,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     56,
+     152,
+     69
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     56,
+     152,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     56,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     56,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     56,
+     153,
+     69
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     56,
+     153,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     56,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     57,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     57,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     57,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     57,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     57,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     57,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     57,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     58,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     58,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     58,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     58,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     58,
+     152,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     58,
+     152,
+     71
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     58,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     58,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     58,
+     153,
+     70
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     58,
+     153,
+     71
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     58,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     59,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     59,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     59,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     59,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     59,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     59,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     59,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     60,
+     151,
+     69
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     60,
+     151,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     60,
+     151,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     60,
+     152,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     60,
+     152,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     60,
+     153,
+     68
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     60,
+     153,
+     72
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     60,
+     160,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     60,
+     161,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     60,
+     162,
+     90
+    ],
+    "block": "minecraft:wool"
+   },
+   {
+    "from": [
+     61,
+     151,
+     68
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     61,
+     151,
+     70
+    ],
+    "block": "minecraft:sea_lantern"
+   },
+   {
+    "from": [
+     61,
+     152,
+     68
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     62,
+     151,
+     67
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     62,
+     151,
+     72
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     62,
+     152,
+     72
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     62,
+     153,
+     72
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     62,
+     160,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     62,
+     161,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     62,
+     162,
+     90
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     63,
+     151,
+     67
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     64,
+     150,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     64,
+     151,
+     67
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     64,
+     151,
+     70
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     64,
+     152,
+     67
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     65,
+     151,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     65,
+     152,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     65,
+     153,
+     72
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     65,
+     160,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     65,
+     161,
+     90
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     65,
+     162,
+     90
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     67,
+     150,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     67,
+     151,
+     70
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     69,
+     160,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     69,
+     161,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     69,
+     162,
+     91
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     70,
+     150,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     70,
+     151,
+     70
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     72,
+     153,
+     70
+    ],
+    "block": "minecraft:ladder[facing=west]"
+   },
+   {
+    "from": [
+     73,
+     153,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     73,
+     153,
+     68
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     73,
+     153,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     73,
+     154,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     73,
+     154,
+     68
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     73,
+     155,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     73,
+     160,
+     92
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     73,
+     161,
+     92
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     73,
+     162,
+     92
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     74,
+     153,
+     73
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     74,
+     154,
+     73
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     75,
+     153,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     75,
+     153,
+     68
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     75,
+     154,
+     67
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     75,
+     154,
+     68
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     75,
+     160,
+     92
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     75,
+     161,
+     92
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     76,
+     153,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     76,
+     153,
+     73
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     76,
+     154,
+     70
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     77,
+     160,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     77,
+     161,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     77,
+     162,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     78,
+     160,
+     88
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     78,
+     160,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     78,
+     160,
+     94
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     78,
+     161,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     78,
+     161,
+     94
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     78,
+     162,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     78,
+     162,
+     94
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     79,
+     160,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     79,
+     161,
+     91
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     80,
+     153,
+     71
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     80,
+     154,
+     71
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     80,
+     160,
+     88
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     80,
+     161,
+     88
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     80,
+     162,
+     88
+    ],
+    "block": "minecraft:glass"
+   },
+   {
+    "from": [
+     81,
+     157,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     81,
+     158,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     81,
+     159,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     81,
+     160,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     82,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     82,
+     154,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     82,
+     155,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     82,
+     156,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     82,
+     157,
+     91
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     82,
+     158,
+     91
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     82,
+     159,
+     91
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     82,
+     160,
+     91
+    ],
+    "block": "minecraft:ladder[facing=east]"
+   },
+   {
+    "from": [
+     83,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     83,
+     154,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     83,
+     155,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     83,
+     156,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     84,
+     153,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     84,
+     153,
+     88
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     84,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     84,
+     154,
+     70
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     84,
+     154,
+     88
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     84,
+     154,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     84,
+     155,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     84,
+     156,
+     91
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     84,
+     157,
+     90
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     84,
+     157,
+     92
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     85,
+     151,
+     84
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     85,
+     151,
+     86
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     85,
+     152,
+     84
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     85,
+     152,
+     86
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     85,
+     153,
+     84
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     85,
+     153,
+     86
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     85,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     85,
+     154,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     85,
+     155,
+     91
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     85,
+     156,
+     90
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     85,
+     156,
+     92
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     86,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     86,
+     154,
+     91
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     86,
+     155,
+     90
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     86,
+     155,
+     92
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     87,
+     152,
+     74
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     75
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     76
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     77
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     78
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     79
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     80
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     152,
+     81
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     74
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     75
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     76
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     77
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     78
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     79
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     80
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     81
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     87,
+     153,
+     94
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     87,
+     154,
+     74
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     87,
+     155,
+     74
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     88,
+     150,
+     85
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     150,
+     88
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     73
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     88,
+     151,
+     74
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     75
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     76
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     77
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     78
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     79
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     80
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     81
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     151,
+     82
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     88,
+     151,
+     85
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     88,
+     151,
+     88
+    ],
+    "block": "minecraft:iron_bars"
+   },
+   {
+    "from": [
+     88,
+     152,
+     73
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     88,
+     152,
+     74
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     88,
+     152,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     152,
+     77
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     152,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     153,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     153,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     153,
+     77
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     153,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     153,
+     90
+    ],
+    "block": "minecraft:ladder[facing=north]"
+   },
+   {
+    "from": [
+     88,
+     153,
+     91
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     88,
+     153,
+     93
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     88,
+     154,
+     70
+    ],
+    "block": "minecraft:skull[facing=up]"
+   },
+   {
+    "from": [
+     89,
+     151,
+     74
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     75
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     76
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     77
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     78
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     79
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     80
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     151,
+     81
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     89,
+     152,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     89,
+     152,
+     77
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     89,
+     152,
+     80
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     89,
+     152,
+     81
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     89,
+     153,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     89,
+     153,
+     80
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     89,
+     153,
+     81
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     90,
+     151,
+     73
+    ],
+    "block": "minecraft:sea_lantern"
+   },
+   {
+    "from": [
+     90,
+     151,
+     74
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     75
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     76
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     77
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     78
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     79
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     80
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     81
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     151,
+     84
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     90,
+     152,
+     76
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     90,
+     152,
+     79
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     90,
+     152,
+     80
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     90,
+     152,
+     84
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     90,
+     153,
+     70
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     90,
+     153,
+     79
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     90,
+     153,
+     80
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     90,
+     154,
+     70
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     91,
+     151,
+     74
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     75
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     76
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     77
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     78
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     79
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     80
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     81
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     91,
+     151,
+     84
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     151,
+     86
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     91,
+     152,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     152,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     152,
+     81
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     152,
+     84
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     152,
+     86
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     91,
+     153,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     153,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     153,
+     81
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     91,
+     153,
+     86
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     92,
+     151,
+     73
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     92,
+     151,
+     74
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     75
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     76
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     77
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     78
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     79
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     80
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     151,
+     81
+    ],
+    "block": "minecraft:stone"
+   },
+   {
+    "from": [
+     92,
+     152,
+     73
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     92,
+     152,
+     74
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     152,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     152,
+     76
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     92,
+     152,
+     77
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     152,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     152,
+     79
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     92,
+     153,
+     73
+    ],
+    "block": "minecraft:stone_slab[half=bottom]"
+   },
+   {
+    "from": [
+     92,
+     153,
+     74
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     153,
+     75
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     153,
+     76
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     92,
+     153,
+     77
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     153,
+     78
+    ],
+    "block": "minecraft:stained_glass_pane"
+   },
+   {
+    "from": [
+     92,
+     153,
+     79
+    ],
+    "block": "minecraft:cobblestone_wall"
+   },
+   {
+    "from": [
+     92,
+     154,
+     73
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     92,
+     155,
+     73
+    ],
+    "block": "minecraft:quartz_block"
+   },
+   {
+    "from": [
+     93,
+     151,
+     74
+    ],
+    "block": "minecraft:spruce_fence"
+   },
+   {
+    "from": [
+     93,
+     152,
+     74
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     75
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     76
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     77
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     78
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     79
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     80
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     152,
+     81
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     74
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     75
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     76
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     77
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     78
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     79
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     80
+    ],
+    "block": "minecraft:barrier"
+   },
+   {
+    "from": [
+     93,
+     153,
+     81
+    ],
+    "block": "minecraft:barrier"
+   }
+  ]
+ },
+ "spawn": {
+  "pos": [
+   0.5,
+   65.0,
+   -5.5
+  ],
+  "yaw": 0.0,
+  "pitch": 0.0
+ },
+ "start": {
+  "min": [
+   -1.0,
+   65.0,
+   0.0
+  ],
+  "max": [
+   2.0,
+   66.0,
+   1.0
+  ]
+ },
+ "goal": {
+  "min": [
+   59.7,
+   163.0,
+   89.7
+  ],
+  "max": [
+   61.3,
+   163.0,
+   91.3
+  ]
+ },
+ "limits": {
+  "maxTicks": 5416,
+  "voidY": 61.0
+ }
+}
