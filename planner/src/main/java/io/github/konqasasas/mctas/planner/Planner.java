@@ -67,6 +67,10 @@ final class Planner {
     double afterFirst = 1.0;
     /** Also aim along the racing line through each foothold. */
     boolean through = true;
+    /** Also aim at the far edge of each foothold on the racing line. */
+    boolean carry = !Boolean.getBoolean("planner.noCarry");
+    /** How far inside a foothold's extent the far-edge aim stays. */
+    static final double CARRY_IN = 0.15;
     /** When set, aim only for footholds on these platforms (the platforms of the plans found so far). */
     java.util.Set<Integer> corridor;
     /** When set, every expansion is recorded for the learned guide (WS13). */
@@ -427,6 +431,12 @@ final class Planner {
                 double[] q = closestOnSegment(x, z, after.cx(), after.cz(), bx0 + ix, bx1 - ix, bz0 + iz, bz1 - iz);
                 if (Math.hypot(q[0] - nx, q[1] - nz) > 0.15) out.add(new double[] {q[0], q[1], b.top, b.minX, b.maxX, b.minZ, b.maxZ});
             }
+            // The far edge: where that line leaves b, so that a landing on a narrow post keeps its speed
+            // for the hop on instead of braking back to the middle (F-529).
+            if (after != null && carry) {
+                double[] e = exitPoint(x, z, after.cx(), after.cz(), b.minX + CARRY_IN, b.maxX - CARRY_IN, b.minZ + CARRY_IN, b.maxZ - CARRY_IN);
+                if (e != null && Math.hypot(e[0] - nx, e[1] - nz) > 0.15) out.add(new double[] {e[0], e[1], b.top, b.minX, b.maxX, b.minZ, b.maxZ});
+            }
         }
         // The bodies off this platform with the best footholds beyond them.
         if (here >= 0) {
@@ -622,6 +632,17 @@ final class Planner {
             }
         }
         return new double[] {bx, bz};
+    }
+
+    /** The last point of the segment (x1,z1)-(x2,z2) inside the rectangle, by sampling it, or null when it never gets in. */
+    private static double[] exitPoint(double x1, double z1, double x2, double z2, double minX, double maxX, double minZ, double maxZ) {
+        double[] last = null;
+        for (int i = 0; i <= 64; i++) {
+            double f = i / 64.0;
+            double x = x1 + (x2 - x1) * f, z = z1 + (z2 - z1) * f;
+            if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) last = new double[] {x, z};
+        }
+        return last;
     }
 
     private static double clamp(double v, double lo, double hi) {
