@@ -369,6 +369,16 @@ public final class RandomScenario {
                 Facing f = Facing.HORIZONTALS[r.nextInt(4)];
                 w.setBlock(x + 2 * f.dx, base - 1, z + 2 * f.dz, BlockType.STONE);
                 w.setBlock(x + 2 * f.dx, base, z + 2 * f.dz, VanillaBlocks.require("minecraft:lever[facing=up_x]"));
+            } else if (odd < 0.2) {
+                // A plate on a redstone block: notifying it does nothing, but a trapdoor beside it is powered.
+                w.setBlock(x, base - 1, z, VanillaBlocks.require("minecraft:redstone_block"));
+                for (Facing f : Facing.HORIZONTALS) {
+                    // The trapdoors it powers stand open, as they would in a world built by hand.
+                    BlockType t = w.getBlock(x + f.dx, base - 1, z + f.dz);
+                    if (VanillaBlocks.blockId(t.name()).endsWith("trapdoor")) {
+                        w.setBlock(x + f.dx, base - 1, z + f.dz, VanillaBlocks.require(t.name().replace("open=false", "open=true")));
+                    }
+                }
             }
         }
     }
