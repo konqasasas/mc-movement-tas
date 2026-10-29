@@ -93,6 +93,7 @@ final class Guide {
                     if (!ToggleRule.allowed(lastToggle, tick)) return null;
                     lastToggle = tick;
                 }
+                if (Hazard.hurts(problem.world, s, ns)) return null;
                 s = ns;
                 inputs.add(a);
                 boolean in = start.contains(s.posX, s.posY, s.posZ);
@@ -122,7 +123,7 @@ final class Guide {
                 o.offsets = OFFSETS;
             }
             List<Technique.Segment> segs = Technique.solve(problem.world, s, since, exit, heading, budget, o);
-            if (!segs.isEmpty()) return segs.get(0);
+            for (Technique.Segment g : segs) if (!Hazard.hurts(problem.world, s, g.inputs)) return g;
         }
         return null;
     }

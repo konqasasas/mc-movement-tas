@@ -62,6 +62,12 @@ final class Bridge {
         return this;
     }
 
+    /**
+     * After {@link #run} gave up on a stretch: where that stretch started, as {state, inputs from the
+     * spawn, last toggle, start entry}; null otherwise.
+     */
+    Object[] stuck;
+
     /** Inputs from the spawn into the goal, or null when a stretch is not found before the deadline. */
     List<PlayerInput> run(long deadlineMillis, long segmentMillis) {
         List<PlayerInput> inputs = new ArrayList<PlayerInput>();
@@ -129,6 +135,8 @@ final class Bridge {
                 budget = Math.min(budget / 2, stretchDeadline - System.currentTimeMillis());
                 if (budget > 0) segs = Technique.solve(problem.world, s, since, exit(from, s, true), heading, budget, o);
             }
+            final PlayerState here = s;
+            segs.removeIf(g -> Hazard.hurts(problem.world, here, g.inputs));
             if (stretch != null) {
                 // found by the quick explorer
             } else if (!segs.isEmpty()) {
@@ -159,6 +167,7 @@ final class Bridge {
             }
             if (stretch == null) {
                 say("bridge: no way towards waypoint " + from + " from (" + fmt(s.posX) + ", " + fmt(s.posY) + ", " + fmt(s.posZ) + ")");
+                stuck = new Object[] {s, new ArrayList<PlayerInput>(inputs), lastToggle, entry};
                 return null;
             }
             // Replay to keep the start entry, the toggles and the stage.
@@ -169,6 +178,7 @@ final class Bridge {
                     if (!ToggleRule.allowed(lastToggle, tick)) return null;
                     lastToggle = tick;
                 }
+                if (Hazard.hurts(problem.world, s, ns)) return null;
                 s = ns;
                 inputs.add(a);
                 boolean in = problem.start.contains(s.posX, s.posY, s.posZ);

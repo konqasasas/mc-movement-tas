@@ -58,6 +58,7 @@ final class Rollout {
                 if (!ToggleRule.allowed(last, t)) return -1;
                 last = t;
             }
+            if (Hazard.hurts(p.world, s, ns)) return -1;
             s = ns;
             if (entry >= 0 && goal.contains(s.posX, s.posY, s.posZ)) {
                 if (goalTick != null) goalTick[0] = t;
