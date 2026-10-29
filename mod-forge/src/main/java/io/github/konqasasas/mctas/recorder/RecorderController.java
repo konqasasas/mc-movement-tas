@@ -300,6 +300,10 @@ public final class RecorderController {
         // The server's events for a shulker box may already have been handled this frame; the lid is
         // compared at the end of the tick.
         now.shulker = lastEnd.shulker;
+        // The plates and trapdoors are compared at the end of the tick, once the client took in what the
+        // server changed (readMechanisms); a resync must not lose them.
+        now.mech = lastEnd.mech;
+        now.serverDrift = lastEnd.serverDrift;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
         String field = difference(now, lastEnd);
@@ -307,6 +311,11 @@ public final class RecorderController {
             runBetween++;
             log.println("# between ticks " + (tick - 1) + " and " + tick + ": " + field + " changed outside the player tick");
             sim = now.copy();
+        }
+        // A block that arrives into the player may push it before the tick (a resync above); the engine
+        // does not model that, so the check is on the box the last tick ended with.
+        if (!lastEnd.mech.isNone() && lastEnd.mech.arrivalHits(blocks, lastEnd.box)) {
+            sim.unsupportedAction = true;
         }
         if (mode != Mode.RECORD) {
             driver.apply(inputs.get(tick));
