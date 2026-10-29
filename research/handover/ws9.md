@@ -4,10 +4,10 @@
 - **v2・v3**: 床の穴、水の階段、スライム(跳ね返りの高さの計算、2 段の制御、跳ねて水・はしごへ入る)、はしごの登り方と溝の入口、制御器が外したはしごを局所探索で補う。realdev 6/6(E-510)、human6 remaining 328(E-509)
 - **v4**: 同じ台の中の壁を回る角(F-514)、1 ブロックのはしごへの跳びつきとジグザグのはしご(F-515、F-516)、最初の探索を重み 6 に(F-517)。realdev 9/9(exp1〜3 を含む、E-512)、自作の要素別コース `planner/courses/elem-dev` 7/7(E-511)
 - **v4 の後**: 時間配分(F-518)、開発用コースの生成器 `tools/devgen` と gen-dev 15 問(F-519、作業版で 11/15)。はしごへの入口の並べ方と角(F-520)で gen-dev 15/15(E-516)
-- **v5 の後**: 難しい生成コース gen-dev2 と gen-dev2-holdout(F-521、v5 で 13/15)、手作りの waza(problems/waza/waza1 は開発用、waza2 は報告専用。仕掛けありの 4 問は外す)、足場グラフの切れ目の診断と、はしごの出口・開いたトラップドアの上面の直し(F-522、waza1 の採点対象 3/3)
+- **v5 の後**: 難しい生成コース gen-dev2 と gen-dev2-holdout(F-521、v5 で 13/15)、手作りの waza(非公開の問題集。waza1・waza2 は開発用、waza3 は報告専用。仕掛けありの問題は外す)、足場グラフの切れ目の診断と、はしごの出口・開いたトラップドアの上面の直し(F-522、waza1 の採点対象 3/3)
 - **解の置き場**: realdev と human6 で解けたものは `/mnt/project-files/solutions/ws9/` に置く(WS10 が初期解に使う)
 - **次**: (1) realdev ex2〜ex6 の詰まり(ex2・ex3 はスタート直後で止まる、ex5 は見積もり残り 35、ex6 は z 165 の鉄格子と石の壁の前で後続が動けない。ex6 は辺が壁を越えている疑い)。(2) 区間を `Technique.chain` に途中の着地面ごと渡す(出口から一度遠ざかる区間)。(3) `ClimbStep` の代わりに、はしご・つた・水の区間も局所探索に任せる(WS8 のつたは 75、自前は 121)。(4) 展開が遅い(長いコースで 1 秒に 50〜100 ノード)
-- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、gen-dev、gen-dev2、waza/waza1、elem-dev、自作の塔コース(`tools/towergen`)だけ。human6、v1-holdout、gen-holdout(種 101〜115)、gen-dev2-holdout(種 301〜315)、waza/waza2 は報告だけ(版の節目ごとに 1 回)
+- **測り方**: 調整は v1-dev、problems/real の stpt1 と test1、realdev、gen-dev、gen-dev2、waza1・waza2(非公開)、elem-dev、自作の塔コース(`tools/towergen`)だけ。human6、v1-holdout、gen-holdout(種 101〜115)、gen-dev2-holdout(種 301〜315)、waza/waza2 は報告だけ(版の節目ごとに 1 回)
 - **注意**: 台の中は自由に歩けるものとして扱うので、台の分け方が誤ると壁の前で止まる(F-504)。`PLANNER_DEBUG=1` の出力で止まり方を分けてから直す(L-500)
 
 ## 自分の PR をマージするとき
@@ -15,6 +15,10 @@
 利用者の許可(CI が緑なら自分でマージしてよい)の条件: 自分の PR だけ、テストを飛ばさない、main を取り込んだ最新の状態で CI が緑、マージしたことをチェックリストに書く。加えて、マージの直前に `git fetch origin main` をしてから `git diff --stat origin/main...HEAD` を見て、planner/ と ws9 の記録のほかのパスが入っていたらマージしない(main を取り込み直し、CI が緑になってから)。L-503。
 
 ## 次にやること(優先順。1 つ終えたら指示を待たずに次へ)
+
+waza は別のサーバーのコースをユーザーが手で再現したものなので、公開リポジトリに置かない(2026-10-29、ユーザー)。問題は `MCTAS_PRIVATE_PROBLEMS`(既定 `/mnt/project-files/benchmarks/waza/`)から読む。research にも配置や座標は書かず、名前と結果の数字だけにする。
+
+難易度の目標(ユーザー、2026-10-29): 主目標は waza3 程度のコースを安定して解くこと。発展目標は waza5 まで(waza6〜11 は対象外)。ピンポイントの座標合わせのような特殊な場面に合わせ込んで、普通のコースでの安定性や速さを落とさない。waza4・5 は waza3 の水準が安定してから届く。
 
 human6 の verdure は開発用に移した(D-501、2026-10-29)。残り 5 問は「human5」として報告専用。verdure は F-525(作れなかった見積もり上の辺を外す)で解けた(684 tick)。poseidon・rampart に効くかは、節目で 1 回だけ確かめる。
 

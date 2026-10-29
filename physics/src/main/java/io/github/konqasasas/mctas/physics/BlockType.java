@@ -138,6 +138,18 @@ public class BlockType {
         return name;
     }
 
+    /** {@link Mechanisms#kindOf} of this block's id, worked out on first use. */
+    private int mechanism = -1;
+
+    int mechanism() {
+        int m = mechanism;
+        if (m < 0) {
+            m = Mechanisms.kindOf(VanillaBlocks.blockId(name));
+            mechanism = m;
+        }
+        return m;
+    }
+
     public float slipperiness() {
         return slipperiness;
     }
