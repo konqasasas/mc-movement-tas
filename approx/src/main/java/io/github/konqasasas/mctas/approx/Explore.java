@@ -34,6 +34,8 @@ final class Explore {
     static final int FAN = 8;
     /** Of these, the first few also get the wide search when the quick one finds nothing. */
     static final int WIDE = 3;
+    /** Most a wide pass takes: one that fails holds up every candidate after it. */
+    static final long WIDE_MILLIS = Long.getLong("mctas.wideMillis", 4000);
     /** A landing must bring the cost down at least this much. */
     static final double MIN_GAIN = 2;
     /** Candidates at the same height tried from one node. */
@@ -231,6 +233,8 @@ final class Explore {
             double dy = c.top - s.posY;
             // Further down a drop, as far as the jump carries.
             if (gap > (dy < -1 ? Math.min(FAR, Math.max(REACH, route.jumpReach(dy))) : REACH)) continue;
+            // Nor up beyond what a full-speed jump reaches: tried first for their low cost, they use up the wide passes.
+            if (!c.climb && dy >= -1 && dy <= RISE && gap > route.jumpReach(dy) + 0.3) continue;
             // The next block of the same floor is no step worth a search: the next one may be.
             // (Only along a floor: a row of posts or wall tops a block apart is a row of jumps.)
             if (!c.climb && Math.abs(dy) < 0.01 && gap < 2.0 && floorTo(s, c)) continue;
@@ -444,7 +448,7 @@ final class Explore {
                                       long segmentMillis) {
         float heading = Technique.headingTo(s, ax, az);
         for (int pass = 0; pass < (segmentMillis > 0 ? 2 : 1); pass++) {
-            long budget = Math.min(pass == 0 ? QUICK_MILLIS : segmentMillis, deadlineMillis - System.currentTimeMillis());
+            long budget = Math.min(pass == 0 ? QUICK_MILLIS : Math.min(segmentMillis, WIDE_MILLIS), deadlineMillis - System.currentTimeMillis());
             if (budget <= 0) return java.util.Collections.emptyList();
             SegmentSearch.Options o = pass == 0 ? SegmentSearch.Options.fast() : new SegmentSearch.Options();
             o.maxTicks = pass == 0 ? 50 : 80;
