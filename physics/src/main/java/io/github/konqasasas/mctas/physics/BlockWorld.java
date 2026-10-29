@@ -15,4 +15,12 @@ public interface BlockWorld {
     default boolean mayContainLiquid() {
         return true;
     }
+
+    /**
+     * False only when no block of this world is a pressure plate, so the server's side of a tick
+     * ({@link Mechanisms}) can be skipped while nothing is pressed. True is always safe.
+     */
+    default boolean mayContainPlates() {
+        return true;
+    }
 }

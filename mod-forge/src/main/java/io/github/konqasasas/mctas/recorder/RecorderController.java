@@ -300,6 +300,10 @@ public final class RecorderController {
         // The server's events for a shulker box may already have been handled this frame; the lid is
         // compared at the end of the tick.
         now.shulker = lastEnd.shulker;
+        // The plates and trapdoors are compared at the end of the tick, once the client took in what the
+        // server changed (readMechanisms); a resync must not lose them.
+        now.mech = lastEnd.mech;
+        now.serverDrift = lastEnd.serverDrift;
         lastEnd.rotationYaw = now.rotationYaw;
         lastEnd.rotationPitch = now.rotationPitch;
         String field = difference(now, lastEnd);
@@ -307,6 +311,11 @@ public final class RecorderController {
             runBetween++;
             log.println("# between ticks " + (tick - 1) + " and " + tick + ": " + field + " changed outside the player tick");
             sim = now.copy();
+        }
+        // A block that arrives into the player may push it before the tick (a resync above); the engine
+        // does not model that, so the check is on the box the last tick ended with.
+        if (!lastEnd.mech.isNone() && lastEnd.mech.arrivalHits(blocks, lastEnd.box)) {
+            sim.unsupportedAction = true;
         }
         if (mode != Mode.RECORD) {
             driver.apply(inputs.get(tick));
@@ -351,6 +360,7 @@ public final class RecorderController {
                 }
                 readPlacement(p, real, sim);
                 PlayerSnapshot.readShulker(mc, real, sim);
+                readMechanisms(real, sim);
                 if (runPlacing && runOffhandTick < 0 && !p.getHeldItemOffhand().isEmpty()) {
                     // A right-click with an empty main hand would use it.
                     runOffhandTick = tick;
@@ -369,6 +379,12 @@ public final class RecorderController {
                     }
                 }
                 String field = difference(sim, real);
+                if (field == null) {
+                    String missed = missedMechanism();
+                    if (missed != null) {
+                        field = "mech (the client changed " + missed + ")";
+                    }
+                }
                 String check = field == null ? "ok" : "DIFF " + field;
                 log.println(StateFormat.line(tick, in, real, check));
                 if (field != null) {
@@ -587,6 +603,58 @@ public final class RecorderController {
             }
         }
         real.placed = shown;
+    }
+
+    /**
+     * The plates and trapdoors the engine changed, as the client world shows them now: the server's side and
+     * the pending checks cannot be seen and are taken from {@code ref}. The client takes in the server's
+     * changes before the tick, so at its end the world shows what the engine's client side has.
+     */
+    private void readMechanisms(PlayerState real, PlayerState ref) {
+        real.serverDrift = ref.serverDrift;
+        io.github.konqasasas.mctas.physics.Mechanisms m = ref.mech;
+        ClientWorldBlocks live = new ClientWorldBlocks(mc.world);
+        BlockType[] shown = new BlockType[m.size()];
+        for (int i = 0; i < m.size(); i++) {
+            shown[i] = live.getBlock(m.x(i), m.y(i), m.z(i));
+        }
+        real.mech = m.withClient(shown);
+    }
+
+    /**
+     * A plate or trapdoor of the course that the client shows changed though the engine did not change it,
+     * as "x y z: built -> now", or null.
+     */
+    private String missedMechanism() {
+        final String[] first = {null};
+        final ClientWorldBlocks live = new ClientWorldBlocks(mc.world);
+        course.forEach(new SparseBlockWorld.Visitor() {
+            @Override
+            public void visit(int x, int y, int z, BlockType type) {
+                if (first[0] != null || !io.github.konqasasas.mctas.physics.Mechanisms.isModelled(type)
+                        || inMechanisms(x + originX, y, z + originZ)) {
+                    return;
+                }
+                BlockType now = live.getBlock(x + originX, y, z + originZ);
+                if (!now.name().equals(type.name()) && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
+                    first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
+                }
+            }
+        });
+        return first[0];
+    }
+
+    /** True if the engine changed the block at (x, y, z) on its server or client side. */
+    private boolean inMechanisms(int x, int y, int z) {
+        if (sim == null) {
+            return false;
+        }
+        for (int i = 0; i < sim.mech.size(); i++) {
+            if (sim.mech.x(i) == x && sim.mech.y(i) == y && sim.mech.z(i) == z) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1070,13 +1138,18 @@ public final class RecorderController {
                         // Placed into a replaceable block (tall grass, snow) on purpose.
                         return;
                     }
+                    if (phase == Phase.RUN && io.github.konqasasas.mctas.physics.Mechanisms.isModelled(type)) {
+                        // Plates and trapdoors move during a run; missedMechanism and readMechanisms follow them.
+                        return;
+                    }
                     BlockType now = check.getBlock(x + originX, y, z + originZ);
                     if (phase == Phase.RUN && runPressed.contains(new BlockPos(x + originX, y, z + originZ))
                             && VanillaBlocks.blockId(now.name()).equals(VanillaBlocks.blockId(type.name()))) {
                         // A button the engine pressed: checkPressed follows it.
                         return;
                     }
-                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
+                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))
+                            && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
                         first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                     }
                 }
