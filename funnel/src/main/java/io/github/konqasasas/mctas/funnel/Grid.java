@@ -11,9 +11,9 @@ import io.github.konqasasas.mctas.problem.Region;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The course as a grid of places the player's feet point can be, for the guidance field.
@@ -79,6 +79,15 @@ final class Grid {
         top = new float[nx * nz * ny];
         Arrays.fill(top, Float.NaN);
         build();
+        if (System.getenv("FUNNEL_FREE") != null) {
+            String[] p = System.getenv("FUNNEL_FREE").split(",");
+            double fx0 = Double.parseDouble(p[0]), fx1 = Double.parseDouble(p[1]), fz0 = Double.parseDouble(p[2]), fz1 = Double.parseDouble(p[3]), fy = Double.parseDouble(p[4]);
+            for (double z = fz0; z <= fz1 + 1e-9; z += 1 / 32.0) {
+                StringBuilder sb = new StringBuilder(String.format("%8.3f ", z));
+                for (double x = fx0; x <= fx1 + 1e-9; x += 1 / 32.0) sb.append(free(x, z, fy) ? '.' : '#');
+                System.out.println(sb);
+            }
+        }
         slimes();
         airReach();
     }
@@ -198,6 +207,12 @@ final class Grid {
                 for (int l = 0; slots && l < ny; l++) {
                     int id = id(l, ix, iz);
                     if ((nf[l] & PASS) == 0 || (flags[id] & PASS) != 0) continue;
+                    // The narrow footprint is only a necessary condition: the box has to fit somewhere.
+                    double feet = (nf[l] & STAND) != 0 ? nt[l] : y0 + l;
+                    double[] at = fit(cx, cz, feet);
+                    if (at == null && (nf[l] & STAND) == 0) at = fit(cx, cz, feet + 0.5);
+                    if (at == null) continue;
+                    fits.put(id, at);
                     flags[id] |= PASS | SLOT | (nf[l] & STAND);
                     if ((nf[l] & STAND) != 0) top[id] = nt[l];
                 }
@@ -220,40 +235,69 @@ final class Grid {
 
     /** Half the footprint that finds slots: the player's half width less half a cell. */
     static final double NARROW = 0.3 - RES / 2;
-    /** Where the player's box fits in the slot cells (passable only off their centre), found when first asked. */
-    private final Map<Integer, double[]> fits = new ConcurrentHashMap<Integer, double[]>();
+    /** Where the player's box fits in the slot cells (passable only off their centre). */
+    private final Map<Integer, double[]> fits = new HashMap<Integer, double[]>();
 
-    /**
-     * The x, z of the cell where the player fits: its centre, or for a slot the middle of the places
-     * within the cell where the box fits (the centre when it fits nowhere: the narrow footprint is only
-     * a necessary condition).
-     */
+    /** The x, z of the cell where the player fits: its centre, or for a slot the middle of the places in the cell where the box fits. */
     double[] fit(int id) {
-        if ((flags[id] & SLOT) == 0) return new double[] {cx(ix(id)), cz(iz(id))};
-        return fits.computeIfAbsent(id, k -> {
-            double[] f = fit(cx(ix(k)), cz(iz(k)), level(k), new Column());
-            return f != null ? f : new double[] {cx(ix(k)), cz(iz(k))};
-        });
+        double[] f = (flags[id] & SLOT) != 0 ? fits.get(id) : null;
+        return f != null ? f : new double[] {cx(ix(id)), cz(iz(id))};
     }
 
-    private double[] fit(double cx, double cz, int l, Column wide) {
-        byte[] f = new byte[ny];
-        float[] t = new float[ny];
+    private final List<Aabb> fitBoxes = new ArrayList<Aabb>();
+
+    /**
+     * The middle of the places within the cell (on a 1/64 lattice) where the player's box fits with
+     * the feet at this height; null when none. The two lines through the centre first (a slot or a
+     * wall is across one of them), the whole cell only when neither has a place.
+     */
+    private double[] fit(double cx, double cz, double feet) {
+        int steps = 8;
         double sx = 0, sz = 0;
         int n = 0;
-        int steps = 8;
         for (int a = -steps; a <= steps; a++) {
+            double d = a * (RES / 2) / steps;
+            if (free(cx + d, cz, feet)) {
+                sx += cx + d;
+                sz += cz;
+                n++;
+            }
+            if (a != 0 && free(cx, cz + d, feet)) {
+                sx += cx;
+                sz += cz + d;
+                n++;
+            }
+        }
+        for (int a = -steps; n == 0 && a <= steps; a++) {
             for (int b = -steps; b <= steps; b++) {
                 double x = cx + a * (RES / 2) / steps, z = cz + b * (RES / 2) / steps;
-                Arrays.fill(f, (byte) 0);
-                wide.mark(x, z, f, t, 0, 1, null, null);
-                if ((f[l] & PASS) == 0) continue;
+                if (!free(x, z, feet)) continue;
                 sx += x;
                 sz += z;
                 n++;
             }
         }
         return n == 0 ? null : new double[] {sx / n, sz / n};
+    }
+
+    /** True when the player's standing box at this feet point touches no collision box. */
+    private boolean free(double x, double z, double feet) {
+        Aabb box = new Aabb(x - 0.3 + 1e-7, feet + 1e-7, z - 0.3 + 1e-7, x + 0.3 - 1e-7, feet + 1.8 - 1e-7, z + 0.3 - 1e-7);
+        for (int bx = (int) Math.floor(box.minX); bx <= (int) Math.floor(box.maxX); bx++) {
+            for (int by = (int) Math.floor(box.minY) - 1; by <= (int) Math.floor(box.maxY); by++) {
+                for (int bz = (int) Math.floor(box.minZ); bz <= (int) Math.floor(box.maxZ); bz++) {
+                    BlockType t = world.getBlock(bx, by, bz);
+                    if (t.isAir()) continue;
+                    if (hazard(t)) return false;
+                    fitBoxes.clear();
+                    t.addCollisionBoxes(world, bx, by, bz, box, fitBoxes);
+                    for (Aabb c : fitBoxes) {
+                        if (c.maxX > box.minX && c.minX < box.maxX && c.maxY > box.minY && c.minY < box.maxY && c.maxZ > box.minZ && c.minZ < box.maxZ) return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**

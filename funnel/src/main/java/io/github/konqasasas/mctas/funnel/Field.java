@@ -101,6 +101,16 @@ final class Field {
         return id < 0 || d[id] == INF ? INF : d[id] - seedValue[id];
     }
 
+    /**
+     * Slot cells ({@link Grid#SLOT}: the player fits only off the centre) cost as much again: a way
+     * through a slot when there is no other, not a short cut along every wall.
+     */
+    static final float SLOT_COST = STRAIGHT;
+
+    private float slot(int a, int b) {
+        return ((g.flags[a] | g.flags[b]) & Grid.SLOT) != 0 ? SLOT_COST : 0;
+    }
+
     private boolean movable(int id) {
         return (g.flags[id] & (Grid.STAND | Grid.AIR | Grid.CLIMB | Grid.WATER)) != 0;
     }
@@ -116,7 +126,7 @@ final class Field {
                 int u = g.id(l, jx, jz);
                 if (!movable(u)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL), v);
+                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v);
             }
         }
         // A fall from the cell above.
@@ -138,7 +148,7 @@ final class Field {
                 int jx = ix + DX[k], jz = iz + DZ[k];
                 if (!g.in(l - 1, jx, jz)) continue;
                 int u = g.id(l - 1, jx, jz);
-                if ((f[u] & Grid.STAND) != 0 && g.top[u] >= g.top[v] - 0.6 - 1e-6) offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL), v);
+                if ((f[u] & Grid.STAND) != 0 && g.top[u] >= g.top[v] - 0.6 - 1e-6) offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v);
             }
         }
     }
@@ -154,7 +164,7 @@ final class Field {
                 int v = g.id(l, jx, jz);
                 if (!movable(v)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL), u);
+                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u);
             }
             if (l > 0) {
                 int v = g.id(l - 1, ix, iz);
@@ -173,7 +183,7 @@ final class Field {
                 int jx = ix + DX[k], jz = iz + DZ[k];
                 if (!g.in(l + 1, jx, jz)) continue;
                 int v = g.id(l + 1, jx, jz);
-                if ((f[v] & Grid.STAND) != 0 && g.top[v] <= g.top[u] + 0.6 + 1e-6) offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL), u);
+                if ((f[v] & Grid.STAND) != 0 && g.top[v] <= g.top[u] + 0.6 + 1e-6) offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u);
             }
         }
     }
