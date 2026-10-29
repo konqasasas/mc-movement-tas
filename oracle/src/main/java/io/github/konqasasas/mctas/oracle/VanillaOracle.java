@@ -603,14 +603,12 @@ public final class VanillaOracle {
 
     /** One client tick: the view turns to the input's angles, then the player updates. */
     public PlayerState tick(PlayerInput input) {
-        // EntityPlayerSP.closeScreen before the tick, then the server's events at its start.
-        if (input.has(PlayerInput.CLOSE)) {
-            if (screen) {
-                screen = false;
-                shulkerEvent = Shulker.Event.CLOSE;
-            } else {
-                unsupportedAction = true;
-            }
+        // EntityPlayerSP.closeScreen before the tick, then the server's events from the last tick at its
+        // start; the close reaches the server and comes back a tick later.
+        boolean close = input.has(PlayerInput.CLOSE);
+        boolean wasScreen = screen;
+        if (close && !wasScreen) {
+            unsupportedAction = true;
         }
         if (shulkerPos != null && shulkerEvent != Shulker.Event.NONE) {
             // TileEntityShulkerBox.receiveClientEvent(1, numPlayersUsing)
@@ -620,6 +618,10 @@ public final class VanillaOracle {
                 screen = true;
             }
             shulkerEvent = Shulker.Event.NONE;
+        }
+        if (close && screen && wasScreen) {
+            screen = false;
+            shulkerEvent = Shulker.Event.CLOSE;
         }
         boolean screenOpen = shulkerPos != null && screen;
         if (screenOpen && (input.keys != 0 || input.slot >= 0
