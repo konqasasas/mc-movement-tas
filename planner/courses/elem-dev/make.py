@@ -80,3 +80,22 @@ for i in range(4):
     f.append(F([0,68+i,3+2*i],[0,68+i,3+2*i],"water[level=0]"))
 f.append(F([-1,64,11],[1,71,14],"stone"))
 course("e09-water-steps",f,G(-1,72,12,2,15))
+# e10: water at head height one block past the edge, then a step two on and one up, one on diagonally,
+# and out onto a floor level with the last water; structure voids keep the sources apart in game
+f=[F([-1,65,1],[-1,71,5],"wool"),F([1,65,1],[1,71,4],"wool"),F([2,65,5],[2,71,5],"wool"),
+   F([0,67,5],[0,68,5],"structure_void"),
+   F([0,66,2],[0,66,2],"water[level=0]"),F([0,66,3],[0,67,3],"structure_void"),
+   F([0,67,4],[0,67,4],"water[level=0]"),F([0,66,4],[0,66,4],"structure_void"),
+   F([1,68,5],[1,68,5],"water[level=0]"),F([1,67,5],[1,67,5],"structure_void"),
+   F([-1,64,6],[2,67,9],"stone")]
+course("e10-water-steps-out",f,G(-1,68,7,3,10))
+# e11: a one-wide lane of one-block pillars five apart with a ladder on the near face of each, and a
+# floating water source at head height between them under a row of fences; hopped pillar to pillar
+f=[F([-1,64,1],[-1,68,19],"wool"),F([1,64,1],[1,68,19],"wool"),F([0,69,1],[0,69,19],"fence")]
+for z in (5,10,15):
+    f+=[F([0,64,z],[0,64,z],"wool"),F([0,64,z-1],[0,64,z-1],"ladder[facing=north]")]
+for z in (2,7,12,17):
+    f+=[F([0,67,z],[0,67,z],"water[level=0]"),F([0,66,z],[0,66,z],"structure_void"),
+        F([0,67,z-1],[0,67,z-1],"structure_void"),F([0,67,z+1],[0,67,z+1],"structure_void")]
+f.append(F([-1,64,20],[1,64,23],"stone"))
+course("e11-water-hops",f,G(-1,65,21,2,24))
