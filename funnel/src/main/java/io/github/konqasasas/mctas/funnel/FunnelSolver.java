@@ -58,7 +58,7 @@ public final class FunnelSolver {
     static final int PER_ANCHOR = 3;
     /** Entries into the start box the forward run starts from, when the spawn is outside it. */
     static final int ENTRIES = 6;
-    static final float DEPTH = 0.15F;
+    static final float DEPTH = System.getenv("FUNNEL_DEPTH") != null ? Float.parseFloat(System.getenv("FUNNEL_DEPTH")) : 0.15F;
 
     static final int MAX_ATTEMPTS = 4;
     /** Provisional times past a stuck stretch ({@link #bridge}): how far apart, how many, and how they are guessed. */
