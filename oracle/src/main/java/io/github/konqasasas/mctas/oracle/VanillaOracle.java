@@ -23,6 +23,10 @@ import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Bootstrap;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.block.BlockShulkerBox;
+import net.minecraft.tileentity.TileEntityShulkerBox;
+import io.github.konqasasas.mctas.physics.Facing;
+import io.github.konqasasas.mctas.physics.Shulker;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -38,6 +42,9 @@ public final class VanillaOracle {
 
     private static final Field JUMP_TICKS;
     private static final Field HAND_INVENTORY;
+    private static final Field SHULKER_PROGRESS;
+    private static final Field SHULKER_PROGRESS_OLD;
+    private static final Field SHULKER_STATUS;
 
     static {
         Bootstrap.register();
@@ -46,6 +53,12 @@ public final class VanillaOracle {
             JUMP_TICKS.setAccessible(true);
             HAND_INVENTORY = EntityLivingBase.class.getDeclaredField("handInventory");
             HAND_INVENTORY.setAccessible(true);
+            SHULKER_PROGRESS = TileEntityShulkerBox.class.getDeclaredField("progress");
+            SHULKER_PROGRESS.setAccessible(true);
+            SHULKER_PROGRESS_OLD = TileEntityShulkerBox.class.getDeclaredField("progressOld");
+            SHULKER_PROGRESS_OLD.setAccessible(true);
+            SHULKER_STATUS = TileEntityShulkerBox.class.getDeclaredField("animationStatus");
+            SHULKER_STATUS.setAccessible(true);
         } catch (NoSuchFieldException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -58,6 +71,18 @@ public final class VanillaOracle {
     private int rightClickDelay;
     private boolean prevUse;
     private boolean unsupportedAction;
+    /** Buttons pressed and maybe still on, kept as the engine keeps them (the server side is not run). */
+    private io.github.konqasasas.mctas.physics.Pressed pressed = io.github.konqasasas.mctas.physics.Pressed.NONE;
+    /**
+     * The shulker box the player opened, until it is shut again: its tile entity is the game's own and
+     * moves the player; the server's side (the open and close events a tick later, the screen) is kept
+     * here as the engine keeps it.
+     */
+    private BlockPos shulkerPos;
+    /** Ticks in which a lid moved the player, over every oracle so far, for the fuzz report. */
+    static int lidPushes;
+    private boolean screen;
+    private Shulker.Event shulkerEvent = Shulker.Event.NONE;
 
     // EntityPlayerSP's record of what the server was told, and the server's copy of the player.
     private double lastReportedPosX;
@@ -109,6 +134,29 @@ public final class VanillaOracle {
         p.miSneak = s.prevSneak;
         for (WorldDelta e : s.placed.entries()) {
             world.setBlockState(new BlockPos(e.x, e.y, e.z), VanillaStates.of(e.type), 11);
+        }
+        pressed = s.pressed;
+        for (int i = 0; i < pressed.size(); i++) {
+            BlockType on = pressed.shown(i);
+            // A button that may be off already is kept on; rightClickMouse refuses rays that reach it.
+            world.set(new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i)),
+                    VanillaStates.of(on.name().contains("powered=") ? on : powered(pressed.off(i))));
+        }
+        shulkerPos = null;
+        screen = false;
+        shulkerEvent = Shulker.Event.NONE;
+        if (!s.shulker.isNone()) {
+            shulkerPos = new BlockPos(s.shulker.x, s.shulker.y, s.shulker.z);
+            screen = s.shulker.screen;
+            shulkerEvent = s.shulker.event;
+            TileEntityShulkerBox te = shulkerTile();
+            try {
+                SHULKER_PROGRESS.setFloat(te, s.shulker.progress);
+                SHULKER_PROGRESS_OLD.setFloat(te, s.shulker.progressOld);
+                SHULKER_STATUS.set(te, TileEntityShulkerBox.AnimationStatus.valueOf(s.shulker.status.name()));
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(e);
+            }
         }
         p.inventory.clear();
         for (int i = 0; i < Hotbar.SLOTS; i++) {
@@ -179,6 +227,19 @@ public final class VanillaOracle {
         s.rightClickDelay = rightClickDelay;
         s.prevUse = prevUse;
         s.unsupportedAction = unsupportedAction;
+        s.pressed = pressed;
+        if (shulkerPos != null) {
+            TileEntityShulkerBox te = shulkerTile();
+            IBlockState st = world.getBlockState(shulkerPos);
+            Facing facing = Facing.valueOf(st.getValue(BlockShulkerBox.FACING).name());
+            try {
+                s.shulker = Shulker.of(shulkerPos.getX(), shulkerPos.getY(), shulkerPos.getZ(),
+                        VanillaBlocks.require(catalogName(st)), facing, Shulker.Status.valueOf(te.getAnimationStatus().name()),
+                        SHULKER_PROGRESS.getFloat(te), SHULKER_PROGRESS_OLD.getFloat(te), screen, shulkerEvent);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(e);
+            }
+        }
         s.lastReportedPosX = lastReportedPosX;
         s.lastReportedPosY = lastReportedPosY;
         s.lastReportedPosZ = lastReportedPosZ;
@@ -238,7 +299,12 @@ public final class VanillaOracle {
         Vec3d eye = new Vec3d(player.posX, player.posY + (double) player.getEyeHeight(), player.posZ);
         Vec3d look = player.look();
         double reach = (double) 4.5F;
-        RayTraceResult r = world.rayTraceBlocks(eye, eye.add(look.x * reach, look.y * reach, look.z * reach), false, false, true);
+        Vec3d end = eye.add(look.x * reach, look.y * reach, look.z * reach);
+        if (reachesUncertainButton(eye, end)) {
+            unsupportedAction = true;
+            return;
+        }
+        RayTraceResult r = world.rayTraceBlocks(eye, end, false, false, true);
         if (r == null || r.typeOfHit != RayTraceResult.Type.BLOCK) {
             return;
         }
@@ -247,15 +313,25 @@ public final class VanillaOracle {
         if (st.getMaterial() == Material.AIR) {
             return;
         }
+        if (shulkerPos != null) {
+            // The engine's rule: where the server has the player is not known well enough while a lid moves.
+            unsupportedAction = true;
+            return;
+        }
         ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
         float f = (float) (r.hitVec.x - (double) pos.getX());
         float f1 = (float) (r.hitVec.y - (double) pos.getY());
         float f2 = (float) (r.hitVec.z - (double) pos.getZ());
         if ((!player.isSneaking() || stack.isEmpty()) && InteractionTableWriter.activates(st)) {
-            unsupportedAction = true;
+            activate(pos, st, stack, r.sideHit, f, f1, f2);
             return;
         }
         if (stack.isEmpty()) {
+            return;
+        }
+        if (InteractionTableWriter.activates(st) && sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE) {
+            // The engine's rule: the server may not have seen the sneak yet and activate the block instead.
+            unsupportedAction = true;
             return;
         }
         ItemBlock item = (ItemBlock) stack.getItem();
@@ -278,6 +354,195 @@ public final class VanillaOracle {
             return;
         }
         stack.onItemUse(player, world, pos, EnumHand.MAIN_HAND, r.sideHit, f, f1, f2);
+    }
+
+    /**
+     * Whether the view ray reaches a button that the client may or may not show off again: with a full
+     * block in its place, the ray stops there.
+     */
+    private boolean reachesUncertainButton(Vec3d eye, Vec3d end) {
+        for (int i = 0; i < pressed.size(); i++) {
+            if (pressed.age(i) <= io.github.konqasasas.mctas.physics.Pressed.certainTicks(pressed.off(i))) {
+                continue;
+            }
+            BlockPos at = new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i));
+            IBlockState was = world.getBlockState(at);
+            world.set(at, Blocks.STONE.getDefaultState());
+            RayTraceResult r = world.rayTraceBlocks(eye, end, false, false, true);
+            world.set(at, was);
+            if (r != null && r.typeOfHit == RayTraceResult.Type.BLOCK && r.getBlockPos().equals(at)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The client's {@code onBlockActivated} on the game's own code for buttons and levers, after the
+     * engine's rules for what it does not model: the server must see the same click (not sneaking with a
+     * block in hand), and nothing around the block or the one it hangs on may react to power
+     * (the interaction table). Any other block is unsupported. Checks that the button's own code changed
+     * nothing else.
+     */
+    private void activate(BlockPos pos, IBlockState st, ItemStack stack, EnumFacing side, float f, float f1, float f2) {
+        Block b = st.getBlock();
+        if (b instanceof BlockShulkerBox) {
+            openShulker(pos, st, stack, side, f, f1, f2);
+            return;
+        }
+        if (!(b instanceof net.minecraft.block.BlockButton) && !(b instanceof net.minecraft.block.BlockLever)) {
+            unsupportedAction = true;
+            return;
+        }
+        if (!stack.isEmpty() && (serverSneakState || sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE)) {
+            unsupportedAction = true;
+            return;
+        }
+        EnumFacing facing = b instanceof net.minecraft.block.BlockLever
+                ? st.getValue(net.minecraft.block.BlockLever.FACING).getFacing()
+                : st.getValue(net.minecraft.block.BlockButton.FACING);
+        BlockPos attached = pos.offset(facing.getOpposite());
+        for (EnumFacing n : EnumFacing.values()) {
+            for (BlockPos q : new BlockPos[] {pos.offset(n), attached.offset(n)}) {
+                if (q.equals(pos)) {
+                    continue;
+                }
+                BlockType t = VanillaBlocks.require(catalogName(world.getBlockState(q)));
+                if (t.reactsToPower() || t.isExcept(BlockType.UNSTABLE)) {
+                    unsupportedAction = true;
+                    return;
+                }
+            }
+        }
+        if (b instanceof net.minecraft.block.BlockLever) {
+            // BlockLever.onBlockActivated returns at once on the client.
+            return;
+        }
+        boolean wasOn = st.getValue(net.minecraft.block.BlockButton.POWERED);
+        int logged = world.placedLog.size();
+        int scheduled = world.scheduled;
+        // The button's own code, as the client runs it (its notifyNeighbors reach the same blocks).
+        boolean took;
+        try {
+            took = b.onBlockActivated(world, pos, st, player, EnumHand.MAIN_HAND, side, f, f1, f2);
+        } catch (RuntimeException e) {
+            StringBuilder around = new StringBuilder();
+            for (EnumFacing n : EnumFacing.values()) {
+                around.append(' ').append(world.getBlockState(pos.offset(n))).append(' ').append(world.getBlockState(attached.offset(n)));
+            }
+            throw new IllegalStateException("pressing the button at " + pos + " failed; around:" + around, e);
+        }
+        if (!took) {
+            throw new IllegalStateException("a button did not take the click at " + pos);
+        }
+        if (!wasOn) {
+            if (world.placedLog.size() != logged + 1 || world.scheduled != scheduled + 1) {
+                StringBuilder changed = new StringBuilder();
+                for (BlockPos q : world.placedLog.subList(logged, world.placedLog.size())) {
+                    changed.append(' ').append(q).append('=').append(world.getBlockState(q));
+                }
+                for (EnumFacing n : EnumFacing.values()) {
+                    changed.append(" | ").append(world.getBlockState(pos.offset(n))).append(' ').append(world.getBlockState(attached.offset(n)));
+                }
+                throw new IllegalStateException("pressing the button at " + pos + " changed more than the button:"
+                        + changed + ", " + (world.scheduled - scheduled) + " updates scheduled");
+            }
+            world.placedLog.remove(world.placedLog.size() - 1);
+            pressed = pressed.with(pos.getX(), pos.getY(), pos.getZ(), VanillaBlocks.require(catalogName(st)));
+        }
+    }
+
+    /**
+     * The server's side of a click on a shulker box: {@code NetHandlerPlayServer.processTryUseItemOnBlock}'s
+     * checks, then the game's own {@code BlockShulkerBox.onBlockActivated} on the server player, put where
+     * the client last said it was. If it opens the screen, the box starts to open a tick later.
+     */
+    private void openShulker(BlockPos pos, IBlockState st, ItemStack stack, EnumFacing side, float f, float f1, float f2) {
+        if (!stack.isEmpty() && (serverSneakState || sneakReportedTicks < io.github.konqasasas.mctas.physics.Placement.SNEAK_SETTLE)) {
+            unsupportedAction = true;
+            return;
+        }
+        if (!(pos.getY() < 255 || side != EnumFacing.UP && pos.getY() < 256)) {
+            return;
+        }
+        serverPlayer.width = 0.6F;
+        serverPlayer.height = serverSneakState ? 1.65F : 1.8F;
+        serverPlayer.setPosition(lastReportedPosX, lastReportedPosY, lastReportedPosZ);
+        if (!(serverPlayer.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D)) {
+            return;
+        }
+        serverPlayer.displayed = null;
+        if (world.isRemote) {
+            throw new IllegalStateException("the oracle's world must run the server's side of onBlockActivated");
+        }
+        st.getBlock().onBlockActivated(world, pos, st, serverPlayer, EnumHand.MAIN_HAND, side, f, f1, f2);
+        if (serverPlayer.displayed != null) {
+            shulkerPos = pos.toImmutable();
+            screen = false;
+            shulkerEvent = Shulker.Event.OPEN;
+        }
+    }
+
+    private TileEntityShulkerBox shulkerTile() {
+        return (TileEntityShulkerBox) world.getTileEntity(shulkerPos);
+    }
+
+    /** {@code TileEntityShulkerBox.update} on the game's own code, and the engine's rule for the screen's range. */
+    private void updateShulker() {
+        TileEntityShulkerBox te = shulkerTile();
+        AxisAlignedBB before = player.getEntityBoundingBox();
+        te.update();
+        if (!player.getEntityBoundingBox().equals(before)) {
+            lidPushes++;
+        }
+        float progress;
+        float old;
+        try {
+            progress = SHULKER_PROGRESS.getFloat(te);
+            old = SHULKER_PROGRESS_OLD.getFloat(te);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+        if (te.getAnimationStatus() == TileEntityShulkerBox.AnimationStatus.CLOSED && progress == 0.0F && old == 0.0F
+                && !screen && shulkerEvent == Shulker.Event.NONE) {
+            shulkerPos = null;
+            return;
+        }
+        if (screen) {
+            double cx = shulkerPos.getX() + 0.5D;
+            double cy = shulkerPos.getY() + 0.5D;
+            double cz = shulkerPos.getZ() + 0.5D;
+            double a = sq(lastReportedPosX - cx) + sq(lastReportedPosY - cy) + sq(lastReportedPosZ - cz);
+            double b = sq(player.posX - cx) + sq(player.posY - cy) + sq(player.posZ - cz);
+            if (a > 56.0D || b > 56.0D) {
+                unsupportedAction = true;
+            }
+        }
+    }
+
+    private static double sq(double d) {
+        return d * d;
+    }
+
+    /** The button on. */
+    private static BlockType powered(BlockType off) {
+        java.util.Map<String, String> props = VanillaBlocks.parseProperties(off.name());
+        props.put("powered", "true");
+        return VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(off.name()), props));
+    }
+
+    /** One tick later for the pressed buttons; the ones surely off again turn off. */
+    private void agePressed() {
+        if (pressed.isEmpty()) {
+            return;
+        }
+        io.github.konqasasas.mctas.physics.Pressed next = pressed.aged();
+        for (int i = 0; i < pressed.size(); i++) {
+            if (!next.has(pressed.x(i), pressed.y(i), pressed.z(i))) {
+                world.set(new BlockPos(pressed.x(i), pressed.y(i), pressed.z(i)), VanillaStates.of(pressed.off(i)));
+            }
+        }
+        pressed = next;
     }
 
     /**
@@ -338,10 +603,43 @@ public final class VanillaOracle {
 
     /** One client tick: the view turns to the input's angles, then the player updates. */
     public PlayerState tick(PlayerInput input) {
+        // EntityPlayerSP.closeScreen before the tick, then the server's events from the last tick at its
+        // start; the close reaches the server and comes back a tick later.
+        boolean close = input.has(PlayerInput.CLOSE);
+        boolean wasScreen = screen;
+        if (close && !wasScreen) {
+            unsupportedAction = true;
+        }
+        if (shulkerPos != null && shulkerEvent != Shulker.Event.NONE) {
+            // TileEntityShulkerBox.receiveClientEvent(1, numPlayersUsing)
+            boolean open = shulkerEvent == Shulker.Event.OPEN;
+            shulkerTile().receiveClientEvent(1, open ? 1 : 0);
+            if (open) {
+                screen = true;
+            }
+            shulkerEvent = Shulker.Event.NONE;
+        }
+        if (close && screen && wasScreen) {
+            screen = false;
+            shulkerEvent = Shulker.Event.CLOSE;
+        }
+        boolean screenOpen = shulkerPos != null && screen;
+        if (screenOpen && (input.keys != 0 || input.slot >= 0
+                || Float.floatToIntBits(input.yaw) != Float.floatToIntBits(player.rotationYaw)
+                || Float.floatToIntBits(input.pitch) != Float.floatToIntBits(player.rotationPitch))) {
+            unsupportedAction = true;
+        }
         player.input = input;
         player.rotationYaw = input.yaw;
         player.rotationPitch = input.pitch;
-        beforeUpdate(input);
+        if (screenOpen) {
+            if (rightClickDelay > 0) {
+                --rightClickDelay;
+            }
+            prevUse = false;
+        } else {
+            beforeUpdate(input);
+        }
         syncEquipment();
         player.onUpdate();
         if (!player.isSneaking() && player.height == 1.65F) {
@@ -349,6 +647,10 @@ public final class VanillaOracle {
             unsupportedAction = true;
         }
         onUpdateWalkingPlayer();
+        agePressed();
+        if (shulkerPos != null) {
+            updateShulker();
+        }
         return snapshot();
     }
 

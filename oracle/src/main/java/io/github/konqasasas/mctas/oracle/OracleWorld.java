@@ -32,6 +32,8 @@ final class OracleWorld extends World {
     private final Map<BlockPos, IBlockState> blocks = new HashMap<BlockPos, IBlockState>();
     /** Positions changed through {@link #setBlockState}, in order: the blocks the player placed. */
     final List<BlockPos> placedLog = new java.util.ArrayList<BlockPos>();
+    /** Block updates scheduled and block events added, for tests that ask whether a block reacts. */
+    int scheduled;
     /** The one entity in the world, for {@code World.mayPlace}'s entity check; null until set. */
     Entity player;
 
@@ -73,6 +75,9 @@ final class OracleWorld extends World {
 
     /** Replaces one block, for tests that build many small layouts in one world. */
     void set(BlockPos pos, IBlockState state) {
+        if (state != blocks.get(pos.toImmutable())) {
+            shulkers.remove(pos.toImmutable());
+        }
         if (state.getBlock() == Blocks.AIR) {
             blocks.remove(pos.toImmutable());
         } else {
@@ -82,13 +87,26 @@ final class OracleWorld extends World {
 
     void clear() {
         blocks.clear();
+        shulkers.clear();
     }
+
+    /** The shulker boxes' tile entities, made when first asked for and kept while the block stays. */
+    private final Map<BlockPos, net.minecraft.tileentity.TileEntityShulkerBox> shulkers =
+            new HashMap<BlockPos, net.minecraft.tileentity.TileEntityShulkerBox>();
 
     @Override
     public net.minecraft.tileentity.TileEntity getTileEntity(BlockPos pos) {
         // A placed shulker box always has its tile entity, closed unless someone opens it.
         if (getBlockState(pos).getBlock() instanceof net.minecraft.block.BlockShulkerBox) {
-            return new net.minecraft.tileentity.TileEntityShulkerBox();
+            BlockPos p = pos.toImmutable();
+            net.minecraft.tileentity.TileEntityShulkerBox te = shulkers.get(p);
+            if (te == null) {
+                te = new net.minecraft.tileentity.TileEntityShulkerBox();
+                te.setWorld(this);
+                te.setPos(p);
+                shulkers.put(p, te);
+            }
+            return te;
         }
         return null;
     }
@@ -108,6 +126,26 @@ final class OracleWorld extends World {
             placedLog.add(p);
         }
         return true;
+    }
+
+    @Override
+    public void scheduleUpdate(BlockPos pos, net.minecraft.block.Block blockIn, int delay) {
+        scheduled++;
+    }
+
+    @Override
+    public void updateBlockTick(BlockPos pos, net.minecraft.block.Block blockIn, int delay, int priority) {
+        scheduled++;
+    }
+
+    @Override
+    public void scheduleBlockUpdate(BlockPos pos, net.minecraft.block.Block blockIn, int delay, int priority) {
+        scheduled++;
+    }
+
+    @Override
+    public void addBlockEvent(BlockPos pos, net.minecraft.block.Block blockIn, int eventID, int eventParam) {
+        scheduled++;
     }
 
     /** Only the player, and only for callers that do not exclude it ({@code World.checkNoEntityCollision}). */

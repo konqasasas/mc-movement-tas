@@ -1,9 +1,12 @@
 package io.github.konqasasas.mctas.physics.testing;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.Facing;
 import io.github.konqasasas.mctas.physics.Hotbar;
+import io.github.konqasasas.mctas.physics.Physics;
 import io.github.konqasasas.mctas.physics.PlayerInput;
 import io.github.konqasasas.mctas.physics.PlayerState;
+import io.github.konqasasas.mctas.physics.Shulker;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
 import io.github.konqasasas.mctas.physics.VanillaBlocks;
 
@@ -42,7 +45,7 @@ public final class RandomScenario {
             "minecraft:vine", "minecraft:redstone_wire", "minecraft:double_plant");
 
     /** The course kinds, by the names the fuzz tools take. */
-    public static final String[] COURSES = {"full", "shapes", "fluids", "place"};
+    public static final String[] COURSES = {"full", "shapes", "fluids", "place", "press", "shulker"};
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
@@ -54,8 +57,13 @@ public final class RandomScenario {
             return generateFluids(seed, ticks);
         } else if (course.equals("place")) {
             return generatePlacing(seed, ticks);
+        } else if (course.equals("press")) {
+            return generatePressing(seed, ticks);
+        } else if (course.equals("shulker")) {
+            return generateShulker(seed, ticks);
         }
-        throw new IllegalArgumentException("unknown course kind " + course + ", expected full, shapes, fluids or place");
+        throw new IllegalArgumentException("unknown course kind " + course
+                + ", expected full, shapes, fluids, place, press or shulker");
     }
 
     /** Full blocks and ice only. */
@@ -81,18 +89,44 @@ public final class RandomScenario {
         return generate(seed, ticks, 3);
     }
 
+    /**
+     * {@link #generatePlacing} courses with stone posts that carry buttons and levers on their sides and
+     * tops, some next to blocks that react to power; the hotbar is empty half the time, and the inputs
+     * often look level, at the posts.
+     */
+    public static RandomScenario generatePressing(long seed, int ticks) {
+        return generate(seed, ticks, 4);
+    }
+
+    /**
+     * {@link #generatePlacing} courses with shulker boxes in the floor under and around the start and
+     * standing on it, facing every way, some with a block in the way of the lid; the hotbar is empty half
+     * the time. While a box's screen is open the inputs hold nothing and keep the angles, then close it.
+     */
+    public static RandomScenario generateShulker(long seed, int ticks) {
+        return generate(seed, ticks, 5);
+    }
+
     private static RandomScenario generate(long seed, int ticks, int kind) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
         boolean shapes = kind != 0;
-        boolean placing = kind == 3;
+        boolean pressing = kind == 4;
+        boolean shulkers = kind == 5;
+        boolean placing = kind == 3 || pressing || shulkers;
         BlockType[] palette = shapes ? shapeCourse(r, w, base, placing) : fullBlockCourse(r, w, base);
+        if (pressing) {
+            addPosts(r, w, base);
+        }
         if (kind == 2) {
             addFluids(r, w, base, palette);
         }
         double sx = 0.3 + r.nextDouble() * 1.4 - 0.5;
         double sz = 0.3 + r.nextDouble() * 1.4 - 0.5;
+        if (shulkers) {
+            addShulkers(r, w, base, (int) Math.floor(sx), (int) Math.floor(sz));
+        }
         float yaw0 = (r.nextFloat() - 0.5F) * 720.0F;
         PlayerState start = PlayerState.standing(sx, base, sz, yaw0);
         double variant = r.nextDouble();
@@ -133,8 +167,9 @@ public final class RandomScenario {
                     blocks.add(t);
                 }
             }
+            boolean emptyHand = (pressing || shulkers) && r.nextBoolean();
             for (int i = 0; i < Hotbar.SLOTS; i++) {
-                if (r.nextDouble() < 0.6) {
+                if (!emptyHand && r.nextDouble() < 0.6) {
                     start.hotbar = start.hotbar.with(i, blocks.get(r.nextInt(blocks.size())), 1 + r.nextInt(r.nextBoolean() ? 4 : 64));
                 }
             }
@@ -144,12 +179,35 @@ public final class RandomScenario {
         }
 
         List<PlayerInput> inputs = new ArrayList<PlayerInput>(ticks);
+        // The shulker course runs the engine alongside, to hold still while a box's screen is open.
+        PlayerState sim = shulkers ? start.copy() : null;
+        int screenTicks = -1;
+        float lastYaw = yaw0;
+        float lastPitch = start.rotationPitch;
         int keys = 0;
         boolean use = false;
         float yaw = yaw0;
         float turnRate = 0.0F;
         int hold = 0;
         for (int t = 0; t < ticks; t++) {
+            if (sim != null) {
+                // The screen opens at the start of the tick after the server's event is sent, and stays
+                // open for a random number of still ticks.
+                boolean opening = sim.shulker.event == Shulker.Event.OPEN;
+                if (!opening && !sim.shulker.screen) {
+                    screenTicks = -1;
+                } else {
+                    if (screenTicks < 0) {
+                        screenTicks = r.nextInt(r.nextBoolean() ? 4 : 25);
+                    }
+                    if (opening || screenTicks-- > 0) {
+                        PlayerInput still = new PlayerInput(0, lastYaw, lastPitch);
+                        inputs.add(still);
+                        Physics.step(w, sim, still);
+                        continue;
+                    }
+                }
+            }
             if (hold-- <= 0) {
                 keys = randomKeys(r);
                 hold = r.nextInt(r.nextBoolean() ? 3 : 15);
@@ -179,14 +237,138 @@ public final class RandomScenario {
             if (use) {
                 k |= PlayerInput.USE;
             }
-            if (r.nextDouble() < 0.7) {
+            if (pressing && r.nextDouble() < 0.7) {
+                // Level, at the posts around.
+                pitch = -20.0F + r.nextFloat() * 70.0F;
+            } else if (shulkers && r.nextDouble() < 0.4) {
+                // Steeply down, at the box underfoot.
+                pitch = 60.0F + r.nextFloat() * 30.0F;
+            } else if (r.nextDouble() < 0.7) {
                 // Down at the floor or the block just below, as when bridging or pillaring.
                 pitch = 30.0F + r.nextFloat() * 60.0F;
             }
             int slot = r.nextDouble() < 0.08 ? r.nextInt(Hotbar.SLOTS) : -1;
-            inputs.add(new PlayerInput(k, yaw, pitch, slot));
+            if (sim != null && sim.shulker.screen) {
+                k |= PlayerInput.CLOSE;
+            }
+            if (sim != null && !sim.shulker.isNone() && r.nextDouble() < 0.9) {
+                // Right-clicking while a lid moves is unsupported; mostly wait for it.
+                k &= ~PlayerInput.USE;
+            }
+            PlayerInput in = new PlayerInput(k, yaw, pitch, slot);
+            inputs.add(in);
+            if (sim != null) {
+                Physics.step(w, sim, in);
+                lastYaw = yaw;
+                lastPitch = pitch;
+            }
         }
         return new RandomScenario(seed, w, start, inputs, standing);
+    }
+
+    /**
+     * Stone posts two blocks high with buttons and levers on the free sides and the top, each facing
+     * away from the stone it hangs on; next to some, a block that reacts to power.
+     */
+    private static void addPosts(Random r, SparseBlockWorld w, int base) {
+        String[] reacting = {"minecraft:redstone_lamp", "minecraft:trapdoor[facing=north,half=bottom,open=false]",
+                "minecraft:piston[extended=false,facing=up]", "minecraft:water[level=0]", "minecraft:noteblock",
+                "minecraft:sand"};
+        for (int posts = 2 + r.nextInt(5); posts > 0; posts--) {
+            int px = r.nextInt(9) - 4;
+            int pz = r.nextInt(9) - 4;
+            if (Math.abs(px) <= 2 && Math.abs(pz) <= 2 || !clear(w, px, base, pz)) {
+                // Keep the start free, and every button and lever on stone.
+                continue;
+            }
+            for (int x = px - 1; x <= px + 1; x++) {
+                for (int z = pz - 1; z <= pz + 1; z++) {
+                    w.fill(x, base, z, x, base + 3, z, BlockType.AIR);
+                }
+            }
+            int h = 1 + r.nextInt(2);
+            w.fill(px, base, pz, px, base + h - 1, pz, BlockType.STONE);
+            for (int y = base; y < base + h; y++) {
+                for (Facing f : Facing.HORIZONTALS) {
+                    int bx = px + f.dx;
+                    int bz = pz + f.dz;
+                    if (Math.abs(bx) <= 1 && Math.abs(bz) <= 1 || !w.getBlock(bx, y, bz).isAir() || r.nextDouble() < 0.4) {
+                        continue;
+                    }
+                    w.setBlock(bx, y, bz, attached(r, f.name().toLowerCase(java.util.Locale.ROOT), false));
+                }
+            }
+            if (r.nextBoolean()) {
+                w.setBlock(px, base + h, pz, attached(r, "up", true));
+            }
+            if (r.nextDouble() < 0.4) {
+                Facing f = Facing.HORIZONTALS[r.nextInt(4)];
+                int y = base + r.nextInt(h + 1);
+                if (w.getBlock(px - f.dx, y, pz - f.dz).isAir()) {
+                    w.setBlock(px - f.dx, y, pz - f.dz, VanillaBlocks.require(reacting[r.nextInt(reacting.length)]));
+                }
+            }
+        }
+    }
+
+    private static final String[] COLOURS = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
+            "gray", "silver", "cyan", "purple", "blue", "brown", "green", "red", "black"};
+
+    /**
+     * Shulker boxes: often one in the floor under the start facing up, more in the floor and standing on it
+     * nearby facing any way, and now and then a block where a lid would open.
+     */
+    private static void addShulkers(Random r, SparseBlockWorld w, int base, int cx, int cz) {
+        if (r.nextDouble() < 0.7) {
+            w.setBlock(cx, base - 1, cz, shulkerBox(r, "up"));
+            w.fill(cx, base, cz, cx, base + 2, cz, BlockType.AIR);
+        }
+        for (int n = 1 + r.nextInt(5); n > 0; n--) {
+            int x = cx + r.nextInt(7) - 3;
+            int z = cz + r.nextInt(7) - 3;
+            boolean floor = r.nextBoolean();
+            int y = floor ? base - 1 : base;
+            if (!floor && Math.abs(x - cx) <= 1 && Math.abs(z - cz) <= 1) {
+                continue;
+            }
+            Facing f = floor && r.nextDouble() < 0.6 ? Facing.UP : Facing.values()[r.nextInt(6)];
+            w.setBlock(x, y, z, shulkerBox(r, f.id()));
+            if (r.nextDouble() < 0.2) {
+                w.setBlock(x + f.dx, y + f.dy, z + f.dz, BlockType.STONE);
+            } else if (!floor || f != Facing.UP) {
+                w.setBlock(x + f.dx, y + f.dy, z + f.dz, BlockType.AIR);
+            }
+        }
+    }
+
+    private static BlockType shulkerBox(Random r, String facing) {
+        return VanillaBlocks.require("minecraft:" + COLOURS[r.nextInt(COLOURS.length)] + "_shulker_box[facing=" + facing + "]");
+    }
+
+    /** True if no other post stands within two blocks of (px, pz). */
+    private static boolean clear(SparseBlockWorld w, int px, int base, int pz) {
+        for (int x = px - 2; x <= px + 2; x++) {
+            for (int z = pz - 2; z <= pz + 2; z++) {
+                for (int y = base; y <= base + 3; y++) {
+                    String id = VanillaBlocks.blockId(w.getBlock(x, y, z).name());
+                    if (id.endsWith("_button") || id.equals("minecraft:lever")) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /** A button or lever facing {@code facing}, on and off at random. */
+    private static BlockType attached(Random r, String facing, boolean top) {
+        double roll = r.nextDouble();
+        if (roll < 0.25) {
+            String f = top ? (r.nextBoolean() ? "up_x" : "up_z") : facing;
+            return VanillaBlocks.require("minecraft:lever[facing=" + f + "]");
+        }
+        String id = roll < 0.6 ? "minecraft:stone_button" : "minecraft:wooden_button";
+        return VanillaBlocks.require(id + "[facing=" + facing + ",powered=" + (r.nextDouble() < 0.1) + "]");
     }
 
     private static BlockType[] fullBlockCourse(Random r, SparseBlockWorld w, int base) {

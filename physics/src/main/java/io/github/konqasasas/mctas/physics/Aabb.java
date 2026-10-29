@@ -50,6 +50,32 @@ public final class Aabb {
         return new Aabb(d0, d1, d2, d3, d4, d5);
     }
 
+    /** {@code AxisAlignedBB.contract}: pulls in the face on the side of each component's sign. */
+    public Aabb contract(double x, double y, double z) {
+        double d0 = minX;
+        double d1 = minY;
+        double d2 = minZ;
+        double d3 = maxX;
+        double d4 = maxY;
+        double d5 = maxZ;
+        if (x < 0.0D) {
+            d0 -= x;
+        } else if (x > 0.0D) {
+            d3 -= x;
+        }
+        if (y < 0.0D) {
+            d1 -= y;
+        } else if (y > 0.0D) {
+            d4 -= y;
+        }
+        if (z < 0.0D) {
+            d2 -= z;
+        } else if (z > 0.0D) {
+            d5 -= z;
+        }
+        return new Aabb(d0, d1, d2, d3, d4, d5);
+    }
+
     public Aabb offset(double x, double y, double z) {
         return new Aabb(minX + x, minY + y, minZ + z, maxX + x, maxY + y, maxZ + z);
     }
