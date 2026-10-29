@@ -6,6 +6,7 @@ import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.DenseBlockWorld;
 import io.github.konqasasas.mctas.physics.PlayerState;
 import io.github.konqasasas.mctas.physics.SparseBlockWorld;
+import io.github.konqasasas.mctas.problem.judge.Hazards;
 import io.github.konqasasas.mctas.problem.Problem;
 import io.github.konqasasas.mctas.problem.Region;
 
@@ -158,31 +159,12 @@ final class Course {
         return c == null ? -1 : c.platform;
     }
 
-    /** True when the player gets hurt in this state (D-005): standing on magma, touching cactus, fire or lava. */
-    boolean hurts(PlayerState s) {
-        if (s.onGround && !s.isSneaking()) {
-            int x = (int) Math.floor(s.posX), y = (int) Math.floor(s.posY - 0.2), z = (int) Math.floor(s.posZ);
-            if (isHazard(world.getBlock(x, y, z), true)) return true;
-        }
-        Aabb b = s.box;
-        int x0 = (int) Math.floor(b.minX + 0.001), x1 = (int) Math.floor(b.maxX - 0.001);
-        int y0 = (int) Math.floor(b.minY + 0.001), y1 = (int) Math.floor(b.maxY - 0.001);
-        int z0 = (int) Math.floor(b.minZ + 0.001), z1 = (int) Math.floor(b.maxZ - 0.001);
-        for (int x = x0; x <= x1; x++) {
-            for (int y = y0; y <= y1; y++) {
-                for (int z = z0; z <= z1; z++) {
-                    if (isHazard(world.getBlock(x, y, z), false)) return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean isHazard(BlockType t, boolean walk) {
-        String n = t.name();
-        if (walk) return n.equals("minecraft:magma");
-        return n.equals("minecraft:cactus") || n.equals("minecraft:fire") || n.equals("minecraft:lava")
-            || n.equals("minecraft:flowing_lava");
+    /**
+     * True when the tick that ended in {@code s} hurts or tramples (D-005, {@link Hazards});
+     * {@code fallBefore} is the fall distance at its start.
+     */
+    boolean hurts(float fallBefore, PlayerState s) {
+        return Hazards.hurts(world, s) || Hazards.tramples(world, fallBefore, s);
     }
 
     /** Something in the two blocks above covers the whole top (minX..maxX, minZ..maxZ at {@code top}) within the player's height. */
@@ -215,7 +197,7 @@ final class Course {
         sparse.forEach(new SparseBlockWorld.Visitor() {
             @Override
             public void visit(int x, int y, int z, BlockType type) {
-                if (isHazard(type, true)) return;
+                if (Hazards.hurtsUnderfoot(type)) return;
                 List<Aabb> boxes = new ArrayList<Aabb>();
                 type.addCollisionBoxes(world, x, y, z, everything, boxes);
                 if (boxes.isEmpty()) return;

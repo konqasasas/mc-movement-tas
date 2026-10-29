@@ -203,7 +203,7 @@ final class Beam {
             if (!ToggleRule.allowed(lt, tick)) return null;
             lt = tick;
         }
-        if (ns.unsupportedAction || ns.posY < problem.voidY || grid.hurts(ns)) return null;
+        if (ns.unsupportedAction || ns.posY < problem.voidY || grid.hurts(n.s, ns)) return null;
         int entry = n.entry;
         boolean in = n.inStart;
         if (judgeStart) {
