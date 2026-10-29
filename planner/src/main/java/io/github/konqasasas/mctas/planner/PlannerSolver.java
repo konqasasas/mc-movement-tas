@@ -131,6 +131,8 @@ public final class PlannerSolver {
             say("A* level " + level + ": " + (p == null ? "no better plan" : p.time + " ticks, " + p.moves.size() + " moves")
                 + ", " + planner.expanded + " expanded, " + planner.generated + " generated (" + (System.currentTimeMillis() - t0) + " ms)");
             if (Planner.DEBUG) for (Map.Entry<String, Long> e : planner.maneuverNanos.entrySet()) say("  " + e.getKey() + " " + e.getValue() / 1000000 + " ms");
+            // Nothing to search from (no way to the goal in the foothold graph): more rounds change nothing.
+            if (best == null && planner.expanded == 0) break;
             if (p == null && planner.stalled) {
                 // Stalled with no plan: the bound promised moves that no move makes. Off the platform the
                 // search came nearest the goal on that still has such moves, they are dropped.
