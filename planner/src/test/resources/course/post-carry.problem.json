@@ -1,0 +1,15 @@
+{
+  "format": "mctas-problem", "version": 1, "id": "course/post-carry", "mcVersion": "1.12.2",
+  "world": {"source": "inline", "fills": [
+    {"from": [0, 64, -3], "to": [0, 64, 0], "block": "minecraft:stone"},
+    {"from": [0, 64, 3], "to": [0, 64, 3], "block": "minecraft:stone"},
+    {"from": [0, 65, 3], "to": [0, 65, 3], "block": "minecraft:iron_bars"},
+    {"from": [0, 64, 7], "to": [0, 64, 7], "block": "minecraft:stone"},
+    {"from": [0, 65, 7], "to": [0, 65, 7], "block": "minecraft:spruce_fence"},
+    {"from": [-1, 64, 10], "to": [1, 66, 12], "block": "minecraft:stone"}
+  ]},
+  "spawn": {"pos": [0.5, 65.0, 0.5], "yaw": 0.0, "pitch": 0.0},
+  "start": {"min": [0.0, 65.0, -3.0], "max": [1.0, 66.0, 1.0]},
+  "goal": {"min": [-1.0, 67.0, 11.0], "max": [2.0, 67.0, 13.0]},
+  "limits": {"maxTicks": 400, "voidY": 50.0}
+}

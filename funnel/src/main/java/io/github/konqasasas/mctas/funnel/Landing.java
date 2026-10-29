@@ -37,16 +37,18 @@ final class Landing {
     private final Grid g;
     private final Field f;
     private final float[][] min = new float[RADII.length][];
-    /** Levels with a stand, ladder or water cell. */
-    private final boolean[] hasLanding;
+    /** Levels with a stand, ladder or water cell; with a stand on slime. */
+    private final boolean[] hasLanding, hasSlime;
 
     Landing(Grid g, Field f) {
         this.g = g;
         this.f = f;
         hasLanding = new boolean[g.ny];
+        hasSlime = new boolean[g.ny];
         for (int i = 0; i < RADII.length; i++) min[i] = new float[g.flags.length];
         for (int id = 0; id < g.flags.length; id++) {
             if ((g.flags[id] & (Grid.STAND | Grid.CLIMB | Grid.WATER)) != 0) hasLanding[g.level(id)] = true;
+            if ((g.flags[id] & Grid.SLIME) != 0) hasSlime[g.level(id)] = true;
         }
         refresh();
     }
@@ -103,9 +105,12 @@ final class Landing {
     float value(PlayerState s) {
         double x = s.posX, y = s.posY, z = s.posZ, vx = s.motionX, vy = s.motionY, vz = s.motionZ;
         float best = Field.INF;
+        // How high the flight was: the fall so far, or the top still to come.
+        double apex = y + Math.max(0, s.fallDistance);
         for (int k = 1; k <= TICKS; k++) {
             double py = y;
             y += vy;
+            apex = Math.max(apex, y);
             x += vx;
             z += vz;
             vy = (vy - 0.08) * 0.98;
@@ -123,6 +128,30 @@ final class Landing {
                 if (!hasLanding[l]) continue;
                 float v = min[r][g.id(l, ix, iz)];
                 if (v + k < best) best = v + k;
+                if (hasSlime[l]) {
+                    float b = bounce(l, ix, iz, RADII[r], apex);
+                    if (b + k < best) best = b + k;
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Coming down on slime within {@code rad} cells (the reach of air control): the bounce goes back up about as high as the
+     * flight was, so the best cell of the column above the slime up to the flight's top.
+     */
+    private float bounce(int l, int ix, int iz, int rad, double apex) {
+        float best = Field.INF;
+        int top = Math.min(g.ny - 1, (int) Math.floor(apex - g.y0 + 1e-7));
+        for (int jx = Math.max(0, ix - rad); jx <= Math.min(g.nx - 1, ix + rad); jx++) {
+            for (int jz = Math.max(0, iz - rad); jz <= Math.min(g.nz - 1, iz + rad); jz++) {
+                if ((g.flags[g.id(l, jx, jz)] & Grid.SLIME) == 0) continue;
+                for (int lv = l + 1; lv <= top; lv++) {
+                    int id = g.id(lv, jx, jz);
+                    if ((g.flags[id] & Grid.PASS) == 0) break;
+                    best = Math.min(best, f.d[id]);
+                }
             }
         }
         return best;

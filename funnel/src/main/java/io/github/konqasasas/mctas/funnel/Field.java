@@ -20,8 +20,11 @@ final class Field {
     static final double SPEED = 0.33;
     static final float RISE = 3.0F, DROP = 1.5F, LADDER = 8.5F, SWIM = 6.0F;
     static final float INF = Float.POSITIVE_INFINITY;
-    /** Levels a rise from a stand may cover (a bounce off slime: {@link Grid#SLIME_RISE}). */
-    private static final int SLIME_LEVELS = (int) Math.ceil(Grid.SLIME_RISE) + 1;
+    /**
+     * Levels a rise from a stand may cover: a jump. Slime sends a fall back up as high as it came
+     * from, which the cells do not know: the flight's bounce is {@link Landing}'s.
+     */
+    private static final int RISE_LEVELS = (int) Math.ceil(Grid.JUMP_RISE) + 1;
     private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
     private static final int[] DZ = {0, 0, 1, -1, 1, -1, 1, -1};
     private static final float STRAIGHT = (float) (Grid.RES / SPEED), DIAGONAL = (float) (Grid.RES * Math.sqrt(2) / SPEED);
@@ -101,6 +104,16 @@ final class Field {
         return id < 0 || d[id] == INF ? INF : d[id] - seedValue[id];
     }
 
+    /**
+     * Slot cells ({@link Grid#SLOT}: the player fits only off the centre) cost as much again: a way
+     * through a slot when there is no other, not a short cut along every wall.
+     */
+    static final float SLOT_COST = STRAIGHT;
+
+    private float slot(int a, int b) {
+        return ((g.flags[a] | g.flags[b]) & Grid.SLOT) != 0 ? SLOT_COST : 0;
+    }
+
     private boolean movable(int id) {
         return (g.flags[id] & (Grid.STAND | Grid.AIR | Grid.CLIMB | Grid.WATER)) != 0;
     }
@@ -116,7 +129,7 @@ final class Field {
                 int u = g.id(l, jx, jz);
                 if (!movable(u)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL), v);
+                offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v);
             }
         }
         // A fall from the cell above.
@@ -124,11 +137,11 @@ final class Field {
             int u = g.id(l + 1, ix, iz);
             if (movable(u)) offer(u, dv + DROP, v);
         }
-        // A jump (or a bounce off slime) from a stand below, a climb or a swim up.
-        for (int k = 1; k <= SLIME_LEVELS && l - k >= 0; k++) {
+        // A jump from a stand below, a climb or a swim up.
+        for (int k = 1; k <= RISE_LEVELS && l - k >= 0; k++) {
             int u = g.id(l - k, ix, iz);
             if ((f[u] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + g.rise(u) + 1e-6) offer(u, dv + RISE * k, v);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(u, dv + RISE * k, v);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(u, dv + LADDER, v);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(u, dv + SWIM, v);
         }
@@ -138,7 +151,7 @@ final class Field {
                 int jx = ix + DX[k], jz = iz + DZ[k];
                 if (!g.in(l - 1, jx, jz)) continue;
                 int u = g.id(l - 1, jx, jz);
-                if ((f[u] & Grid.STAND) != 0 && g.top[u] >= g.top[v] - 0.6 - 1e-6) offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL), v);
+                if ((f[u] & Grid.STAND) != 0 && g.top[u] >= g.top[v] - 0.6 - 1e-6) offer(u, dv + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), v);
             }
         }
     }
@@ -154,17 +167,17 @@ final class Field {
                 int v = g.id(l, jx, jz);
                 if (!movable(v)) continue;
                 if (k >= 4 && ((f[g.id(l, jx, iz)] & Grid.PASS) == 0 || (f[g.id(l, ix, jz)] & Grid.PASS) == 0)) continue;
-                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL), u);
+                offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u);
             }
             if (l > 0) {
                 int v = g.id(l - 1, ix, iz);
                 if (movable(v)) offer(v, du + DROP, u);
             }
         }
-        for (int k = 1; k <= SLIME_LEVELS && l + k < g.ny; k++) {
+        for (int k = 1; k <= RISE_LEVELS && l + k < g.ny; k++) {
             int v = g.id(l + k, ix, iz);
             if ((f[v] & Grid.PASS) == 0) break;
-            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + g.rise(u) + 1e-6) offer(v, du + RISE * k, u);
+            if ((f[u] & Grid.STAND) != 0 && g.y0 + l + k <= g.top[u] + Grid.JUMP_RISE + 1e-6) offer(v, du + RISE * k, u);
             if (k == 1 && (f[u] & Grid.CLIMB) != 0) offer(v, du + LADDER, u);
             if (k == 1 && (f[u] & Grid.WATER) != 0) offer(v, du + SWIM, u);
         }
@@ -173,7 +186,7 @@ final class Field {
                 int jx = ix + DX[k], jz = iz + DZ[k];
                 if (!g.in(l + 1, jx, jz)) continue;
                 int v = g.id(l + 1, jx, jz);
-                if ((f[v] & Grid.STAND) != 0 && g.top[v] <= g.top[u] + 0.6 + 1e-6) offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL), u);
+                if ((f[v] & Grid.STAND) != 0 && g.top[v] <= g.top[u] + 0.6 + 1e-6) offer(v, du + (k < 4 ? STRAIGHT : DIAGONAL) + slot(u, v), u);
             }
         }
     }
@@ -234,17 +247,16 @@ final class Field {
             if (bi < 0) return null;
             id = bi;
         }
-        double tx = g.cx(g.ix(id)), tz = g.cz(g.iz(id));
+        double[] t = g.fit(id);
         int cur = id;
         for (int step = 0; step < 24; step++) {
             int n = next[cur];
             if (n < 0) break;
             cur = n;
-            tx = g.cx(g.ix(cur));
-            tz = g.cz(g.iz(cur));
-            if ((tx - x) * (tx - x) + (tz - z) * (tz - z) >= reach * reach) break;
+            t = g.fit(cur);
+            if ((t[0] - x) * (t[0] - x) + (t[1] - z) * (t[1] - z) >= reach * reach) break;
         }
-        return new double[] {tx, tz};
+        return t;
     }
 
     private void push(float v, int id) {

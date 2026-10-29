@@ -32,8 +32,9 @@ import java.util.Map;
  * and the state is unsupported.</li>
  * </ol>
  *
- * <p>Any other block that reacts to power (D-702) next to a plate that changes, any other power source the
- * trapdoor's power depends on, and a box within {@link #EDGE} of a plate's edge are unsupported.
+ * <p>A redstone block gives a trapdoor beside it weak power 15 and does nothing when notified. Any other
+ * block that reacts to power (D-702) next to a plate that changes, any other power source the trapdoor's
+ * power depends on, and a box within {@link #EDGE} of a plate's edge are unsupported.
  */
 public final class Mechanisms {
 
@@ -46,6 +47,11 @@ public final class Mechanisms {
     static final int TRAPDOOR = 5;
     /** A block that can give power ({@code Block.canProvidePower}) and is not a plate. */
     static final int OTHER_SOURCE = 6;
+    /**
+     * {@code BlockCompressedPowered}: weak power 15 on every side, no strong power, no {@code neighborChanged}
+     * and never a normal cube, so the engine models it.
+     */
+    static final int REDSTONE_BLOCK = 7;
 
     /** How close to a plate's edge a box is taken as on the edge: the server's box can differ in the last bits. */
     static final double EDGE = 1.0E-6D;
@@ -132,6 +138,8 @@ public final class Mechanisms {
             case "minecraft:trapdoor":
             case "minecraft:iron_trapdoor":
                 return TRAPDOOR;
+            case "minecraft:redstone_block":
+                return REDSTONE_BLOCK;
             case "minecraft:redstone_wire":
             case "minecraft:redstone_torch":
             case "minecraft:unlit_redstone_torch":
@@ -142,7 +150,6 @@ public final class Mechanisms {
             case "minecraft:detector_rail":
             case "minecraft:daylight_detector":
             case "minecraft:daylight_detector_inverted":
-            case "minecraft:redstone_block":
             case "minecraft:powered_repeater":
             case "minecraft:unpowered_repeater":
             case "minecraft:powered_comparator":
@@ -160,23 +167,56 @@ public final class Mechanisms {
         return kindOf(blockId) == OTHER_SOURCE;
     }
 
+    /**
+     * True for a power source the engine does not model that does nothing when a neighbour changes: in 1.12
+     * {@code BlockDaylightDetector} does not override {@code neighborChanged}, so a plate pressed next to one
+     * leaves it as it was. Its power still depends on the time of day, so a trapdoor beside it is unsupported.
+     */
+    public static boolean notifyInert(BlockType t) {
+        switch (VanillaBlocks.blockId(t.name())) {
+            case "minecraft:daylight_detector":
+            case "minecraft:daylight_detector_inverted":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** True for the blocks this class moves: pressure plates and trapdoors. */
     public static boolean isModelled(BlockType t) {
         int k = t.mechanism();
         return k >= WOODEN_PLATE && k <= TRAPDOOR;
     }
 
-    /** A copy with the client's blocks replaced, for the recorder that reads them off the live world. */
+    /**
+     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A plate
+     * the world shows with the power this one has keeps its name here (it may be named without its power).
+     */
     public Mechanisms withClient(BlockType[] shown) {
         if (shown.length != client.length) {
             throw new IllegalArgumentException("one block per entry");
         }
-        return new Mechanisms(xyz, server, shown.clone(), due, maybe);
+        BlockType[] c = shown.clone();
+        for (int i = 0; i < c.length; i++) {
+            if (samePlate(client[i], c[i])) {
+                c[i] = client[i];
+            }
+        }
+        return new Mechanisms(xyz, server, c, due, maybe);
     }
 
     public static boolean isPlate(BlockType t) {
         int k = t.mechanism();
         return k >= WOODEN_PLATE && k <= HEAVY_PLATE;
+    }
+
+    /**
+     * True if {@code a} and {@code b} are the same plate with the same power, a plate named without its power
+     * (an older problem file) counting as unpressed.
+     */
+    public static boolean samePlate(BlockType a, BlockType b) {
+        return isPlate(a) && isPlate(b) && VanillaBlocks.blockId(a.name()).equals(VanillaBlocks.blockId(b.name()))
+                && power(a) == power(b);
     }
 
     /** {@code tickRate}: 20 for wooden and stone plates, 10 for weighted ones. */
@@ -602,7 +642,8 @@ public final class Mechanisms {
                     set(x, y, z, VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(b.name()), p)));
                     changed.add(new int[] {x, y, z});
                 }
-            } else if (k == OTHER_SOURCE || !isPlate(b) && (b.reactsToPower() || b.isExcept(BlockType.UNSTABLE))) {
+            } else if (k == OTHER_SOURCE && !notifyInert(b)
+                    || k != OTHER_SOURCE && !isPlate(b) && (b.reactsToPower() || b.isExcept(BlockType.UNSTABLE))) {
                 // A plate only checks the block under it, which stays.
                 unsupported = true;
             }
@@ -650,6 +691,9 @@ public final class Mechanisms {
             if (b.mechanism() == OTHER_SOURCE) {
                 unsupported = true;
                 return 0;
+            }
+            if (b.mechanism() == REDSTONE_BLOCK) {
+                return 15;
             }
             return isPlate(b) ? power(b) : 0;
         }

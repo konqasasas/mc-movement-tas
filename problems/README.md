@@ -102,11 +102,11 @@ waza は別のサーバーのコースをユーザーが手で再現したもの
 
 ## gen-dev2: 生成した難しい開発用コース
 
-`tools/devgen/devgen.py problems/gen-dev2 gen-dev2 1 15 --hard --min-length 300 --max-length 600` で作った 15 問です(長さ 300〜600 ブロック)。gen-dev より要素が密で、跳ぶ距離が助走を活かしてやっと届くくらいに長く、要素を重ねたモジュール(細い柱の林、頭ブロックの螺旋、階段とバリアの塔、柱からはしご)が入っています。開発用で、目標はまだありません。
+`tools/devgen/devgen.py problems/gen-dev2 gen-dev2 1 15 --hard --min-length 300 --max-length 600` で作った 15 問(種 1〜15)と、もとは gen-dev2-holdout だった種 301〜315 の 15 問(同じ設定。`tools/devgen/devgen.py problems/gen-dev2 gen-dev2 301 15 --hard --min-length 300 --max-length 600`、D-502)の 30 問です(長さ 300〜600 ブロック)。gen-dev より要素が密で、跳ぶ距離が助走を活かしてやっと届くくらいに長く、要素を重ねたモジュール(細い柱の林、頭ブロックの螺旋、階段とバリアの塔、柱からはしご)が入っています。開発用で、目標はまだありません。
 
 ## gen-dev2-holdout: 生成した難しいコース(報告専用)
 
-`tools/devgen/devgen.py problems/gen-dev2-holdout gen-dev2-holdout 301 15 --hard --min-length 300 --max-length 600` で作った 15 問(種 301〜315)。調整には使わず、版の節目ごとに報告します。
+`tools/devgen/devgen.py problems/gen-dev2-holdout gen-dev2-holdout 401 15 --hard --min-length 300 --max-length 600` で作った 15 問(種 401〜415)。調整には使わず、版の節目ごとに報告します。落ちた問題は要素の種類の分類までにとどめ、詳しい再現は gen-dev2 の新しい種で行います。2026-10-29 に種 301〜315 から作り直しました(もとの 15 問は落ちる問題を詳しく調べたので gen-dev2 に移した。D-502)。これより前の版の記録(E-521〜E-530、E-906)の gen-dev2-holdout は種 301〜315 のものです。
 
 ## place: ブロック設置
 

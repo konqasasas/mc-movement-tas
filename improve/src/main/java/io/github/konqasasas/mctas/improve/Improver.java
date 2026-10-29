@@ -33,6 +33,14 @@ public final class Improver {
         public boolean fixToggles = true;
         /** Start repairs where a spliced run drifts from the old run ({@link Rebuild#drift}). */
         public boolean useDrift = true;
+        /** Chance that a rebuild starts at a slow spot ({@link Rebuild#slowSpots}). */
+        public double focusChance = 0;
+        /** Chance that a small edit jumps again on a landing ({@link Micro#rejump}). */
+        public double rejumpChance = 0;
+        /** Chance that a rebuild starts by jumping on a short landing ({@link Rebuild#jumpOnLanding}). */
+        public double landChance = 0;
+        /** Chance that a rebuild ends on a landing of the old run ({@link Rebuild#landExitChance}). */
+        public double landExitChance = 0;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -85,6 +93,38 @@ public final class Improver {
         return s;
     }
 
+    /**
+     * The landings of a run by how many ticks it stays on the ground before the next jump: "landings
+     * N, 1: a, 2-4: b, 5+: c". 1 is a jump on the landing tick (WS14, F-1007).
+     */
+    public static String landings(Run r) {
+        int one = 0, short_ = 0, longer = 0;
+        int end = r.valid ? r.goalTick : r.length;
+        for (int t = Math.max(1, r.startTick); t < end; t++) {
+            if (!r.states[t].onGround || r.states[t - 1].onGround) continue;
+            int g = Rebuild.groundTicks(r, t);
+            if (t + g > end) break;
+            if (g == 1) one++;
+            else if (g <= 4) short_++;
+            else longer++;
+        }
+        return "landings " + (one + short_ + longer) + ", 1: " + one + ", 2-4: " + short_ + ", 5+: " + longer;
+    }
+
+    /**
+     * A seed that breaks only the toggle rule (D-004), mended with {@link ToggleFix}: runs taken from
+     * human recordings (WS14) have a few toggles 1 or 2 ticks apart. Returns {@code r} when it is valid,
+     * breaks another rule, or cannot be mended.
+     */
+    public static Run mend(Course c, Run r, long seed) {
+        if (ToggleFix.clash(r) < 0) return r;
+        ToggleFix f = new ToggleFix();
+        f.maxRounds = 32;
+        f.tries = 200;
+        f.onlyClashes = true;
+        return f.apply(c, r, new Random(seed));
+    }
+
     /** Adds a starting run; returns it judged. Invalid runs are not added. */
     public Run seed(Run r) {
         if (r.valid) {
@@ -131,6 +171,10 @@ public final class Improver {
         rebuild.maxWindow = o.maxWindow;
         rebuild.fixToggles = o.fixToggles;
         rebuild.useDrift = o.useDrift;
+        rebuild.focusChance = o.focusChance;
+        Micro.rejumpChance = o.rejumpChance;
+        rebuild.landChance = o.landChance;
+        rebuild.landExitChance = o.landExitChance;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();

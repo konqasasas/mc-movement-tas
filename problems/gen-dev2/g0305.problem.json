@@ -1,7 +1,7 @@
 {
  "format": "mctas-problem",
  "version": 1,
- "id": "gen-dev2-holdout/g0305",
+ "id": "gen-dev2/g0305",
  "title": "generated dev course (seed 305), 395 blocks: thicket, stairtower, postladder, ladderjump, slalom, skulls, thicket, ladderjump, thicket, thicket, postladder, slalom, barrier, postladder, passage, ladderjump, stairtower, posts, thicket, passage, ladder, thicket, thicket, skullspiral, barrier, ladder, passage, stairs, zigzag, barrier, postladder, slalom, stairs, ladderjump, slalom, skullspiral, ladder, posts, ladder, thicket",
  "mcVersion": "1.12.2",
  "world": {

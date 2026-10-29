@@ -44,6 +44,24 @@ public class CourseTest {
     }
 
     @Test
+    public void waterNeighboursGoBothWays() {
+        // A body is grown from whichever of its cells comes first: a step only one way round splits it
+        // when it is grown from the far end (waza3h3's water steps up from the upper one, F-527).
+        java.util.Set<String> all = new java.util.HashSet<String>();
+        for (int[] d : Course.WATER_NEIGHBOURS) all.add(d[0] + "," + d[1] + "," + d[2]);
+        for (int[] d : Course.WATER_NEIGHBOURS) assertTrue(all.contains(-d[0] + "," + -d[1] + "," + -d[2]));
+    }
+
+    @Test
+    public void swimsUpWaterStepsTwoApartBetweenWalls() throws Exception {
+        Course c = new Course(ProblemIO.read(Paths.get("courses/elem-dev/e09-water-steps.problem.json")));
+        int body = -1;
+        for (int b = 0; b < c.bodies.size(); b++) for (int[] cell : c.bodies.get(b)) if (cell[1] == 68) body = b;
+        assertEquals(4, c.bodies.get(body).size());
+        assertTrue(c.support(0.5, 65.0, -5.5).toGo < Double.POSITIVE_INFINITY);
+    }
+
+    @Test
     public void bouncesOffSlimeOnlyFromAFallHighEnough() throws Exception {
         Course c = course("slime");
         Course.Surface high = c.support(0.5, 74.0, -5.5), far = c.support(0.5, 71.0, 11.5), floor = c.support(0.5, 65.0, 2.5);

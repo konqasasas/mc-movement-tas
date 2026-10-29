@@ -98,6 +98,29 @@ public class PlannerSolverTest {
     }
 
     @Test
+    public void aimsAtTheFarEdgeOfAPostToKeepTheSpeed() throws Exception {
+        // F-529: iron bars three on, then a fence four on. Besides the middle of the bars, one aim lands at
+        // their far edge on the way to the fence, so that the hop off them can start at full speed.
+        Course c = new Course(ProblemIO.read(Paths.get("src/test/resources/course/post-carry.problem.json")));
+        boolean far = false;
+        for (double[] a : new Planner(c).aims(Run.spawn(c))) far |= a[2] == 66.0 && a[1] > 3.65;
+        assertTrue(far);
+    }
+
+    @Test
+    public void climbsToTheTopOfThisLadderBeforeTheNextOne() throws Exception {
+        // F-530: a ladder up a wall, then a second ladder a block across and up, in one body. The
+        // footholds past the second ladder are nearer the goal, but the climb starts with the top of
+        // the first one (getting from one ladder straight onto the other is not a climb step).
+        Course c = new Course(ProblemIO.read(Paths.get("src/test/resources/climb/ladder-to-ladder.problem.json")));
+        java.util.List<Maneuver.Successor> out = new java.util.ArrayList<Maneuver.Successor>();
+        new ClimbManeuver().expand(Run.spawn(c), new java.util.ArrayList<double[]>(), out);
+        boolean top = false;
+        for (Maneuver.Successor q : out) top |= q.run.s.onGround && q.run.s.posY == 69.0;
+        assertTrue(top);
+    }
+
+    @Test
     public void airControlLandsOnTheAimedTop() {
         // Falling from 1.25 above a top: the landing tick is found from the vertical motion alone.
         assertEquals(-1, Step.movesBeforeLanding(64.0, -0.1, 65.0));

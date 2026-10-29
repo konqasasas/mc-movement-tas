@@ -11,7 +11,9 @@ import io.github.konqasasas.mctas.problem.Region;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The course as a grid of places the player's feet point can be, for the guidance field.
@@ -39,6 +41,8 @@ final class Grid {
     static final double SLIME_RISE = 4.0;
 
     static final byte PASS = 1, STAND = 2, CLIMB = 4, WATER = 8, AIR = 16, SLIME = 32;
+    /** Passable only off the cell centre (a slot barely wider than the player): see {@link #fit}. */
+    static final byte SLOT = 64;
 
     final Problem problem;
     final BlockWorld world;
@@ -75,6 +79,15 @@ final class Grid {
         top = new float[nx * nz * ny];
         Arrays.fill(top, Float.NaN);
         build();
+        if (System.getenv("FUNNEL_FREE") != null) {
+            String[] p = System.getenv("FUNNEL_FREE").split(",");
+            double fx0 = Double.parseDouble(p[0]), fx1 = Double.parseDouble(p[1]), fz0 = Double.parseDouble(p[2]), fz1 = Double.parseDouble(p[3]), fy = Double.parseDouble(p[4]);
+            for (double z = fz0; z <= fz1 + 1e-9; z += 1 / 32.0) {
+                StringBuilder sb = new StringBuilder(String.format("%8.3f ", z));
+                for (double x = fx0; x <= fx1 + 1e-9; x += 1 / 32.0) sb.append(free(x, z, fy) ? '.' : '#');
+                System.out.println(sb);
+            }
+        }
         slimes();
         airReach();
     }
@@ -176,75 +189,32 @@ final class Grid {
     }
 
     private void build() {
-        Aabb all = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
-        List<Aabb> boxes = new ArrayList<Aabb>();
-        double[] lo = new double[8192], hi = new double[8192];
-        boolean[] magma = new boolean[8192];
+        Column col = new Column();
+        byte[] nf = new byte[ny];
+        float[] nt = new float[ny];
         for (int ix = 0; ix < nx; ix++) {
             double cx = cx(ix);
             int bx0 = (int) Math.floor(cx - 0.3), bx1 = (int) Math.floor(cx + 0.3 - 1e-9);
             for (int iz = 0; iz < nz; iz++) {
                 double cz = cz(iz);
                 int bz0 = (int) Math.floor(cz - 0.3), bz1 = (int) Math.floor(cz + 0.3 - 1e-9);
-                // Solid intervals of the column under the 0.6 footprint.
-                int n = 0;
-                for (int y = y0 - 1; y < y0 + ny + 2; y++) {
-                    for (int bx = bx0; bx <= bx1; bx++) {
-                        for (int bz = bz0; bz <= bz1; bz++) {
-                            BlockType t = world.getBlock(bx, y, bz);
-                            if (t.isAir()) continue;
-                            if (hazard(t)) {
-                                if (n == lo.length) break;
-                                lo[n] = y;
-                                hi[n] = y + 1;
-                                magma[n] = true;
-                                n++;
-                                continue;
-                            }
-                            boxes.clear();
-                            t.addCollisionBoxes(world, bx, y, bz, all, boxes);
-                            for (Aabb a : boxes) {
-                                if (a.minX >= cx + 0.3 || a.maxX <= cx - 0.3 || a.minZ >= cz + 0.3 || a.maxZ <= cz - 0.3) continue;
-                                if (n == lo.length) break;
-                                lo[n] = a.minY;
-                                hi[n] = a.maxY;
-                                magma[n] = magma(t);
-                                n++;
-                            }
-                        }
-                    }
-                }
-                sortIntervals(lo, hi, magma, n);
-                // Free gaps between the merged solid intervals.
-                double floor = Double.NEGATIVE_INFINITY;
-                boolean floorBad = true;
-                int i = 0;
-                while (true) {
-                    double ceil = Double.POSITIVE_INFINITY;
-                    double nextFloor = 0;
-                    boolean nextBad = false;
-                    if (i < n) {
-                        ceil = lo[i];
-                        double h = hi[i];
-                        boolean bad = magma[i];
-                        int j = i + 1;
-                        while (j < n && lo[j] <= h + 1e-9) {
-                            if (hi[j] > h + 1e-9) {
-                                h = hi[j];
-                                bad = magma[j];
-                            } else if (Math.abs(hi[j] - h) < 1e-9) {
-                                bad |= magma[j];
-                            }
-                            j++;
-                        }
-                        nextFloor = h;
-                        nextBad = bad;
-                        i = j;
-                    }
-                    gap(ix, iz, floor, ceil, !floorBad && floor != Double.NEGATIVE_INFINITY);
-                    if (ceil == Double.POSITIVE_INFINITY) break;
-                    floor = nextFloor;
-                    floorBad = nextBad;
+                Arrays.fill(nf, (byte) 0);
+                Arrays.fill(nt, Float.NaN);
+                boolean slots = col.mark(cx, cz, flags, top, id(0, ix, iz), nx * nz, nf, nt);
+                // A slot barely wider than the player (an open trapdoor in each side of a doorway, a
+                // fence post next to a wall): the box fits off the cell centre. Passable, with the
+                // place it fits kept for the beam's line moves (fit).
+                for (int l = 0; slots && l < ny; l++) {
+                    int id = id(l, ix, iz);
+                    if ((nf[l] & PASS) == 0 || (flags[id] & PASS) != 0) continue;
+                    // The narrow footprint is only a necessary condition: the box has to fit somewhere.
+                    double feet = (nf[l] & STAND) != 0 ? nt[l] : y0 + l;
+                    double[] at = fit(cx, cz, feet);
+                    if (at == null && (nf[l] & STAND) == 0) at = fit(cx, cz, feet + 0.5);
+                    if (at == null) continue;
+                    fits.put(id, at);
+                    flags[id] |= PASS | SLOT | (nf[l] & STAND);
+                    if ((nf[l] & STAND) != 0) top[id] = nt[l];
                 }
                 // Climbing and water: by the feet block (ladders) and the body (water).
                 for (int l = 0; l < ny; l++) {
@@ -260,6 +230,175 @@ final class Grid {
                     if (wet) flags[id] |= WATER;
                 }
             }
+        }
+    }
+
+    /** Half the footprint that finds slots: the player's half width less half a cell. */
+    static final double NARROW = 0.3 - RES / 2;
+    /** Where the player's box fits in the slot cells (passable only off their centre). */
+    private final Map<Integer, double[]> fits = new HashMap<Integer, double[]>();
+
+    /** The x, z of the cell where the player fits: its centre, or for a slot the middle of the places in the cell where the box fits. */
+    double[] fit(int id) {
+        double[] f = (flags[id] & SLOT) != 0 ? fits.get(id) : null;
+        return f != null ? f : new double[] {cx(ix(id)), cz(iz(id))};
+    }
+
+    private final List<Aabb> fitBoxes = new ArrayList<Aabb>();
+
+    /**
+     * The middle of the places within the cell (on a 1/64 lattice) where the player's box fits with
+     * the feet at this height; null when none. The two lines through the centre first (a slot or a
+     * wall is across one of them), the whole cell only when neither has a place.
+     */
+    private double[] fit(double cx, double cz, double feet) {
+        int steps = 8;
+        double sx = 0, sz = 0;
+        int n = 0;
+        for (int a = -steps; a <= steps; a++) {
+            double d = a * (RES / 2) / steps;
+            if (free(cx + d, cz, feet)) {
+                sx += cx + d;
+                sz += cz;
+                n++;
+            }
+            if (a != 0 && free(cx, cz + d, feet)) {
+                sx += cx;
+                sz += cz + d;
+                n++;
+            }
+        }
+        for (int a = -steps; n == 0 && a <= steps; a++) {
+            for (int b = -steps; b <= steps; b++) {
+                double x = cx + a * (RES / 2) / steps, z = cz + b * (RES / 2) / steps;
+                if (!free(x, z, feet)) continue;
+                sx += x;
+                sz += z;
+                n++;
+            }
+        }
+        return n == 0 ? null : new double[] {sx / n, sz / n};
+    }
+
+    /** True when the player's standing box at this feet point touches no collision box. */
+    private boolean free(double x, double z, double feet) {
+        Aabb box = new Aabb(x - 0.3 + 1e-7, feet + 1e-7, z - 0.3 + 1e-7, x + 0.3 - 1e-7, feet + 1.8 - 1e-7, z + 0.3 - 1e-7);
+        for (int bx = (int) Math.floor(box.minX); bx <= (int) Math.floor(box.maxX); bx++) {
+            for (int by = (int) Math.floor(box.minY) - 1; by <= (int) Math.floor(box.maxY); by++) {
+                for (int bz = (int) Math.floor(box.minZ); bz <= (int) Math.floor(box.maxZ); bz++) {
+                    BlockType t = world.getBlock(bx, by, bz);
+                    if (t.isAir()) continue;
+                    if (hazard(t)) return false;
+                    fitBoxes.clear();
+                    t.addCollisionBoxes(world, bx, by, bz, box, fitBoxes);
+                    for (Aabb c : fitBoxes) {
+                        if (c.maxX > box.minX && c.minX < box.maxX && c.maxY > box.minY && c.minY < box.maxY && c.maxZ > box.minZ && c.minZ < box.maxZ) return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The free gaps of a column under the player's footprint, marked into a column of cells; with
+     * {@link #NARROW} also those under the narrow footprint (for slots), when they differ.
+     */
+    private final class Column {
+        final Aabb all = new Aabb(-3.0E7, -64, -3.0E7, 3.0E7, 512, 3.0E7);
+        final List<Aabb> boxes = new ArrayList<Aabb>();
+        final double[] lo = new double[8192], hi = new double[8192];
+        final boolean[] magma = new boolean[8192];
+        final double[] nlo = new double[8192], nhi = new double[8192];
+        final boolean[] nmagma = new boolean[8192];
+
+        /**
+         * Marks passable and standable levels at x, z into flags/top at base + level * stride; with
+         * nf, also the narrow footprint's levels into nf/nt (one cell per level). Returns false when
+         * the narrow footprint was not marked because it has the same solids.
+         */
+        boolean mark(double cx, double cz, byte[] flags, float[] top, int base, int stride, byte[] nf, float[] nt) {
+            double half = 0.3, nh = NARROW;
+            int bx0 = (int) Math.floor(cx - half), bx1 = (int) Math.floor(cx + half - 1e-9);
+            int bz0 = (int) Math.floor(cz - half), bz1 = (int) Math.floor(cz + half - 1e-9);
+            // Solid intervals of the column under the footprint.
+            int n = 0, m = 0;
+            for (int y = y0 - 1; y < y0 + ny + 2; y++) {
+                for (int bx = bx0; bx <= bx1; bx++) {
+                    for (int bz = bz0; bz <= bz1; bz++) {
+                        BlockType t = world.getBlock(bx, y, bz);
+                        if (t.isAir()) continue;
+                        if (hazard(t)) {
+                            if (n == lo.length) break;
+                            lo[n] = y;
+                            hi[n] = y + 1;
+                            magma[n] = true;
+                            n++;
+                            if (bx < cx + nh && bx + 1 > cx - nh && bz < cz + nh && bz + 1 > cz - nh) {
+                                nlo[m] = y;
+                                nhi[m] = y + 1;
+                                nmagma[m] = true;
+                                m++;
+                            }
+                            continue;
+                        }
+                        boxes.clear();
+                        t.addCollisionBoxes(world, bx, y, bz, all, boxes);
+                        for (Aabb a : boxes) {
+                            if (a.minX >= cx + half || a.maxX <= cx - half || a.minZ >= cz + half || a.maxZ <= cz - half) continue;
+                            if (n == lo.length) break;
+                            lo[n] = a.minY;
+                            hi[n] = a.maxY;
+                            magma[n] = magma(t);
+                            n++;
+                            if (a.minX >= cx + nh || a.maxX <= cx - nh || a.minZ >= cz + nh || a.maxZ <= cz - nh) continue;
+                            nlo[m] = a.minY;
+                            nhi[m] = a.maxY;
+                            nmagma[m] = magma(t);
+                            m++;
+                        }
+                    }
+                }
+            }
+            gaps(lo, hi, magma, n, flags, top, base, stride);
+            if (nf == null || m == n) return false;
+            gaps(nlo, nhi, nmagma, m, nf, nt, 0, 1);
+            return true;
+        }
+    }
+
+    /** Free gaps between the merged solid intervals. */
+    private void gaps(double[] lo, double[] hi, boolean[] magma, int n, byte[] flags, float[] top, int base, int stride) {
+        sortIntervals(lo, hi, magma, n);
+        double floor = Double.NEGATIVE_INFINITY;
+        boolean floorBad = true;
+        int i = 0;
+        while (true) {
+            double ceil = Double.POSITIVE_INFINITY;
+            double nextFloor = 0;
+            boolean nextBad = false;
+            if (i < n) {
+                ceil = lo[i];
+                double h = hi[i];
+                boolean bad = magma[i];
+                int j = i + 1;
+                while (j < n && lo[j] <= h + 1e-9) {
+                    if (hi[j] > h + 1e-9) {
+                        h = hi[j];
+                        bad = magma[j];
+                    } else if (Math.abs(hi[j] - h) < 1e-9) {
+                        bad |= magma[j];
+                    }
+                    j++;
+                }
+                nextFloor = h;
+                nextBad = bad;
+                i = j;
+            }
+            gap(flags, top, base, stride, floor, ceil, !floorBad && floor != Double.NEGATIVE_INFINITY);
+            if (ceil == Double.POSITIVE_INFINITY) break;
+            floor = nextFloor;
+            floorBad = nextBad;
         }
     }
 
@@ -281,14 +420,13 @@ final class Grid {
     }
 
     /** Marks the levels of a free gap: passable where the feet fit, standable at the floor. */
-    private void gap(int ix, int iz, double floor, double ceil, boolean standable) {
+    private void gap(byte[] flags, float[] top, int base, int stride, double floor, double ceil, boolean standable) {
         double feetLo = Math.max(floor, y0), feetHi = Math.min(ceil - 1.8, y0 + ny);
         if (feetHi < feetLo - 1e-9) return;
         int l0 = (int) Math.floor(feetLo - y0 + 1e-9), l1 = (int) Math.floor(feetHi - y0 + 1e-9);
-        for (int l = Math.max(0, l0); l <= Math.min(ny - 1, l1); l++) flags[id(l, ix, iz)] |= PASS;
+        for (int l = Math.max(0, l0); l <= Math.min(ny - 1, l1); l++) flags[base + l * stride] |= PASS;
         if (standable && floor >= y0 && floor < y0 + ny) {
-            int l = (int) Math.floor(floor - y0 + 1e-9);
-            int id = id(l, ix, iz);
+            int id = base + (int) Math.floor(floor - y0 + 1e-9) * stride;
             flags[id] |= STAND | PASS;
             if (Float.isNaN(top[id]) || floor > top[id]) top[id] = (float) floor;
         }

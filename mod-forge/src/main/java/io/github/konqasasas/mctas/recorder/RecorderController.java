@@ -636,7 +636,7 @@ public final class RecorderController {
                     return;
                 }
                 BlockType now = live.getBlock(x + originX, y, z + originZ);
-                if (!now.name().equals(type.name())) {
+                if (!now.name().equals(type.name()) && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
                     first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                 }
             }
@@ -1148,13 +1148,27 @@ public final class RecorderController {
                         // A button the engine pressed: checkPressed follows it.
                         return;
                     }
-                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))) {
+                    if (now != type && !VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))
+                            && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)
+                            && !builtAs(type, x + originX, y, z + originZ)) {
                         first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                     }
                 }
             }
         });
         return first[0];
+    }
+
+    /**
+     * True if the world holds the state this block was built with: a block named without its properties (an
+     * older problem file, a bare {@code minecraft:stone_button}) is built in its default state.
+     */
+    private boolean builtAs(BlockType type, int x, int y, int z) {
+        try {
+            return mc.world.getBlockState(new BlockPos(x, y, z)) == vanilla(type);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private static IBlockState vanilla(BlockType type) {
