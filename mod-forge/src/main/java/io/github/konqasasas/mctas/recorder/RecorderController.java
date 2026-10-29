@@ -107,6 +107,8 @@ public final class RecorderController {
     private String runFirstMismatch;
     /** A screen opened during a scripted run: someone used the game window, so the run is not left to the script. */
     private boolean runScreenOpened;
+    /** The first tick at whose end the off hand held something, or -1. */
+    private int runOffhandTick = -1;
     /** The first course block that changed during the run, or null. */
     private String runWorldChange;
     /** The world's randomTickSpeed before the fuzz set it to 0, restored when the fuzz stops. */
@@ -349,6 +351,11 @@ public final class RecorderController {
                 }
                 readPlacement(p, real, sim);
                 PlayerSnapshot.readShulker(mc, real, sim);
+                if (runPlacing && runOffhandTick < 0 && !p.getHeldItemOffhand().isEmpty()) {
+                    // A right-click with an empty main hand would use it.
+                    runOffhandTick = tick;
+                    log.println("# the off hand holds " + p.getHeldItemOffhand() + " at tick " + tick);
+                }
                 if (entityNearby(p)) {
                     runEntityTicks++;
                 }
@@ -626,6 +633,7 @@ public final class RecorderController {
         runEntityTicks = 0;
         runFirstMismatch = null;
         runScreenOpened = false;
+        runOffhandTick = -1;
         runWorldChange = null;
         runDamageTick = -1;
         runPausedTicks = 0;
@@ -654,6 +662,9 @@ public final class RecorderController {
             runsInvalid++;
         } else if (runScreenOpened) {
             result = "INVALID: a screen (menu, chat, inventory) was opened during the run";
+            runsInvalid++;
+        } else if (runOffhandTick >= 0) {
+            result = "INVALID: the off hand held an item from tick " + runOffhandTick;
             runsInvalid++;
         } else if (runWorldChange != null) {
             // Trampled farmland, a block that fell or got powered: the engine's world stays as built.
@@ -942,6 +953,12 @@ public final class RecorderController {
                 ws.setBlockState(new BlockPos(x + ox, y, z + oz), vanilla(type), 2);
             }
         });
+        // A shulker box drops itself when the old course is cleared, and the player would pick it up and
+        // hold it (F-709).
+        for (net.minecraft.entity.item.EntityItem item : ws.getEntitiesWithinAABB(net.minecraft.entity.item.EntityItem.class,
+                new net.minecraft.util.math.AxisAlignedBB(box[0] - 2, box[1] - 2, box[2] - 2, box[3] + 3, box[4] + 3, box[5] + 3))) {
+            item.setDead();
+        }
         // Placing a block can schedule a tick for it (BlockFalling.onBlockAdded, fire, liquids): a floating
         // anvil or concrete powder would then fall and the course never settle. The engine's world never
         // changes, so drop every tick scheduled in the box.
