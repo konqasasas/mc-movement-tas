@@ -49,18 +49,21 @@ public final class Physics {
      * go to {@link PlayerState#placed}, never into {@code world}.
      */
     public static void step(BlockWorld base, PlayerState s, PlayerInput input) {
-        // EntityPlayerSP.closeScreen, before the tick; then what the server sent arrives at its start
-        // (PlayerControllerMP.updateController -> processReceivedPackets).
-        if (input.has(PlayerInput.CLOSE)) {
-            if (s.shulker.screen) {
-                s.shulker = s.shulker.closeScreen();
-            } else {
-                s.unsupportedAction = true;
-            }
+        // EntityPlayerSP.closeScreen, before the tick; then what the server sent during the last tick
+        // arrives at its start. The server answers the close only in its next tick, so the lid starts
+        // closing a tick later (F-708).
+        boolean close = input.has(PlayerInput.CLOSE);
+        boolean wasScreen = s.shulker.screen;
+        if (close && !wasScreen) {
+            // No screen to close, or one about to open after the close.
+            s.unsupportedAction = true;
         }
         boolean screen = false;
         if (!s.shulker.isNone()) {
             s.shulker = s.shulker.arrive();
+            if (close && wasScreen) {
+                s.shulker = s.shulker.closeScreen();
+            }
             screen = s.shulker.screen;
         }
         if (screen && (input.keys != 0 || input.slot >= 0

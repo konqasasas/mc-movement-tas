@@ -143,6 +143,8 @@ public final class RecorderController {
     private int runUnsupportedTick;
     /** The player's own hotbar before the first run that replaced it, put back when the session stops. */
     private volatile net.minecraft.item.ItemStack[] savedHotbar;
+    /** The player's own off-hand item while a run's hotbar is in place. */
+    private volatile net.minecraft.item.ItemStack savedOffhand;
     private volatile boolean serverReady;
     private int settleCount;
     private int runsMatched;
@@ -982,7 +984,10 @@ public final class RecorderController {
                 own[i] = mp.inventory.getStackInSlot(i).copy();
             }
             savedHotbar = own;
+            savedOffhand = mp.inventory.offHandInventory.get(0).copy();
         }
+        // Rightclicking with an empty main hand uses the off hand: a block there would be placed (F-708).
+        mp.inventory.offHandInventory.set(0, net.minecraft.item.ItemStack.EMPTY);
         for (int i = 0; i < Hotbar.SLOTS; i++) {
             BlockType t = hotbar.item(i);
             net.minecraft.item.ItemStack st = net.minecraft.item.ItemStack.EMPTY;
@@ -1023,7 +1028,7 @@ public final class RecorderController {
             // The hotbar reaches the client in its own packets, after the blocks or before them.
             PlayerState h = new PlayerState();
             PlayerSnapshot.readPlacement(mc.player, h);
-            if (!h.hotbar.equals(runHotbar)) {
+            if (!h.hotbar.equals(runHotbar) || !mc.player.getHeldItemOffhand().isEmpty()) {
                 return false;
             }
         }
@@ -1080,6 +1085,10 @@ public final class RecorderController {
                     if (savedHotbar != null) {
                         for (int i = 0; i < Hotbar.SLOTS; i++) {
                             mp.inventory.setInventorySlotContents(i, savedHotbar[i]);
+                        }
+                        if (savedOffhand != null) {
+                            mp.inventory.offHandInventory.set(0, savedOffhand);
+                            savedOffhand = null;
                         }
                         mp.inventoryContainer.detectAndSendChanges();
                         savedHotbar = null;
