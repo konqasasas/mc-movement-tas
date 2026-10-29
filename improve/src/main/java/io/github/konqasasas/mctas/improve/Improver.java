@@ -33,6 +33,10 @@ public final class Improver {
         public boolean fixToggles = true;
         /** Start repairs where a spliced run drifts from the old run ({@link Rebuild#drift}). */
         public boolean useDrift = true;
+        /** Chance that a rebuild starts at a slow spot ({@link Rebuild#slowSpots}). */
+        public double focusChance = 0;
+        /** Chance that a small edit jumps again on a landing ({@link Micro#rejump}). */
+        public double rejumpChance = 0;
         /**
          * Moves the shares towards the moves that improve the thread's run: every
          * {@link #adaptSeconds}, each move gets {@code base * (0.2 + 0.8 * rate / best rate)}, where
@@ -131,6 +135,8 @@ public final class Improver {
         rebuild.maxWindow = o.maxWindow;
         rebuild.fixToggles = o.fixToggles;
         rebuild.useDrift = o.useDrift;
+        rebuild.focusChance = o.focusChance;
+        Micro.rejumpChance = o.rejumpChance;
         rebuild.deadlineNanos = deadline;
         YawCma cma = new YawCma();
         Crossover cross = new Crossover();
