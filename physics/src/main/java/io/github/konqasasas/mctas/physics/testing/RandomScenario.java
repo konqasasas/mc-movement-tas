@@ -1,6 +1,7 @@
 package io.github.konqasasas.mctas.physics.testing;
 
 import io.github.konqasasas.mctas.physics.BlockType;
+import io.github.konqasasas.mctas.physics.BlockWorld;
 import io.github.konqasasas.mctas.physics.Facing;
 import io.github.konqasasas.mctas.physics.Hotbar;
 import io.github.konqasasas.mctas.physics.Physics;
@@ -49,36 +50,41 @@ public final class RandomScenario {
 
     /** {@link #generate}, {@link #generateShapes} or {@link #generateFluids} by name. */
     public static RandomScenario generate(String course, long seed, int ticks) {
-        if (course.equals("full")) {
-            return generate(seed, ticks);
-        } else if (course.equals("shapes")) {
-            return generateShapes(seed, ticks);
-        } else if (course.equals("fluids")) {
-            return generateFluids(seed, ticks);
-        } else if (course.equals("place")) {
-            return generatePlacing(seed, ticks);
-        } else if (course.equals("press")) {
-            return generatePressing(seed, ticks);
-        } else if (course.equals("shulker")) {
-            return generateShulker(seed, ticks);
+        return generate(seed, ticks, kind(course), null, null);
+    }
+
+    /**
+     * The inputs of {@code generate(course, seed, ticks)} for a run that really starts from {@code start} in
+     * {@code world}. The shulker course's inputs follow the engine (they hold still while a screen is open),
+     * so a run whose start differs from {@link #start} (pushed out of a pillar, another right-click delay)
+     * needs them made again from its own start. The other courses' inputs come out the same.
+     */
+    public static List<PlayerInput> inputsFrom(String course, long seed, int ticks, BlockWorld world, PlayerState start) {
+        return generate(seed, ticks, kind(course), world, start).inputs;
+    }
+
+    private static int kind(String course) {
+        int i = java.util.Arrays.asList(COURSES).indexOf(course);
+        if (i < 0) {
+            throw new IllegalArgumentException("unknown course kind " + course
+                    + ", expected full, shapes, fluids, place, press or shulker");
         }
-        throw new IllegalArgumentException("unknown course kind " + course
-                + ", expected full, shapes, fluids, place, press or shulker");
+        return i;
     }
 
     /** Full blocks and ice only. */
     public static RandomScenario generate(long seed, int ticks) {
-        return generate(seed, ticks, 0);
+        return generate(seed, ticks, 0, null, null);
     }
 
     /** Courses built from every solid block in {@link VanillaBlocks}: slabs, stairs, fences, walls, panes, ... */
     public static RandomScenario generateShapes(long seed, int ticks) {
-        return generate(seed, ticks, 1);
+        return generate(seed, ticks, 1, null, null);
     }
 
     /** {@link #generateShapes} courses with pools and puddles of still water or lava (one of the two per course). */
     public static RandomScenario generateFluids(long seed, int ticks) {
-        return generate(seed, ticks, 2);
+        return generate(seed, ticks, 2, null, null);
     }
 
     /**
@@ -86,7 +92,7 @@ public final class RandomScenario {
      * and a hotbar of full blocks; the inputs right-click, switch slots and often look down.
      */
     public static RandomScenario generatePlacing(long seed, int ticks) {
-        return generate(seed, ticks, 3);
+        return generate(seed, ticks, 3, null, null);
     }
 
     /**
@@ -95,7 +101,7 @@ public final class RandomScenario {
      * often look level, at the posts.
      */
     public static RandomScenario generatePressing(long seed, int ticks) {
-        return generate(seed, ticks, 4);
+        return generate(seed, ticks, 4, null, null);
     }
 
     /**
@@ -104,10 +110,10 @@ public final class RandomScenario {
      * the time. While a box's screen is open the inputs hold nothing and keep the angles, then close it.
      */
     public static RandomScenario generateShulker(long seed, int ticks) {
-        return generate(seed, ticks, 5);
+        return generate(seed, ticks, 5, null, null);
     }
 
-    private static RandomScenario generate(long seed, int ticks, int kind) {
+    private static RandomScenario generate(long seed, int ticks, int kind, BlockWorld simWorld, PlayerState simStart) {
         Random r = new Random(seed);
         SparseBlockWorld w = new SparseBlockWorld();
         int base = 64;
@@ -180,10 +186,11 @@ public final class RandomScenario {
 
         List<PlayerInput> inputs = new ArrayList<PlayerInput>(ticks);
         // The shulker course runs the engine alongside, to hold still while a box's screen is open.
-        PlayerState sim = shulkers ? start.copy() : null;
+        PlayerState sim = !shulkers ? null : simStart != null ? simStart.copy() : start.copy();
+        BlockWorld simIn = simWorld != null ? simWorld : w;
         int screenTicks = -1;
-        float lastYaw = yaw0;
-        float lastPitch = start.rotationPitch;
+        float lastYaw = sim != null ? sim.rotationYaw : yaw0;
+        float lastPitch = sim != null ? sim.rotationPitch : start.rotationPitch;
         int keys = 0;
         boolean use = false;
         float yaw = yaw0;
@@ -203,7 +210,7 @@ public final class RandomScenario {
                     if (opening || screenTicks-- > 0) {
                         PlayerInput still = new PlayerInput(0, lastYaw, lastPitch);
                         inputs.add(still);
-                        Physics.step(w, sim, still);
+                        Physics.step(simIn, sim, still);
                         continue;
                     }
                 }
@@ -258,7 +265,7 @@ public final class RandomScenario {
             PlayerInput in = new PlayerInput(k, yaw, pitch, slot);
             inputs.add(in);
             if (sim != null) {
-                Physics.step(w, sim, in);
+                Physics.step(simIn, sim, in);
                 lastYaw = yaw;
                 lastPitch = pitch;
             }
