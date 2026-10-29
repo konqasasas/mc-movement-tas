@@ -58,6 +58,13 @@ public class DifferentialFuzzTest {
     }
 
     @Test
+    public void thousandRandomRunsWithSwitchesMatchVanilla() {
+        for (long seed = 1; seed <= 1000; seed++) {
+            assertNull(DifferentialFuzz.check(RandomScenario.generateSwitches(seed, 200)));
+        }
+    }
+
+    @Test
     public void viewRayMatchesVanillaOnRandomClusters() {
         for (long seed = 1; seed <= 500; seed++) {
             assertNull(RayTraceFuzz.check(seed, 200));

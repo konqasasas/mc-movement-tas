@@ -59,6 +59,10 @@ public final class Mechanisms {
     static final int REDSTONE_BLOCK = 7;
     /** {@code BlockDoor}, either half. */
     static final int DOOR = 8;
+    /** {@code BlockButton}: weak power 15 while on, strong power to the block it hangs on. */
+    static final int BUTTON = 9;
+    /** {@code BlockLever}, the same power as a button. */
+    static final int LEVER = 10;
 
     /** How close to a plate's edge a box is taken as on the edge: the server's box can differ in the last bits. */
     static final double EDGE = 1.0E-6D;
@@ -155,12 +159,14 @@ public final class Mechanisms {
             case "minecraft:dark_oak_door":
             case "minecraft:iron_door":
                 return DOOR;
+            case "minecraft:stone_button":
+            case "minecraft:wooden_button":
+                return BUTTON;
+            case "minecraft:lever":
+                return LEVER;
             case "minecraft:redstone_wire":
             case "minecraft:redstone_torch":
             case "minecraft:unlit_redstone_torch":
-            case "minecraft:lever":
-            case "minecraft:stone_button":
-            case "minecraft:wooden_button":
             case "minecraft:tripwire_hook":
             case "minecraft:detector_rail":
             case "minecraft:daylight_detector":
@@ -197,15 +203,57 @@ public final class Mechanisms {
         }
     }
 
-    /** True for the blocks this class moves: pressure plates, trapdoors and doors. */
+    /**
+     * True for the blocks this class moves and the client sees only from the server: pressure plates,
+     * trapdoors, doors and levers. A button turns on in the client's own click ({@link Pressed}).
+     */
     public static boolean isModelled(BlockType t) {
         int k = t.mechanism();
-        return k >= WOODEN_PLATE && k <= TRAPDOOR || k == DOOR;
+        return k >= WOODEN_PLATE && k <= TRAPDOOR || k == DOOR || k == LEVER;
+    }
+
+    /** True for a trapdoor or a door: it follows the power around it when notified. */
+    public static boolean followsPower(BlockType t) {
+        int k = t.mechanism();
+        return k == TRAPDOOR || k == DOOR;
+    }
+
+    /** The side a button or lever faces, away from the block it hangs on; null if named without it. */
+    static Facing facingOf(BlockType t) {
+        String f = VanillaBlocks.parseProperties(t.name()).get("facing");
+        if (f == null) {
+            return null;
+        }
+        switch (f) {
+            case "down":
+            case "down_x":
+            case "down_z":
+                return Facing.DOWN;
+            case "up":
+            case "up_x":
+            case "up_z":
+                return Facing.UP;
+            default:
+                return Facing.valueOf(f.toUpperCase(java.util.Locale.ROOT));
+        }
+    }
+
+    /** True if the button or lever is on; a button named without it counts as unknown and is refused earlier. */
+    static boolean isOn(BlockType t) {
+        return "true".equals(VanillaBlocks.parseProperties(t.name()).get("powered"));
+    }
+
+    /** The button or lever turned on or off. */
+    static BlockType withOn(BlockType t, boolean on) {
+        Map<String, String> p = VanillaBlocks.parseProperties(t.name());
+        p.put("powered", Boolean.toString(on));
+        return VanillaBlocks.require(VanillaBlocks.name(VanillaBlocks.blockId(t.name()), p));
     }
 
     /**
-     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A plate
-     * the world shows with the power this one has keeps its name here (it may be named without its power).
+     * A copy with the client's blocks replaced, for the recorder that reads them off the live world. A block
+     * the world shows as this one has it keeps its name here (it may be named without some properties, as a
+     * plate without its power or a lever without whether it is on, which the world then has as built).
      */
     public Mechanisms withClient(BlockType[] shown) {
         if (shown.length != client.length) {
@@ -213,11 +261,21 @@ public final class Mechanisms {
         }
         BlockType[] c = shown.clone();
         for (int i = 0; i < c.length; i++) {
-            if (samePlate(client[i], c[i])) {
+            if (samePlate(client[i], c[i]) || agrees(client[i], c[i])) {
                 c[i] = client[i];
             }
         }
         return new Mechanisms(xyz, server, c, due, maybe);
+    }
+
+    /**
+     * True if {@code shown} is the block {@code named} with every property {@code named} gives; not for a plate,
+     * whose bare name means unpressed ({@link #samePlate}).
+     */
+    private static boolean agrees(BlockType named, BlockType shown) {
+        return !isPlate(named) && VanillaBlocks.blockId(named.name()).equals(VanillaBlocks.blockId(shown.name()))
+                && VanillaBlocks.parseProperties(shown.name()).entrySet()
+                        .containsAll(VanillaBlocks.parseProperties(named.name()).entrySet());
     }
 
     public static boolean isPlate(BlockType t) {
@@ -385,7 +443,9 @@ public final class Mechanisms {
                 McMath.floor(s.lastReportedPosZ)).slipperiness() * 0.91F : 0.91F;
         double fall = Math.max(0.0D, -s.motionY);
         Aabb reach = new Aabb(box.minX - drift, box.minY - fall, box.minZ - drift, box.maxX + drift, box.maxY, box.maxZ + drift);
-        if (s.mech.isNone() && !((base.mayContainPlates() || !s.placed.isEmpty()) && anyPlate(view, reach))) {
+        int[] activate = s.serverActivate;
+        s.serverActivate = null;
+        if (activate == null && s.mech.isNone() && !((base.mayContainPlates() || !s.placed.isEmpty()) && anyPlate(view, reach))) {
             // Nothing pressed and no plate within reach: the server changes nothing.
             drift *= (double) friction;
             s.serverDrift = drift < 0.003D ? 0.0D : drift;
@@ -393,7 +453,10 @@ public final class Mechanisms {
         }
         Work w = new Work(s.mech, view);
 
-        // Packets.
+        // Packets: the right-click (processTryUseItemOnBlock) comes before the move (processPlayer).
+        if (activate != null) {
+            w.activate(activate[0], activate[1], activate[2]);
+        }
         int[] wasMaybe = s.mech.maybe;
         List<int[]> pressedNow = new ArrayList<int[]>();
         List<List<int[]>> changedBy = new ArrayList<List<int[]>>();
@@ -447,6 +510,11 @@ public final class Mechanisms {
         w.age();
         for (int[] p : w.dueNow()) {
             BlockType b = w.get(p[0], p[1], p[2]);
+            if (b.mechanism() == BUTTON) {
+                // BlockButton.updateTick: no arrow is in a wooden one, so it turns off.
+                w.setOn(p[0], p[1], p[2], b, false);
+                continue;
+            }
             int now = power(b);
             int t = touches(box, p[0], p[1], p[2]);
             if (t == EDGE_TOUCH) {
@@ -604,6 +672,55 @@ public final class Mechanisms {
             }
         }
 
+        /** The client's copy of the block, which its own click changed. */
+        void setClient(int x, int y, int z, BlockType b) {
+            if (find(x, y, z) < 0) {
+                set(x, y, z, get(x, y, z));
+            }
+            client.set(find(x, y, z), b);
+        }
+
+        BlockType getClient(int x, int y, int z) {
+            int i = find(x, y, z);
+            return i >= 0 ? client.get(i) : base.getBlock(x, y, z);
+        }
+
+        /**
+         * {@code onBlockActivated} on the server: a button that is off turns on (the client turned its own copy
+         * on in the click) and turns off {@code tickRate} later; a lever toggles.
+         */
+        void activate(int x, int y, int z) {
+            BlockType b = get(x, y, z);
+            if (b.mechanism() == BUTTON) {
+                BlockType c = getClient(x, y, z);
+                if (c.mechanism() == BUTTON && !isOn(c)) {
+                    setClient(x, y, z, withOn(c, true));
+                }
+                if (isOn(b)) {
+                    return;
+                }
+                setOn(x, y, z, b, true);
+                schedule(x, y, z, Pressed.tickRate(b));
+            } else if (b.mechanism() == LEVER && VanillaBlocks.parseProperties(b.name()).containsKey("powered")) {
+                setOn(x, y, z, b, !isOn(b));
+            } else {
+                // Not the block the client clicked: the two worlds differ.
+                unsupported = true;
+            }
+        }
+
+        /** A button or lever turns on or off: {@code setBlockState} with flag 3, then {@code notifyNeighbors}. */
+        void setOn(int x, int y, int z, BlockType b, boolean on) {
+            Facing f = facingOf(b);
+            changing = new int[] {x, y, z};
+            changingWas = b;
+            set(x, y, z, withOn(b, on));
+            List<int[]> changed = new ArrayList<int[]>();
+            notifyAround(x, y, z, changed);
+            notifyAround(x, y, z, changed);
+            notifyAround(x - f.dx, y - f.dy, z - f.dz, changed);
+        }
+
         void schedule(int x, int y, int z, int ticks) {
             int i = find(x, y, z);
             due.set(i, ticks);
@@ -622,7 +739,8 @@ public final class Mechanisms {
         List<int[]> dueNow() {
             List<int[]> out = new ArrayList<int[]>();
             for (int i = 0; i < due.size(); i++) {
-                if (due.get(i) == 0 && isPlate(server.get(i)) && power(server.get(i)) > 0) {
+                BlockType b = server.get(i);
+                if (due.get(i) == 0 && (isPlate(b) && power(b) > 0 || b.mechanism() == BUTTON && isOn(b))) {
                     out.add(pos.get(i));
                 }
             }
@@ -669,6 +787,13 @@ public final class Mechanisms {
                 }
             } else if (k == DOOR) {
                 doorChanged(x, y, z, b, changed);
+            } else if (k == BUTTON || k == LEVER) {
+                // BlockButton.neighborChanged and BlockLever's: it stays on a normal cube and drops otherwise,
+                // which the engine does not model.
+                Facing f = facingOf(b);
+                if (f == null || !get(x - f.dx, y - f.dy, z - f.dz).isNormalCube()) {
+                    unsupported = true;
+                }
             } else if (k == OTHER_SOURCE && !notifyInert(b)
                     || k != OTHER_SOURCE && !isPlate(b) && (b.reactsToPower() || b.isExcept(BlockType.UNSTABLE))) {
                 // A plate only checks the block under it, which stays.
@@ -745,6 +870,9 @@ public final class Mechanisms {
                 unsupported = true;
                 return 0;
             }
+            if (b.mechanism() == BUTTON || b.mechanism() == LEVER) {
+                return isOn(b) && facingOf(b) == side ? 15 : 0;
+            }
             return isPlate(b) && side == Facing.UP ? power(b) : 0;
         }
 
@@ -755,6 +883,9 @@ public final class Mechanisms {
             }
             if (b.mechanism() == REDSTONE_BLOCK) {
                 return 15;
+            }
+            if (b.mechanism() == BUTTON || b.mechanism() == LEVER) {
+                return isOn(b) ? 15 : 0;
             }
             return isPlate(b) ? power(b) : 0;
         }

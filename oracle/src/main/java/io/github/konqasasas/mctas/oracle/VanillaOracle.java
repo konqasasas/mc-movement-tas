@@ -408,9 +408,16 @@ public final class VanillaOracle {
                 ? st.getValue(net.minecraft.block.BlockLever.FACING).getFacing()
                 : st.getValue(net.minecraft.block.BlockButton.FACING);
         BlockPos attached = pos.offset(facing.getOpposite());
+        boolean drives = false;
         for (EnumFacing n : EnumFacing.values()) {
             for (BlockPos q : new BlockPos[] {pos.offset(n), attached.offset(n)}) {
                 if (q.equals(pos)) {
+                    continue;
+                }
+                Block qb = world.getBlockState(q).getBlock();
+                if (qb instanceof net.minecraft.block.BlockTrapDoor || qb instanceof net.minecraft.block.BlockDoor) {
+                    // The server's tick moves it.
+                    drives = true;
                     continue;
                 }
                 BlockType t = VanillaBlocks.require(catalogName(world.getBlockState(q)));
@@ -419,6 +426,11 @@ public final class VanillaOracle {
                     return;
                 }
             }
+        }
+        // The engine follows the server's side of a lever always, and of a button that moves something.
+        boolean onServer = (b instanceof net.minecraft.block.BlockLever || drives) && serverReaches(pos, side);
+        if (onServer) {
+            server.activate(pos, side, f, f1, f2);
         }
         if (b instanceof net.minecraft.block.BlockLever) {
             // BlockLever.onBlockActivated returns at once on the client.
@@ -454,7 +466,9 @@ public final class VanillaOracle {
                         + changed + ", " + (world.scheduled - scheduled) + " updates scheduled");
             }
             world.placedLog.remove(world.placedLog.size() - 1);
-            pressed = pressed.with(pos.getX(), pos.getY(), pos.getZ(), VanillaBlocks.require(catalogName(st)));
+            if (!onServer) {
+                pressed = pressed.with(pos.getX(), pos.getY(), pos.getZ(), VanillaBlocks.require(catalogName(st)));
+            }
         }
     }
 
@@ -487,6 +501,17 @@ public final class VanillaOracle {
             screen = false;
             shulkerEvent = Shulker.Event.OPEN;
         }
+    }
+
+    /** {@code processTryUseItemOnBlock}'s checks: below the build limit and within 8 blocks of the position sent. */
+    private boolean serverReaches(BlockPos pos, EnumFacing side) {
+        if (!(pos.getY() < 255 || side != EnumFacing.UP && pos.getY() < 256)) {
+            return false;
+        }
+        double dx = lastReportedPosX - (pos.getX() + 0.5D);
+        double dy = lastReportedPosY - (pos.getY() + 0.5D);
+        double dz = lastReportedPosZ - (pos.getZ() + 0.5D);
+        return dx * dx + dy * dy + dz * dz < 64.0D;
     }
 
     private TileEntityShulkerBox shulkerTile() {

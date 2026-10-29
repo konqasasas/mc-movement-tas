@@ -145,7 +145,7 @@ public final class Placement {
      * hand). A button turns on at once on the client; a lever only answers the click there and changes
      * when the server says so, which does not change its selection box. Both power the block they hang
      * on, so either is unsupported next to anything that reacts to power or to a neighbour update
-     * ({@link #reacts}). A shulker box opens ({@link #openShulker}). Every other block that does
+     * ({@link #reacts}) other than a trapdoor or a door, which the server's tick moves ({@link Mechanisms}). A shulker box opens ({@link #openShulker}). Every other block that does
      * something of its own (doors, chests, ...) is unsupported.
      */
     private static void activate(BlockWorld world, PlayerState s, Hit hit, BlockType target, BlockType item) {
@@ -177,13 +177,22 @@ public final class Placement {
         int ay = hit.y + attached.dy;
         int az = hit.z + attached.dz;
         // BlockButton.notifyNeighbors and BlockLever's: the neighbours of the block and of the one it
-        // hangs on, when it turns on and again when it turns off.
+        // hangs on, when it turns on and again when it turns off. Trapdoors and doors among them follow the
+        // power on the server (Mechanisms).
+        boolean drives = false;
         for (Facing f : Facing.values()) {
-            if (reacts(world.getBlock(hit.x + f.dx, hit.y + f.dy, hit.z + f.dz))
-                    || f != attached.opposite() && reacts(world.getBlock(ax + f.dx, ay + f.dy, az + f.dz))) {
+            BlockType n = world.getBlock(hit.x + f.dx, hit.y + f.dy, hit.z + f.dz);
+            BlockType m = f != attached.opposite() ? world.getBlock(ax + f.dx, ay + f.dy, az + f.dz) : BlockType.AIR;
+            drives |= Mechanisms.followsPower(n) || Mechanisms.followsPower(m);
+            if (!Mechanisms.followsPower(n) && reacts(n) || !Mechanisms.followsPower(m) && reacts(m)) {
                 s.unsupportedAction = true;
                 return;
             }
+        }
+        // The server toggles a lever, and presses a button that moves something, in its own tick; the engine
+        // follows the lever always, a button only then.
+        if ((!button || drives) && serverReaches(s, hit)) {
+            s.serverActivate = new int[] {hit.x, hit.y, hit.z};
         }
         if (!button) {
             return;
@@ -191,6 +200,10 @@ public final class Placement {
         if (props.get("powered").equals("true")) {
             // BlockButton.onBlockActivated: already on, the click does nothing. One that may have turned
             // off again has no powered property here and was refused above.
+            return;
+        }
+        if (s.serverActivate != null) {
+            // Mechanisms keeps the client's copy too, which turns off when the server's turn-off arrives.
             return;
         }
         s.pressed = s.pressed.with(hit.x, hit.y, hit.z, target);

@@ -38,6 +38,29 @@ final class OracleServer {
     private final Set<BlockPos> touched = new LinkedHashSet<BlockPos>();
     private List<BlockPos> maybe = new ArrayList<BlockPos>();
     double drift;
+    /** The button or lever the client right-clicked this tick, and where on it; null for none. */
+    private BlockPos activatePos;
+    private EnumFacingHit activateHit;
+
+    private static final class EnumFacingHit {
+        final net.minecraft.util.EnumFacing side;
+        final float x;
+        final float y;
+        final float z;
+
+        EnumFacingHit(net.minecraft.util.EnumFacing side, float x, float y, float z) {
+            this.side = side;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    /** The client sent a right-click on a button or lever; the server takes it in its next packets. */
+    void activate(BlockPos pos, net.minecraft.util.EnumFacing side, float x, float y, float z) {
+        activatePos = pos.toImmutable();
+        activateHit = new EnumFacingHit(side, x, y, z);
+    }
 
     OracleServer(SparseBlockWorld blocks, OracleWorld client) {
         this.base = blocks;
@@ -130,6 +153,15 @@ final class OracleServer {
         }
         world.changes.clear();
         world.reachedUnmodelled = false;
+        if (activatePos != null) {
+            // processTryUseItemOnBlock comes before processPlayer: the game's own onBlockActivated on the server.
+            IBlockState st = world.getBlockState(activatePos);
+            st.getBlock().onBlockActivated(world, activatePos, st, entity, net.minecraft.util.EnumHand.MAIN_HAND,
+                    activateHit.side, activateHit.x, activateHit.y, activateHit.z);
+            touched.addAll(world.changes);
+            world.changes.clear();
+            activatePos = null;
+        }
         entity.collideWithBlocks();
         Map<BlockPos, List<BlockPos>> pressedNow = new LinkedHashMap<BlockPos, List<BlockPos>>();
         List<BlockPos> current = null;

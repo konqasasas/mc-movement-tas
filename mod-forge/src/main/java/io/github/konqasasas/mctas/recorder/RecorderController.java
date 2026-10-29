@@ -638,7 +638,8 @@ public final class RecorderController {
                 BlockType now = live.getBlock(x + originX, y, z + originZ);
                 // A door's upper half shows the lower half's open, which the engine keeps on the lower half.
                 if (!VanillaBlocks.storedName(now).equals(VanillaBlocks.storedName(type))
-                        && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)) {
+                        && !io.github.konqasasas.mctas.physics.Mechanisms.samePlate(type, now)
+                        && !builtAs(type, x + originX, y, z + originZ)) {
                     first[0] = (x + originX) + " " + y + " " + (z + originZ) + ": " + type + " -> " + now;
                 }
             }
@@ -1154,7 +1155,8 @@ public final class RecorderController {
                         // Placed into a replaceable block (tall grass, snow) on purpose.
                         return;
                     }
-                    if (phase == Phase.RUN && io.github.konqasasas.mctas.physics.Mechanisms.isModelled(type)) {
+                    if (phase == Phase.RUN && (io.github.konqasasas.mctas.physics.Mechanisms.isModelled(type)
+                            || inMechanisms(x + originX, y, z + originZ))) {
                         // Plates, trapdoors and doors move during a run; missedMechanism and readMechanisms follow them.
                         return;
                     }

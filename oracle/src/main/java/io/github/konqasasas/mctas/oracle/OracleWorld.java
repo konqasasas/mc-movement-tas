@@ -223,7 +223,11 @@ final class OracleWorld extends World {
 
     @Override
     public void neighborChanged(BlockPos pos, net.minecraft.block.Block blockIn, BlockPos fromPos) {
-        if (server) {
+        if (!server) {
+            // World.neighborChanged does nothing on the client (isRemote).
+            return;
+        }
+        {
             IBlockState st = getBlockState(pos);
             if (givesPower(pos)) {
                 // A daylight detector has no neighborChanged; the engine lets it be.
@@ -235,6 +239,16 @@ final class OracleWorld extends World {
             } else if (st.getBlock() instanceof net.minecraft.block.BlockTrapDoor) {
                 // The engine's rule: any other power source the trapdoor's power depends on is unsupported.
                 scanOtherSources(pos);
+            } else if (st.getBlock() instanceof net.minecraft.block.BlockButton
+                    || st.getBlock() instanceof net.minecraft.block.BlockLever) {
+                // The engine's rule: only one on a normal cube surely stays.
+                net.minecraft.util.EnumFacing f = st.getBlock() instanceof net.minecraft.block.BlockLever
+                        ? st.getValue(net.minecraft.block.BlockLever.FACING).getFacing()
+                        : st.getValue(net.minecraft.block.BlockButton.FACING);
+                if (!getBlockState(pos.offset(f.getOpposite())).isNormalCube()) {
+                    reachedUnmodelled = true;
+                    return;
+                }
             } else if (st.getBlock() instanceof net.minecraft.block.BlockDoor) {
                 // The engine's rules: a door that would break is unsupported, and so is any other power source
                 // either half's power depends on. The upper half passes the notification to the lower one.

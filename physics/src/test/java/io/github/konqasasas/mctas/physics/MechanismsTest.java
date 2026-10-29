@@ -44,8 +44,8 @@ public class MechanismsTest {
         assertFalse(s.unsupportedAction);
         assertFalse(s.mech.isNone());
 
-        // A lever there still reacts, so it stays unsupported.
-        w.setBlock(1, 64, 0, VanillaBlocks.require("minecraft:lever[facing=up_x]"));
+        // A redstone torch there is a source the engine does not model, so it stays unsupported.
+        w.setBlock(1, 64, 0, VanillaBlocks.require("minecraft:redstone_torch[facing=up]"));
         w.setBlock(0, 64, 0, VanillaBlocks.require("minecraft:stone_pressure_plate[powered=false]"));
         w.setBlock(0, 63, 0, BlockType.STONE);
         PlayerState t = PlayerState.standing(0.5, 64, 0.5, 0.0F);
