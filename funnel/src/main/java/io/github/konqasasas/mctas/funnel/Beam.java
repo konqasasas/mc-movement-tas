@@ -194,19 +194,25 @@ final class Beam {
         return n.entry >= 0 && problem.goal.contains(n.s.posX, n.s.posY, n.s.posZ);
     }
 
-    List<PlayerInput> actions(float heading, float[] offsets) {
-        List<PlayerInput> out = new ArrayList<PlayerInput>(offsets.length * 6 + 4);
+    /**
+     * The moves to try. W+A at a yaw 45 to the right of W moves the same way, and faster (the input is
+     * scaled to length 1 only when it is longer), so off a jump tick only the strafe is tried. On a
+     * jump tick the sprint jump's push follows the yaw, so W and both strafes are tried. A jump only
+     * acts on the ground or in water, so in the air there is no jump.
+     */
+    List<PlayerInput> actions(float heading, float[] offsets, boolean canJump) {
+        List<PlayerInput> out = new ArrayList<PlayerInput>(offsets.length * 4 + 4);
         for (float off : offsets) {
             float dir = heading + off;
-            for (int jump : new int[] {0, PlayerInput.JUMP}) {
-                int base = PlayerInput.SPRINT | jump;
-                out.add(PlayerInput.of(base | PlayerInput.W, dir));
-                out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.A, dir + 45));
-                out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.D, dir - 45));
-            }
+            out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.W | PlayerInput.A, dir + 45));
+            if (!canJump) continue;
+            int base = PlayerInput.SPRINT | PlayerInput.JUMP;
+            out.add(PlayerInput.of(base | PlayerInput.W, dir));
+            out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.A, dir + 45));
+            out.add(PlayerInput.of(base | PlayerInput.W | PlayerInput.D, dir - 45));
         }
         out.add(PlayerInput.of(PlayerInput.SPRINT, heading));
-        out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.JUMP, heading));
+        if (canJump) out.add(PlayerInput.of(PlayerInput.SPRINT | PlayerInput.JUMP, heading));
         out.add(PlayerInput.of(PlayerInput.SNEAK | PlayerInput.W, heading));
         out.add(PlayerInput.of(PlayerInput.SNEAK, heading));
         return out;
@@ -301,7 +307,9 @@ final class Beam {
                 Node n = cur.nodes[i];
                 float heading = before(n, o) ? toStart.heading(n.s.posX, n.s.posY, n.s.posZ) : field.heading(n.s.posX, n.s.posY, n.s.posZ);
                 if (Float.isNaN(heading)) heading = lastHeading;
-                List<PlayerInput> acts = actions(heading, o.offsets);
+                int cell = grid.cellOf(n.s.posX, n.s.posY, n.s.posZ);
+                boolean canJump = n.s.onGround || cell >= 0 && (grid.flags[cell] & Grid.WATER) != 0;
+                List<PlayerInput> acts = actions(heading, o.offsets, canJump);
                 lines(n, before(n, o) ? toStart : field, acts);
                 for (PlayerInput a : acts) {
                     Node m = step(n, a, o.judgeStart);
