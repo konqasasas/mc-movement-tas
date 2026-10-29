@@ -201,6 +201,11 @@ final class OraclePlayer extends net.minecraft.entity.player.EntityPlayer {
         return !a.isNormalCube() && !b.isNormalCube();
     }
 
+    /** {@code Entity.doBlockCollisions}, which is protected. */
+    void collideWithBlocks() {
+        doBlockCollisions();
+    }
+
     boolean inWebFlag() {
         return isInWeb;
     }
