@@ -99,6 +99,17 @@ for z in (2,7,12,17):
         F([0,67,z-1],[0,67,z-1],"structure_void"),F([0,67,z+1],[0,67,z+1],"structure_void")]
 f.append(F([-1,64,20],[1,64,23],"stone"))
 course("e11-water-hops",f,G(-1,65,21,2,24))
+# e14: posts of fences on cobblestone walls: the wall sticks out round the fence, and that rim is stood on
+# (beside the fence, round it), then the next post a block higher three on
+f=[F([0,64,3],[0,64,3],"cobblestone_wall"),F([0,65,3],[0,66,3],"jungle_fence"),
+   F([0,64,6],[0,64,6],"stone"),F([0,65,6],[0,65,6],"cobblestone_wall"),F([0,66,6],[0,67,6],"jungle_fence"),
+   F([-1,64,9],[1,65,12],"stone")]
+course("e14-wall-rims",f,G(-1,66,10,2,13))
+# e15: a lane two wide filled by a row of nether brick fences beside a row of oak fences: the two kinds do
+# not join, and the gap between them (0.15 for the player's centre) is the only way through
+f=[F([-1,65,-3],[-1,67,10],"wool"),F([2,65,-3],[2,67,10],"wool"),F([0,64,1],[1,64,10],"stone"),
+   F([0,65,2],[0,65,6],"nether_brick_fence"),F([1,65,2],[1,65,6],"fence")]
+course("e15-fence-gap",f,G(0,65,8,2,10))
 # e12, e13: hard posts rows drawn by devgen (three posts modules each, seeds 512 and 513), not copied
 # from any report-only course
 sys.path.insert(0,"../../../tools/devgen")
