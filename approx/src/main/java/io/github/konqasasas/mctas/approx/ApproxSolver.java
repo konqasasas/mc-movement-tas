@@ -129,10 +129,15 @@ public final class ApproxSolver {
         Route open = best == null ? new Route(problem, 0, false, false, true) : null;
         if (best == null && System.getenv("GUIDE_ONLY") == null) {
             long until = t0 + budgetMillis * 3 / 4;
+            // First with a stretch held to a third of the time, so one route stuck on a stretch
+            // another gets past does not use it all; then without.
+            long stall = (until - System.currentTimeMillis()) / 3;
+            for (int pass = 0; pass < 2 && best == null; pass++)
             for (int i = 0; i < routes.size() && best == null && System.currentTimeMillis() < until; i++) {
                 if (!routes.get(i).found()) continue;
                 // Routes share the time by need: one that gets through stops the loop.
                 List<PlayerInput> in = new Bridge(problem, routes.get(i)).explore(new Explore(problem, open).log(this::say)).log(this::say)
+                    .stall(pass == 0 ? stall : 0)
                     .run(until, Math.max(1000, Math.min(10_000, (until - System.currentTimeMillis()) / 4)));
                 if (in == null) continue;
                 int ticks = Rollout.ticks(problem, in, new int[1]);

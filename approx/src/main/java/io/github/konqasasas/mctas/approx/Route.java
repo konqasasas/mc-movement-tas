@@ -900,15 +900,17 @@ public final class Route {
         int x0 = (int) Math.floor(x) - 1, x1 = (int) Math.floor(x) + 1;
         int z0 = (int) Math.floor(z) - 1, z1 = (int) Math.floor(z) + 1;
         int y0 = (int) Math.floor(y), y1 = (int) Math.floor(b.top);
+        // And high enough: from the top of what is climbed, a jump rises at most SEARCH_RISE.
+        int high = Integer.MIN_VALUE;
         for (int bx = x0; bx <= x1; bx++) {
             for (int bz = z0; bz <= z1; bz++) {
                 for (int by = y0; by <= y1; by++) {
                     BlockType t = problem.world.getBlock(bx, by, bz);
-                    if (isClimbable(t) || isWater(t)) return true;
+                    if (isClimbable(t) || isWater(t)) high = Math.max(high, by);
                 }
             }
         }
-        return false;
+        return high > Integer.MIN_VALUE && (b.climb ? b.y : b.top) <= high + 1 + SEARCH_RISE + EPS;
     }
 
     /**
