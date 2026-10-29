@@ -74,7 +74,8 @@ public final class HopBound {
          * The tops near a top more than 0.6 under it that a falling tick from 0.6 under this top or
          * higher can be stopped by while it hits this top's side: the step-up try then starts where
          * the tick started, so it can end on this top, or, if it comes down clear of it, on the ground
-         * where it started (a hover landing; over a top in {@link #stepFrom} too).
+         * where it started (a hover landing; over a top in {@link #stepFrom} too). Only the tops with
+         * room for the box over them, clear of what is at this top's height, near its side count.
          */
         double[] hoverFrom = new double[0];
         /**
