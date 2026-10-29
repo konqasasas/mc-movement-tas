@@ -172,7 +172,7 @@ final class Explore {
                 if (System.currentTimeMillis() >= deadlineMillis) break;
                 // Onto a surface, or into a ladder, vine or water block.
                 Exit e = c.climb ? Exit.box(c.x, c.y, c.z, c.x + 1, c.y + 1 - 1e-9, c.z + 1)
-                        : Exit.landing(target(c));
+                        : landing(c);
                 Route.Surface slime = via.get(c);
                 Node m;
                 if (slime != null) {
@@ -313,6 +313,30 @@ final class Explore {
      */
     static Target target(Route.Surface c) {
         return new Target(c.minX + 0.02, c.maxX - 0.02, c.minZ + 0.02, c.maxZ - 0.02, c.top);
+    }
+
+    /**
+     * Landing on {@code c}. On a post or wall top, also slow enough to stay on it: a landing at the far
+     * edge at full speed leaves no tick to jump on from that a search finds.
+     */
+    static Exit landing(Route.Surface c) {
+        Target t = target(c);
+        Exit e = Exit.landing(t);
+        if (c.maxX - c.minX >= 1.5 && c.maxZ - c.minZ >= 1.5) return e;
+        return new Exit() {
+            @Override
+            public boolean reached(PlayerState before, PlayerState after) {
+                if (!e.reached(before, after)) return false;
+                // Where friction stops the player with no input: about 1.2 ticks of the speed further.
+                double x = after.posX + 1.2 * after.motionX, z = after.posZ + 1.2 * after.motionZ;
+                return x >= t.minX && x <= t.maxX && z >= t.minZ && z <= t.maxZ;
+            }
+
+            @Override
+            public double progress(PlayerState s, double along) {
+                return e.progress(s, along);
+            }
+        };
     }
 
     /** True when the floor under the player runs on to {@code c}'s centre at the same height. */
