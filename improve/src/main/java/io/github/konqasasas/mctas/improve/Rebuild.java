@@ -52,16 +52,50 @@ final class Rebuild {
             int[] spots = slowSpots(cur, lo, goal - 2);
             if (spots.length > 0) a = Math.max(lo, spots[rnd.nextInt(spots.length)] - rnd.nextInt(11));
         }
+        // The run whose inputs and states come before a: cur, or cur with a landing made a jump.
+        Run head = cur;
+        if (landChance > 0 && rnd.nextDouble() < landChance) {
+            int[] ls = shortLandings(cur, lo, goal - 8);
+            if (ls.length > 0) {
+                int land = ls[rnd.nextInt(ls.length)];
+                Run h = jumpOnLanding(c, cur, land, rnd);
+                if (h != null) {
+                    head = h;
+                    a = land + 1;
+                }
+            }
+        }
         boolean toGoal = goal - a <= 100 && rnd.nextDouble() < 0.3;
         boolean deep = rnd.nextDouble() < deepChance;
         int len = toGoal ? goal - a : Math.min(goal - a, deep ? 15 + rnd.nextInt(46)
                 : 6 + (int) (Math.pow(rnd.nextDouble(), 1.5) * (maxWindow - 6)));
+        if (head != cur) {
+            // After the early jump the run is in another phase of its jumps, so end on a later
+            // landing of the old run (a standing state) rather than in the air.
+            int skip = rnd.nextInt(3);
+            for (int t = a + 4; t < Math.min(goal - 1, a + maxWindow); t++) {
+                if (cur.states[t].onGround && !cur.states[t - 1].onGround && skip-- == 0) {
+                    len = t - a;
+                    toGoal = false;
+                    break;
+                }
+            }
+        }
+        if (head == cur && !toGoal && landExitChance > 0 && rnd.nextDouble() < landExitChance) {
+            // End on the old run's next landing: a standing state the old inputs after it fit better.
+            for (int t = a + len; t < Math.min(goal - 1, a + maxWindow); t++) {
+                if (t > a + 3 && cur.states[t].onGround && !cur.states[t - 1].onGround) {
+                    len = t - a;
+                    break;
+                }
+            }
+        }
         int b = a + len;
         SegmentSearch.Options o = options(c, rnd, deep);
         o.maxTicks = len + 1;
         o.extraActions = windowInputs(cur.inputs, a, b);
         budget(o, len);
-        PlayerState entry = cur.states[a];
+        PlayerState entry = head.states[a];
         Exit exit;
         float heading;
         if (toGoal || b >= goal) {
@@ -73,10 +107,12 @@ final class Rebuild {
                     (c.problem.goal.minZ + c.problem.goal.maxZ) / 2);
         } else {
             heading = heading(entry, cur.states[b]);
-            exit = anchor(cur.states[b], heading, SIDES[rnd.nextInt(SIDES.length)]);
+            // After an early jump the speed differs from the old run's, so only the plane counts.
+            double side = head != cur ? SIDES[SIDES.length - 1] : SIDES[rnd.nextInt(SIDES.length)];
+            exit = anchor(cur.states[b], heading, side);
         }
         SegmentSearch ss = new SegmentSearch();
-        List<SegmentSearch.Result> rs = ss.search(c.world, entry, cur.lastToggle[a] - a, exit, heading, o);
+        List<SegmentSearch.Result> rs = ss.search(c.world, entry, head.lastToggle[a] - a, exit, heading, o);
         if (!toGoal) sortByAnchor(rs, cur.states[b]);
         boolean faster = !rs.isEmpty() && rs.get(0).ticks() < len;
         boolean anyValid = false;
@@ -89,8 +125,8 @@ final class Rebuild {
         }
         for (SegmentSearch.Result r : rs) {
             if (tried++ >= 12) break;
-            PlayerInput[] in = Edits.splice(cur.inputs, a, r.inputs, cur.inputs, toGoal ? cur.inputs.length : b);
-            Run run = c.evaluate(cur, a, in);
+            PlayerInput[] in = Edits.splice(head.inputs, a, r.inputs, cur.inputs, toGoal ? cur.inputs.length : b);
+            Run run = c.evaluate(head, a, in);
             Run spliced = run;
             if (fixToggles) run = toggleFix.apply(c, run, rnd);
             if (!run.valid && !toGoal && tried <= 3) run = repair(c, cur, run, a + r.ticks(), len - r.ticks(), rnd);
@@ -144,6 +180,59 @@ final class Rebuild {
             if (flat == FLAT_RUN || (!s.onGround && s.collidedHorizontally)) out[n++] = t - (flat == FLAT_RUN ? FLAT_RUN - 1 : 0);
         }
         return java.util.Arrays.copyOf(out, n);
+    }
+
+    /**
+     * Chance that a rebuild first makes a short landing a jump ({@link #jumpOnLanding}) and rebuilds
+     * from the tick after it. WS14 (F-1007): the AI runs lose most of their ticks to landings that stay
+     * on the ground for 2 to 4 ticks before the next jump; the human jumps on the landing tick.
+     */
+    double landChance = 0;
+    /**
+     * Chance that a rebuild ends on the old run's next landing instead of any tick. Most splices that
+     * fail drift away from the old run after the joint (F-608); a standing state at the joint leaves
+     * less of the old motion (vertical speed, jump phase) for the old inputs to depend on.
+     */
+    double landExitChance = 0;
+
+    /** The first ground tick of each landing in {@code [lo, hi)} that stays on the ground for 2 to 4 ticks. */
+    static int[] shortLandings(Run run, int lo, int hi) {
+        int[] out = new int[Math.max(0, hi - lo)];
+        int n = 0;
+        for (int t = Math.max(1, lo); t < hi && t < run.length; t++) {
+            if (!run.states[t].onGround || run.states[t - 1].onGround) continue;
+            int g = groundTicks(run, t);
+            if (g >= 2 && g <= 4) out[n++] = t;
+        }
+        return java.util.Arrays.copyOf(out, n);
+    }
+
+    /** Ground ticks in a row from the landing at {@code t}. */
+    static int groundTicks(Run run, int t) {
+        int g = 0;
+        while (t + g <= run.length && run.states[t + g].onGround) g++;
+        return g;
+    }
+
+    /**
+     * {@code run} with the take-off after the landing at {@code land} moved onto the landing tick:
+     * the input at the landing gets the take-off's keys and view (plus jump), and half the time the
+     * view turns to the take-off's direction a few ticks before, in the air. The rest of the inputs
+     * stay; the caller rebuilds from the tick after the jump. Null when the run breaks before then.
+     */
+    static Run jumpOnLanding(Course c, Run run, int land, Random rnd) {
+        int g = groundTicks(run, land);
+        PlayerInput take = run.inputs[land + g - 1];
+        PlayerInput[] in = run.inputs.clone();
+        int from = land;
+        if (rnd.nextBoolean()) {
+            from = Math.max(0, land - 1 - rnd.nextInt(6));
+            for (int i = from; i < land; i++) in[i] = Edits.withYaw(in[i], take.yaw);
+        }
+        in[land] = new PlayerInput(take.keys | PlayerInput.JUMP, take.yaw, take.pitch, take.slot);
+        Run h = c.evaluate(run, from, in);
+        if (h.length < land + 1 || h.states[land + 1].onGround) return null;
+        return h;
     }
 
     /** Start repairs where the run drifts from the old one, not where it fails ({@link #drift}). */

@@ -37,7 +37,7 @@ public final class ImproveMain {
     private static final String USAGE = String.join("\n",
             "usage:",
             "  mctas-improve run <problem.json|problem-dir> --seeds <file|dir>[,...] --out <dir> [--budget seconds]",
-            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--quiet]",
+            "        [--threads N] [--rng N] [--width N] [--window N] [--shares micro,rebuild,cma,cross] [--fixed-shares] [--no-toggle-fix] [--no-drift] [--focus p] [--rejump p] [--land p] [--quiet]",
             "    Improves the seed runs of each problem for --budget seconds (default 60) and writes",
             "    <id with / as _>.solution.json and .tas to --out. Seeds are .tas or .solution.json files; in a",
             "    directory, a .solution.json is matched by the problem id inside, a .tas by its file name",
@@ -77,6 +77,8 @@ public final class ImproveMain {
                 case "--no-drift": o.useDrift = false; break;
                 case "--focus": o.focusChance = Double.parseDouble(args[++i]); break;
                 case "--rejump": o.rejumpChance = Double.parseDouble(args[++i]); break;
+                case "--land": o.landChance = Double.parseDouble(args[++i]); break;
+                case "--land-exit": o.landExitChance = Double.parseDouble(args[++i]); break;
                 default:
                     if (a.startsWith("--")) throw new IllegalArgumentException("unknown option " + a);
                     Path p = Paths.get(a);
@@ -144,8 +146,8 @@ public final class ImproveMain {
             sb.append(String.format(" %s %d calls %.0f s %d bests;", m.name().toLowerCase(), st.calls[k], st.nanos[k] / 1e9,
                     st.bests[k]));
         }
-        System.out.printf("%s: %d -> %d ticks in %.1f s (%s)%n  moves:%s%n", p.id, seedBest.ticks(), best.ticks(),
-                nanos / 1e9, check, sb);
+        System.out.printf("%s: %d -> %d ticks in %.1f s (%s)%n  moves:%s%n  seed %s; best %s%n", p.id, seedBest.ticks(),
+                best.ticks(), nanos / 1e9, check, sb, Improver.landings(seedBest), Improver.landings(best));
         return true;
     }
 
